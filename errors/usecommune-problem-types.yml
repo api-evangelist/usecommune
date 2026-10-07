@@ -1,0 +1,84 @@
+generated: '2026-10-07'
+method: searched
+source: https://usecommune.dev/errors
+format: application/json error envelope (not RFC 9457)
+envelope:
+  shape: '{"error": {"code": "<code>", "message": "...", "request_id": "req_...", "docs_url": "https://usecommune.dev/errors/<code>",
+    "param": "<optional>", "allowed_values": "<optional>"}}'
+  request_id_header: Commune-Request-Id
+  docs_url_pattern: https://usecommune.dev/errors/{code}
+problems:
+- status: 400
+  title: bad_request
+  type: https://usecommune.dev/errors/bad_request
+  description: 'Something in the request itself is wrong: a query parameter, a header or the body.'
+  remediation: Change the request and send it again.
+- status: 400
+  title: invalid_version
+  type: https://usecommune.dev/errors/invalid_version
+  description: The Commune-Version header names a contract version this API does not serve.
+  remediation: Send one from allowed_values, or leave the header out.
+- status: 401
+  title: unauthorized
+  type: https://usecommune.dev/errors/unauthorized
+  description: 'The request carried no credential the API accepts: none at all, a malformed one, or one that is
+    unknown, revoked or expired.'
+  remediation: 'Send an API key or OAuth access token as Authorization: Bearer; mint a new key if revoked or expired.'
+- status: 403
+  title: forbidden
+  type: https://usecommune.dev/errors/forbidden
+  description: The credential is valid but cannot act on the newsletter you addressed, or on the key you tried to
+    revoke.
+  remediation: Use a credential granted on that newsletter.
+- status: 403
+  title: insufficient_scope
+  type: https://usecommune.dev/errors/insufficient_scope
+  description: The credential reaches the newsletter but does not hold the permission this operation, filter or
+    expansion needs.
+  remediation: Grant the named family at the named level and retry.
+- status: 402
+  title: payment_required
+  type: https://usecommune.dev/errors/payment_required
+  description: The credential may do this, but the newsletter's Commune plan does not include it. Reads outside
+    insights stay free.
+  remediation: Upgrade the newsletter plan.
+- status: 404
+  title: not_found
+  type: https://usecommune.dev/errors/not_found
+  description: Nothing this credential may see exists at that identifier. It may not exist at all, or your credential
+    may not be allowed to know it does.
+  remediation: Check the identifier and the credential grant.
+- status: 409
+  title: conflict
+  type: https://usecommune.dev/errors/conflict
+  description: The Idempotency-Key on this write was already used for a different request, or a request with the
+    same key has not finished.
+  remediation: Use a new key for a new change; reuse the key only for an identical retry.
+- status: 422
+  title: unprocessable
+  type: https://usecommune.dev/errors/unprocessable
+  description: The request is well formed, and the current state of what it addresses refuses it. The message says
+    what is in the way.
+  remediation: Read the message and change the state or the request.
+- status: 422
+  title: not_commune_newsletter
+  type: https://usecommune.dev/errors/not_commune_newsletter
+  description: Articles can only be created or edited on a newsletter Commune publishes itself, one whose esp is
+    commune.
+  remediation: 'Only write articles on newsletters with esp: commune.'
+- status: 429
+  title: rate_limited
+  type: https://usecommune.dev/errors/rate_limited
+  description: A rate limit budget or a daily send limit is spent.
+  remediation: Wait Retry-After seconds (hours for daily send limits); the message names which limit it was.
+- status: 500
+  title: internal_error
+  type: https://usecommune.dev/errors/internal_error
+  description: Something failed inside Commune.
+  remediation: Retry with backoff, reusing the same Idempotency-Key for a write, and quote the request id if it
+    persists.
+- status: 503
+  title: service_unavailable
+  type: https://usecommune.dev/errors/service_unavailable
+  description: A service this one operation depends on did not answer. The rest of the API is unaffected.
+  remediation: Retry this operation after Retry-After.

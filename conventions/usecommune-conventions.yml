@@ -1,0 +1,135 @@
+generated: '2026-10-07'
+method: searched
+source: https://api.usecommune.com/openapi.json (info.description); https://usecommune.dev/guides/getting-started; https://usecommune.dev/errors/conflict;
+  https://api-reference.usecommune.dev/group/webhook-webhooks
+description: 'Cross-cutting semantics of the Commune API: bearer auth with per-newsletter permission families, a required Idempotency-Key on every
+  write, cursor pagination, date-based contract versioning via a header, a request-id on every response, IETF RateLimit headers and a fixed JSON
+  error envelope.'
+base_url: https://api.usecommune.com
+api_style: REST, JSON, no version segment in the path
+authentication:
+  scheme: bearer
+  key_types:
+  - API key (cmn_sk_... minted in Settings)
+  - OAuth 2.1 access token (authorization code + PKCE, dynamic client registration)
+  docs: https://usecommune.dev/use-cases/build-an-integration
+  detail: Six permission families (content, audience, sending, insights, settings, webhooks) each none/read/write, granted per newsletter; write
+    implies read only within its own family; account:read is a separate axis. Permissions are bounded live by what the holder can do on the newsletter
+    at request time.
+idempotency:
+  coverage: full
+  supported: true
+  mechanism: request header / body token declared in the OpenAPI
+  applies_to: all mutating operations (every POST/PATCH/DELETE)
+  key_format: caller-chosen opaque string (the guide uses a UUID)
+  retention: 24 hours, per credential
+  replay_signal: 'Idempotent-Replay: true response header on a replayed answer'
+  conflict_behavior: 409 conflict when the key is reused for a different request (operation, path, query string, body and contract version must
+    all match) or while the first request is still in flight
+  docs: https://usecommune.dev/errors/conflict
+  header: Idempotency-Key
+  evidence: Idempotency-Key on 18 of 19 mutating operations
+  verified: derived
+dry_run_mode:
+  supported: partial
+  mechanism: POST /articles/{article}/test-send (sendArticleTest) renders and emails a test copy without touching the list, the article status
+    or publishing an event
+  sandbox: none
+  detail: 'servers[0].description: ''Production. There is no separate sandbox host.'''
+  docs: https://api-reference.usecommune.dev/operation/operation-sendarticletest
+reversibility:
+  grade: verified
+  docs: https://usecommune.dev/guides/getting-started
+  summary: 'Guide: ''Most changes can be taken back. Sending an article to the list cannot: it emails real people.'''
+  surfaces:
+  - write: scheduleArticle
+    reversal: unscheduleArticle
+    window: any time before the article goes out; once dispatched it cannot be recalled (an article that is not scheduled answers 422)
+    docs: https://api-reference.usecommune.dev/operation/operation-unschedulearticle
+  - write: sendArticle
+    reversal: null
+    window: 'none: "Sends this article to the newsletter''s subscribers. Cannot be undone."'
+    docs: https://api-reference.usecommune.dev/operation/operation-sendarticle
+  - write: addSubscriberTag
+    reversal: removeSubscriberTag
+    window: no stated limit; removal works even on a retired tag
+    docs: https://api-reference.usecommune.dev/operation/operation-removesubscribertag
+  - write: addTagSubscribers
+    reversal: removeSubscriberTag
+    window: no stated limit (one subscriber per call)
+    docs: https://api-reference.usecommune.dev/operation/operation-removesubscribertag
+  - write: createTag
+    reversal: deleteTag
+    window: deleted outright only if no article was ever addressed to the tag; otherwise retired, never removed
+    docs: https://api-reference.usecommune.dev/operation/operation-deletetag
+  - write: createArticle
+    reversal: updateArticle (edit only)
+    window: no delete-article operation exists in contract 2026-08-26
+    docs: https://api-reference.usecommune.dev/group/endpoint-articles
+  - write: revokeApiKey
+    reversal: null
+    window: 'none: "Revocation only goes one way"; a replacement is minted in Commune settings'
+    docs: https://api-reference.usecommune.dev/operation/operation-revokeapikey
+  - write: createThread / createMessage / publishThread
+    reversal: null
+    window: no delete or unpublish operation in the contract
+    docs: https://api-reference.usecommune.dev/group/endpoint-threads
+pagination:
+  style: cursor
+  request_params:
+  - cursor
+  - limit (up to 100)
+  response_fields:
+  - data
+  - pagination.next_cursor
+  - pagination.has_more
+  detail: No offset, limit-offset or page number; a cursor is not a durable identifier.
+  docs: https://usecommune.dev/guides/getting-started
+identifiers:
+  detail: Resources with a page carry a UUID id and a short URL-friendly short_id; either is accepted in a path parameter.
+request_tracing:
+  request_id_header: Commune-Request-Id
+  description: On every response; echoed as request_id in error bodies. Quote it in support requests.
+versioning:
+  scheme: date
+  mechanism: Commune-Version request header (release date, e.g. 2026-08-26); omitted = pinned to the version current when the API key was issued
+  current: '2026-08-26'
+  response_header: Commune-Version (echoed on every response)
+  discovery: GET /status reports the newest version served; ?version= selects a contract version of /openapi.json
+  changelog: https://api-reference.usecommune.dev/changes
+  docs: https://usecommune.dev/guides/getting-started
+error_envelope:
+  media_type: application/json
+  rfc9457: false
+  shape: '{"error": {"code", "message", "request_id", "docs_url", "param?", "allowed_values?"}}'
+  types: 13
+  detail: Every error carries a code and a docs_url pointing at https://usecommune.dev/errors/<code>.
+  docs: https://usecommune.dev/errors
+rate_limits:
+  signal_status: 429
+  headers:
+  - RateLimit-Limit
+  - RateLimit-Remaining
+  - RateLimit-Reset
+  - RateLimit-Policy
+  - Retry-After
+  detail: Three per-credential budgets (general, audience, write) plus daily send caps; GET /rate-limit reports every budget.
+  docs: https://usecommune.dev/errors/rate_limited
+webhooks:
+  signing_header: Commune-Signature
+  timestamp_header: Commune-Timestamp
+  verification: HMAC-SHA256 keyed with the whsec_ secret over "<unix seconds>.<raw body>", lowercase hex, as v0=<digest>[,<digest>] during rotation
+  event_headers:
+  - Commune-Event-Type
+  - Commune-Event-Id
+  - Commune-Delivery-Attempt
+  delivery: at least once, unordered; non-2xx or timeout retried with backoff, eleven attempts over about eight and a half hours
+  echo_rule: a write through the API publishes an event carrying actor and idempotency_key; consumers that write must skip events whose idempotency_key
+    they issued
+  docs: https://api-reference.usecommune.dev/group/webhook-webhooks
+other_conventions:
+- Writes count against a separate write rate-limit budget (60 per 60 seconds by default).
+- Unpublished rows (drafts, scheduled articles, segment-addressed threads) are visible only to credentials holding write in any family on the
+  newsletter.
+- The contract is served by the API at /openapi.json and /openapi.yaml; ?profile=docs returns the rendering variant.
+- 'robots.txt on usecommune.com declares Content-Signal: search=yes, ai-input=yes, ai-train=no; usecommune.dev allows ai-train=yes.'

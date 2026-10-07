@@ -1,0 +1,55 @@
+generated: '2026-10-07'
+method: searched
+name: Commune pricing
+source: https://usecommune.com/pricing
+audience: business-product
+pricing_basis: tiered-subscription
+published: true
+currency: EUR
+delivery:
+  delivery: managed
+plan_count: 3
+note: Prices are for the Commune newsletter/community product; the API and MCP server come with it (API reads outside
+  insights stay free per the errors docs; payment_required (402) gates insights by plan). "Free to connect. Pay
+  when Commune sends."
+plans:
+- name: Community
+  price_text: €0 forever
+  price: 0
+  billing_period: forever
+  description: Connect your existing newsletter on Substack, Kit, Beehiiv, MailerLite, Buttondown, Ghost, or Mailchimp.
+    It stays where it is.
+  features:
+  - Threaded chat on every post
+  - Moderation tools
+  - Engagement insights and subscriber analytics
+  - Growth tracking and acquisition sources
+  - Superfan identification
+  - Role-based access for your team
+  limits: []
+- name: Creator
+  price_text: €9 / month
+  price: 9
+  billing_period: month
+  description: Everything in Community, plus publishing, sending and hosting from Commune. 14-day free trial, no
+    credit card.
+  features:
+  - Publish, send, and host the community all from Commune
+  - Custom sending domain
+  - Full rich-text editor
+  - Reliable deliverability so your emails land in the inbox, not spam
+  limits:
+  - name: Email allowance
+    limit_text: 6 emails per subscriber per month
+  - name: Overage
+    limit_text: €1 per 1,000
+- name: Enterprise
+  price_text: Custom
+  price: Contact sales
+  description: For lists over 50,000 subscribers or bespoke deliverability requirements.
+  features:
+  - Volume pricing for very large lists
+  - Dedicated sending infrastructure
+  - Custom contract and invoicing
+  - Direct access to the team
+  limits: []

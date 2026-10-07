@@ -1,0 +1,882 @@
+generated: '2026-10-07'
+method: generated
+source: openapi/usecommune-openapi.yml
+description: Recommended x-agentic-access execution contracts, classified heuristically from
+  the OpenAPI. A governance starting point for exposing this API to AI agents — review and bind
+  audience per deployment. See research/curity/agentic-governance/.
+summary:
+  operations: 63
+  by_action_class:
+    connected: 44
+    acting: 19
+  by_consequence:
+    read: 44
+    write: 15
+    physical: 3
+    safety-critical: 1
+  human_in_the_loop_required: 1
+operations:
+- path: /status
+  method: get
+  operationId: getStatus
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /rate-limit
+  method: get
+  operationId: getRateLimit
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters
+  method: get
+  operationId: listNewsletters
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters/{newsletter}
+  method: get
+  operationId: getNewsletter
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters/{newsletter}/articles
+  method: get
+  operationId: listNewsletterArticles
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - content:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters/{newsletter}/articles
+  method: post
+  operationId: createArticle
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - content:write
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /articles/{article}
+  method: get
+  operationId: getArticle
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - content:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /articles/{article}
+  method: patch
+  operationId: updateArticle
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - content:write
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /articles/{article}/authors
+  method: get
+  operationId: listArticleAuthors
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - content:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /articles/{article}/images
+  method: post
+  operationId: createArticleImage
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - content:write
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /articles/{article}/test-send
+  method: post
+  operationId: sendArticleTest
+  x-agentic-access:
+    action-class: acting
+    consequence: physical
+    subject: required
+    scope:
+    - sending:write
+    audience: null
+    token:
+      max-ttl: 300
+      exchange: true
+      purpose-required: true
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /articles/{article}/schedule
+  method: post
+  operationId: scheduleArticle
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - sending:write
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /articles/{article}/unschedule
+  method: post
+  operationId: unscheduleArticle
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - sending:write
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /articles/{article}/send
+  method: post
+  operationId: sendArticle
+  x-agentic-access:
+    action-class: acting
+    consequence: physical
+    subject: required
+    scope:
+    - sending:write
+    audience: null
+    token:
+      max-ttl: 300
+      exchange: true
+      purpose-required: true
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /newsletters/{newsletter}/senders
+  method: get
+  operationId: listNewsletterSenders
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - sending:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /senders/{sender}
+  method: get
+  operationId: getSender
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - sending:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters/{newsletter}/domains
+  method: get
+  operationId: listNewsletterDomains
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - settings:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /domains/{domain}
+  method: get
+  operationId: getDomain
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - settings:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /search
+  method: get
+  operationId: search
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - content:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /articles/{article}/highlights
+  method: get
+  operationId: listArticleHighlights
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - content:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /highlights/{highlight}
+  method: get
+  operationId: getHighlight
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - content:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters/{newsletter}/tags
+  method: get
+  operationId: listNewsletterTags
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - audience:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters/{newsletter}/tags
+  method: post
+  operationId: createTag
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - audience:write
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /tags/{tag}
+  method: get
+  operationId: getTag
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - audience:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /tags/{tag}
+  method: patch
+  operationId: updateTag
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - audience:write
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /tags/{tag}
+  method: delete
+  operationId: deleteTag
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - audience:write
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /tags/{tag}/subscribers
+  method: post
+  operationId: addTagSubscribers
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - audience:write
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /newsletters/{newsletter}/members
+  method: get
+  operationId: listNewsletterMembers
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - settings:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters/{newsletter}/subscribers
+  method: get
+  operationId: listNewsletterSubscribers
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - audience:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /subscribers/{subscriber}
+  method: get
+  operationId: getSubscriber
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - audience:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /subscribers/{subscriber}/tags/{tag}
+  method: post
+  operationId: addSubscriberTag
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - audience:write
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /subscribers/{subscriber}/tags/{tag}
+  method: delete
+  operationId: removeSubscriberTag
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - audience:write
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /newsletters/{newsletter}/threads
+  method: get
+  operationId: listNewsletterThreads
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - content:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters/{newsletter}/threads
+  method: post
+  operationId: createThread
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - content:write
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /threads/{thread}
+  method: get
+  operationId: getThread
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - content:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /threads/{thread}/publish
+  method: post
+  operationId: publishThread
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - content:write
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /threads/{thread}/messages
+  method: get
+  operationId: listThreadMessages
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - content:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /threads/{thread}/messages
+  method: post
+  operationId: createMessage
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - content:write
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /messages/{message}
+  method: get
+  operationId: getMessage
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - content:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /me
+  method: get
+  operationId: getMe
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /memberships
+  method: get
+  operationId: listMemberships
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - account:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /subscriptions
+  method: get
+  operationId: listSubscriptions
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - account:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /saved-articles
+  method: get
+  operationId: listSavedArticles
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - account:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /liked-articles
+  method: get
+  operationId: listLikedArticles
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - account:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /users/{user}
+  method: get
+  operationId: getUser
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters/{newsletter}/insights
+  method: get
+  operationId: listNewsletterInsights
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - insights:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters/{newsletter}/events
+  method: get
+  operationId: listNewsletterEvents
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - insights:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters/{newsletter}/stats
+  method: get
+  operationId: getNewsletterStats
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - insights:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters/{newsletter}/growth
+  method: get
+  operationId: getNewsletterGrowth
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - insights:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters/{newsletter}/timeseries
+  method: get
+  operationId: getNewsletterTimeseries
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - insights:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /articles/{article}/stats
+  method: get
+  operationId: getArticleStats
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - insights:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters/{newsletter}/destinations
+  method: get
+  operationId: listNewsletterDestinations
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - webhooks:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters/{newsletter}/delivery-attempts
+  method: get
+  operationId: listNewsletterDeliveryAttempts
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - sending:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /delivery-attempts/{attempt}
+  method: get
+  operationId: getDeliveryAttempt
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - sending:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /delivery-attempts/{attempt}/replay
+  method: post
+  operationId: replayDeliveryAttempt
+  x-agentic-access:
+    action-class: acting
+    consequence: physical
+    subject: required
+    scope:
+    - sending:write
+    audience: null
+    token:
+      max-ttl: 300
+      exchange: true
+      purpose-required: true
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /newsletters/{newsletter}/portal-session
+  method: post
+  operationId: createPortalSession
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - webhooks:write
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /newsletters/{newsletter}/community
+  method: get
+  operationId: listNewsletterCommunity
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - audience:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters/{newsletter}/sends
+  method: get
+  operationId: listNewsletterSends
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - sending:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /sends/{send}
+  method: get
+  operationId: getSend
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - sending:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters/{newsletter}/entitlements
+  method: get
+  operationId: getNewsletterEntitlements
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - settings:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /newsletters/{newsletter}/api-keys
+  method: get
+  operationId: listNewsletterApiKeys
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - settings:write
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /api-keys/{key}
+  method: get
+  operationId: getApiKey
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - settings:write
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /api-keys/{key}
+  method: delete
+  operationId: revokeApiKey
+  x-agentic-access:
+    action-class: acting
+    consequence: safety-critical
+    subject: required
+    scope:
+    - settings:write
+    audience: null
+    token:
+      max-ttl: 120
+      exchange: true
+      purpose-required: true
+      proof-of-possession: true
+    escalation:
+      human-in-the-loop: required
+    audit: required

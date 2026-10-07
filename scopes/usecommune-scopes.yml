@@ -1,0 +1,157 @@
+generated: '2026-10-07'
+method: searched
+source: openapi/usecommune-openapi.yml; https://usecommune.com/.well-known/oauth-authorization-server; https://api.usecommune.com/.well-known/oauth-protected-resource
+schemes:
+- name: oauth2
+  source: openapi/usecommune-openapi.yml
+  flows:
+  - flow: authorizationCode
+    authorizationUrl: https://usecommune.com/api/oauth/authorize
+    tokenUrl: https://usecommune.com/api/oauth/token
+  description: 'An OAuth access token, sent as `Authorization: Bearer <token>`. The
+
+    walkthrough of the whole flow is at
+
+    [usecommune.dev/use-cases/build-an-integration](https://usecommune.dev/use-cases/build-an-integration):
+
+    discovery, registration, PKCE, the consent screen, the exchange, refresh
+
+    and revocation.
+
+
+    Ask for a family scope and the person picks which newsletter
+
+    the token reaches; ask for `account:read` alone and it reaches no
+
+    newsletter and reads only the account it belongs to.
+
+
+    Each operation lists the scopes a token must carry to call it. An
+
+    operation that lists none takes any token.
+
+
+    Discover the URLs under `flows` at runtime from
+
+    `GET /.well-known/oauth-authorization-server` rather than hardcoding
+
+    them.'
+scopes:
+- scope: account:read
+  description: Read the person the credential belongs to, and nothing about any newsletter.
+  flows:
+  - authorizationCode
+  sources:
+  - openapi/usecommune-openapi.yml
+- scope: audience:read
+  description: Read subscribers, tags and segments, including email addresses.
+  flows:
+  - authorizationCode
+  sources:
+  - openapi/usecommune-openapi.yml
+- scope: audience:write
+  description: Add, tag and remove subscribers.
+  flows:
+  - authorizationCode
+  sources:
+  - openapi/usecommune-openapi.yml
+- scope: content:read
+  description: Read articles, threads and the rest of what a newsletter publishes.
+  flows:
+  - authorizationCode
+  sources:
+  - openapi/usecommune-openapi.yml
+- scope: content:write
+  description: Create, edit and delete that content.
+  flows:
+  - authorizationCode
+  sources:
+  - openapi/usecommune-openapi.yml
+- scope: insights:read
+  description: Read engagement, delivery and growth figures.
+  flows:
+  - authorizationCode
+  sources:
+  - openapi/usecommune-openapi.yml
+- scope: insights:write
+  description: Write back an insight the newsletter owns.
+  flows:
+  - authorizationCode
+  sources:
+  - openapi/usecommune-openapi.yml
+- scope: sending:read
+  description: Read sends, schedules and delivery outcomes.
+  flows:
+  - authorizationCode
+  sources:
+  - openapi/usecommune-openapi.yml
+- scope: sending:write
+  description: Send an article, schedule one, and cancel a schedule.
+  flows:
+  - authorizationCode
+  sources:
+  - openapi/usecommune-openapi.yml
+- scope: settings:read
+  description: Read a newsletter's configuration, senders and domains.
+  flows:
+  - authorizationCode
+  sources:
+  - openapi/usecommune-openapi.yml
+- scope: settings:write
+  description: Change that configuration.
+  flows:
+  - authorizationCode
+  sources:
+  - openapi/usecommune-openapi.yml
+- scope: webhooks:read
+  description: Read event destinations and their delivery history.
+  flows:
+  - authorizationCode
+  sources:
+  - openapi/usecommune-openapi.yml
+- scope: webhooks:write
+  description: Create and remove event destinations.
+  flows:
+  - authorizationCode
+  sources:
+  - openapi/usecommune-openapi.yml
+- scope: offline_access
+  description: Issues a refresh token (grant_types_supported includes refresh_token). Listed in the authorization
+    server metadata scopes_supported but not in the OpenAPI securityScheme.
+  source: https://usecommune.com/.well-known/oauth-authorization-server
+docs: https://usecommune.dev/use-cases/build-an-integration
+model:
+  families:
+  - content
+  - audience
+  - sending
+  - insights
+  - settings
+  - webhooks
+  levels:
+  - none
+  - read
+  - write
+  rules:
+  - write implies read within its own family and nowhere else
+  - permissions are granted per newsletter and bounded live by what the holder can do there
+  - account:read is a separate axis, implied by no family and implying none
+  - an authorization asking only for account:read is granted no newsletter
+  docs: https://api.usecommune.com/openapi.json (info.description, Authentication)
+authorization_server:
+  issuer: https://usecommune.com
+  authorization_endpoint: https://usecommune.com/api/oauth/authorize
+  token_endpoint: https://usecommune.com/api/oauth/token
+  registration_endpoint: https://usecommune.com/api/oauth/register
+  revocation_endpoint: https://usecommune.com/api/oauth/revoke
+  userinfo_endpoint: https://usecommune.com/api/oauth/userinfo
+  code_challenge_methods_supported:
+  - S256
+  grant_types_supported:
+  - authorization_code
+  - refresh_token
+  token_endpoint_auth_methods_supported:
+  - none
+  - client_secret_basic
+  - client_secret_post
+  resource_indicators_supported: true

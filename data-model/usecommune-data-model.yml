@@ -1,0 +1,1058 @@
+generated: '2026-10-07'
+method: derived
+generator: derive-data-model.py
+source:
+- openapi/usecommune-openapi.yml
+notation: has_one = property $ref; has_many = array of $ref; belongs_to = <entity>_id field
+summary:
+  entities: 111
+  entities_in_spec: 111
+  relationships: 179
+entities:
+- name: Actor
+  fields: 3
+  description: Who caused the change, and `null` when nobody outside Commune did.
+- name: ApiKey
+  fields: 15
+  description: A credential, as it can be described without its secret.
+- name: Article
+  fields: 18
+  description: One article of a newsletter, without its body. Every collection of
+- name: ArticleCreateRequest
+  fields: 5
+  description: 'A new article. Every property is optional: `{}` creates an empty'
+- name: ArticleImage
+  fields: 6
+  description: An image stored for an article, at a URL that does not change. The
+- name: ArticleImageRequest
+  fields: 2
+  description: Exactly one of `source_url` or `content_type`.
+- name: ArticleImageUpload
+  fields: 5
+  description: A one-time upload. Send the file's bytes as the request body, with
+- name: ArticleLikedData
+  fields: 7
+  description: Body of `article.liked`. Which article, who, which way the like moved, and the tally afterwards.
+- name: ArticleLikedEvent
+  fields: 0
+  description: A reader liked an article, or took the like back.
+- name: ArticlePerformance
+  fields: 4
+  description: 'One article measured on both sides at once: what the email did, and what'
+- name: ArticlePublishedData
+  fields: 7
+- name: ArticlePublishedEvent
+  fields: 0
+  description: An article became publicly readable.
+- name: ArticleReadData
+  fields: 5
+  description: 'Body of `article.read`. Which article, who read it, and when they crossed from unread to read. There
+    is no count here and no way to build one: the topic reports first reads by signed-in people only.'
+- name: ArticleReadEvent
+  fields: 0
+  description: A reader stayed with an article long enough to have read it.
+- name: ArticleScheduledData
+  fields: 3
+- name: ArticleScheduledEvent
+  fields: 0
+  description: An article written in Commune was queued for a future send.
+- name: ArticleStats
+  fields: 3
+  description: Engagement counts for an article, computed at read time. These are
+- name: ArticleSummary
+  fields: 10
+  description: 'An article as anybody sees it, without its body: what expanding the'
+- name: ArticleUpdateRequest
+  fields: 5
+  description: The properties of an article to change. Send at least one; an empty object
+- name: ArticleWithContent
+  fields: 0
+  description: An article including its rendered body. Returned only by
+- name: BillingSubscriptionUpdatedData
+  fields: 8
+- name: BillingSubscriptionUpdatedEvent
+  fields: 0
+  description: The newsletter's own Commune subscription changed state.
+- name: CommunityMember
+  fields: 5
+  description: One person's public place in a newsletter's community.
+- name: DeliveryAttempt
+  fields: 13
+  description: One handover of one event to one destination, and what came of it.
+- name: DeliveryBouncedEvent
+  fields: 0
+  description: The message could not be delivered.
+- name: DeliveryClickedEvent
+  fields: 0
+  description: The recipient clicked a tracked link.
+- name: DeliveryComplainedEvent
+  fields: 0
+  description: The recipient reported the message as spam.
+- name: DeliveryDeliveredEvent
+  fields: 0
+  description: The provider confirmed the message reached the recipient server.
+- name: DeliveryEventData
+  fields: 7
+  description: Shared body of the five `delivery.*` topics. One delivery to one recipient, identified by both Commune's
+    ids and the provider's message id, so a consumer can reconcile with its own provider logs.
+- name: DeliveryOpenedEvent
+  fields: 0
+  description: The recipient opened the message.
+- name: DeliveryReplay
+  fields: 4
+  description: The acknowledgement that a replay was accepted.
+- name: Dependency
+  fields: 4
+  description: One capability the API depends on, and how it answered. `required` is
+- name: Destination
+  fields: 10
+  description: One place a newsletter's published events are delivered to.
+- name: DnsRecord
+  fields: 5
+  description: A record the creator has to publish in their own DNS before Commune can
+- name: Domain
+  fields: 14
+  description: A creator's own domain serving their Commune site. The certificate
+- name: DomainVerifiedData
+  fields: 4
+- name: DomainVerifiedEvent
+  fields: 0
+  description: A creator's custom website domain went live.
+- name: EngagementEvent
+  fields: 9
+  description: One scored action by one reader, unaggregated, so a consumer can build
+- name: Entitlement
+  fields: 7
+  description: One capability, and whether this newsletter's key has it.
+- name: Entitlements
+  fields: 5
+  description: What this newsletter's plan includes, and what a key bound to it may
+- name: Error
+  fields: 1
+  description: The error envelope. Every non `2xx` response from every operation has
+- name: EventEnvelope
+  fields: 8
+  description: The shape every message on every topic shares. The concrete event schemas below narrow `type` and
+    fill in `data`; nothing else varies.
+- name: Highlight
+  fields: 11
+  description: A passage of an article a reader marked. Highlights are the anchor for
+- name: HighlightCreatedData
+  fields: 8
+  description: 'Body of `highlight.created`. The passage, where it sits in the article, and an opaque owner token.
+    No `user_id`: Commune does not attribute a highlight to a named reader.'
+- name: HighlightCreatedEvent
+  fields: 0
+  description: A reader marked a passage of an article.
+- name: ImportCompletedData
+  fields: 5
+  description: Body of `import.completed`. Which kind of run finished, where its rows came from, and how much it
+    moved.
+- name: ImportCompletedEvent
+  fields: 0
+  description: An article, subscriber or migration run finished.
+- name: LikedArticle
+  fields: 3
+  description: One article this account liked.
+- name: ListEnvelope
+  fields: 2
+  description: The envelope every collection is returned in. `data` holds the page,
+- name: Me
+  fields: 8
+  description: The account behind the credential that asked.
+- name: Media
+  fields: 3
+  description: An image or file attached to a thread or a message.
+- name: MediaCreateRequest
+  fields: 3
+  description: 'An attachment, by URL. Commune does not copy it: the URL is shown as'
+- name: Member
+  fields: 6
+  description: A person's place on a newsletter's team.
+- name: Membership
+  fields: 5
+  description: One newsletter team this account belongs to, seen from the account's
+- name: Message
+  fields: 16
+  description: 'A reply inside a thread. Commune allows two levels: a reply to the'
+- name: MessageCreateRequest
+  fields: 4
+  description: A reply in a thread.
+- name: MessageCreatedData
+  fields: 9
+- name: MessageCreatedEvent
+  fields: 0
+  description: A reply was posted inside a thread.
+- name: Newsletter
+  fields: 16
+  description: 'A newsletter and its public profile. Nothing operational is exposed:'
+- name: NewsletterGrowth
+  fields: 5
+  description: Where a newsletter's new subscribers came from inside one window.
+- name: NewsletterPermissions
+  fields: 6
+  description: What a credential may do on one newsletter, family by family.
+- name: NewsletterStats
+  fields: 8
+  description: 'A newsletter''s headline numbers over one window: audience movement, what'
+- name: NewsletterSummary
+  fields: 9
+  description: 'A newsletter as anybody sees it: what expanding the `newsletter` on a'
+- name: Pagination
+  fields: 2
+  description: Cursor pagination state. Commune never exposes an offset or a page
+- name: PortalSession
+  fields: 3
+  description: A link into the delivery portal, and the moment it stops working.
+- name: RateLimit
+  fields: 6
+  description: A key's rate limit state. The top level fields repeat the `general`
+- name: RateLimitPolicy
+  fields: 7
+  description: One budget a key is measured against. A request is charged to every
+- name: Reaction
+  fields: 3
+  description: One emoji on a message, and how many people left it.
+- name: Ref
+  fields: 2
+  description: An unexpanded relationship. Ask for the relationship in `?expand=` to
+- name: SavedArticle
+  fields: 3
+  description: One article this account put aside to read later.
+- name: ScheduleRequest
+  fields: 2
+  description: When an article should go out.
+- name: SearchResult
+  fields: 7
+  description: One hit. It always carries enough to render a row without a second
+- name: Send
+  fields: 10
+  description: One dispatch of one article to a newsletter's list.
+- name: SendCompletedData
+  fields: 7
+- name: SendCompletedEvent
+  fields: 0
+  description: A send run finished handing every recipient to the provider.
+- name: SendFailedData
+  fields: 3
+- name: SendFailedEvent
+  fields: 0
+  description: A send run broke and the article was parked in failed.
+- name: SendRequest
+  fields: 1
+  description: Options for a send. Every field is optional, and sending no body at all
+- name: Sender
+  fields: 17
+  description: An address a newsletter sends from. Nothing about the underlying email
+- name: SenderVerifiedData
+  fields: 8
+- name: SenderVerifiedEvent
+  fields: 0
+  description: A sending identity passed verification and can now send.
+- name: ServiceStatus
+  fields: 4
+  description: The service's own health, the state of what it depends on, and the
+- name: SocialLinks
+  fields: 8
+  description: The creator's other homes on the internet, stored as canonical profile
+- name: Subscriber
+  fields: 10
+  description: One person's membership of one newsletter. The same person subscribing
+- name: SubscriberCreatedData
+  fields: 7
+- name: SubscriberCreatedEvent
+  fields: 0
+  description: Someone became a subscriber, or an unsubscribed one came back.
+- name: SubscriberInsight
+  fields: 13
+  description: One reader's engagement with one newsletter, scored across both the
+- name: SubscriberStatusChangedData
+  fields: 9
+  description: 'Body of `subscriber.status_changed`. Identifiers plus what describes the crossing, and not the insight
+    itself: read `GET /newsletters/{newsletter}/insights` for the full scored row.'
+- name: SubscriberStatusChangedEvent
+  fields: 0
+  description: A reader crossed a boundary in the newsletter's engagement ladder.
+- name: SubscriberTaggedData
+  fields: 5
+  description: Body of `subscriber.tagged`. Which subscriber, which tag, and which way the membership moved.
+- name: SubscriberTaggedEvent
+  fields: 0
+  description: A subscriber tag was applied or taken off.
+- name: SubscriberUnsubscribedData
+  fields: 5
+- name: SubscriberUnsubscribedEvent
+  fields: 0
+  description: A subscriber stopped being mailable.
+- name: Subscription
+  fields: 4
+  description: One newsletter this account subscribes to, from the account's side.
+- name: Tag
+  fields: 8
+  description: A segment of a newsletter's audience. A tag is what makes an article
+- name: TagAssignment
+  fields: 5
+  description: What applying a tag to a list of subscribers did, subscriber by
+- name: TagAssignmentRequest
+  fields: 1
+  description: The subscribers to put in a segment. The segment is the tag in the
+- name: TagCreateRequest
+  fields: 1
+  description: A new, empty segment of the newsletter's audience.
+- name: TagDeletion
+  fields: 4
+  description: What became of a tag that was deleted, which is one of two things.
+- name: TagUpdateRequest
+  fields: 1
+  description: 'A tag''s new name. The only thing about a tag that can be changed: who'
+- name: TestSend
+  fields: 6
+  description: What one test send attempted and what the sending provider accepted.
+- name: TestSendRequest
+  fields: 1
+  description: Where a test copy of an article goes. Empty, or no body at all, sends
+- name: Thread
+  fields: 16
+  description: A conversation in a newsletter's community, together with the message
+- name: ThreadCreateRequest
+  fields: 3
+  description: A new thread in a newsletter's community.
+- name: ThreadCreatedData
+  fields: 8
+- name: ThreadCreatedEvent
+  fields: 0
+  description: A new top-level thread was started in a newsletter's space.
+- name: ThreadPublishedData
+  fields: 10
+  description: Body of `thread.published`. Which thread reached the feed, how it got there, and enough to render
+    a feed row without a second call.
+- name: ThreadPublishedEvent
+  fields: 0
+  description: A thread's visibility became public and it hit the global feed.
+- name: Timeseries
+  fields: 7
+  description: One metric bucketed over a window. The shape a chart consumes, and the
+- name: User
+  fields: 5
+  description: A person's public profile, and the whole of what this API returns about
+- name: UserRef
+  fields: 4
+  description: A pointer to a Commune account, enough to attribute and render something without a second call. Null
+    when there is no account to point at, either because there never was one or because the account was
+relationships:
+- from: ListEnvelope
+  to: Pagination
+  type: has_one
+  via: pagination
+- from: RateLimit
+  to: RateLimitPolicy
+  type: has_many
+  via: policies
+- from: ServiceStatus
+  to: Dependency
+  type: has_many
+  via: dependencies
+- from: Newsletter
+  to: SocialLinks
+  type: has_one
+  via: social_links
+- from: Newsletter
+  to: Ref
+  type: has_one
+  via: owner
+- from: Newsletter
+  to: User
+  type: has_one
+  via: owner
+- from: Newsletter
+  to: Ref
+  type: has_one
+  via: featured_article
+- from: Newsletter
+  to: Article
+  type: has_one
+  via: featured_article
+- from: Article
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: Article
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: Article
+  to: Ref
+  type: has_many
+  via: authors
+- from: Article
+  to: User
+  type: has_many
+  via: authors
+- from: Article
+  to: Ref
+  type: has_one
+  via: thread
+- from: Article
+  to: Thread
+  type: has_one
+  via: thread
+- from: Article
+  to: ArticleStats
+  type: has_one
+  via: stats
+- from: ThreadCreateRequest
+  to: MediaCreateRequest
+  type: has_many
+  via: media
+- from: MessageCreateRequest
+  to: MediaCreateRequest
+  type: has_many
+  via: media
+- from: ArticleImage
+  to: ArticleImageUpload
+  type: has_one
+  via: upload
+- from: TestSend
+  to: Ref
+  type: has_one
+  via: article
+- from: Sender
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: Sender
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: Sender
+  to: DnsRecord
+  type: has_many
+  via: verification_records
+- from: Domain
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: Domain
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: Domain
+  to: DnsRecord
+  type: has_many
+  via: verification_records
+- from: Destination
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: Destination
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: DeliveryAttempt
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: DeliveryAttempt
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: DeliveryAttempt
+  to: Ref
+  type: has_one
+  via: destination
+- from: DeliveryReplay
+  to: Ref
+  type: has_one
+  via: attempt
+- from: DeliveryReplay
+  to: Ref
+  type: has_one
+  via: destination
+- from: Entitlements
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: Entitlements
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: Entitlements
+  to: Entitlement
+  type: has_many
+  via: api_access
+- from: ApiKey
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: ApiKey
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: ApiKey
+  to: NewsletterPermissions
+  type: has_one
+  via: permissions
+- from: ApiKey
+  to: Ref
+  type: has_one
+  via: created_by
+- from: ApiKey
+  to: User
+  type: has_one
+  via: created_by
+- from: SearchResult
+  to: Ref
+  type: has_one
+  via: resource
+- from: SearchResult
+  to: Newsletter
+  type: has_one
+  via: resource
+- from: SearchResult
+  to: Article
+  type: has_one
+  via: resource
+- from: SearchResult
+  to: Thread
+  type: has_one
+  via: resource
+- from: SearchResult
+  to: Message
+  type: has_one
+  via: resource
+- from: Highlight
+  to: Ref
+  type: has_one
+  via: article
+- from: Highlight
+  to: Article
+  type: has_one
+  via: article
+- from: Highlight
+  to: Ref
+  type: has_one
+  via: message
+- from: Highlight
+  to: Message
+  type: has_one
+  via: message
+- from: Tag
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: Tag
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: TagDeletion
+  to: Tag
+  type: has_one
+  via: tag
+- from: TagAssignment
+  to: Tag
+  type: has_one
+  via: tag
+- from: Member
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: Member
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: Member
+  to: Ref
+  type: has_one
+  via: user
+- from: Member
+  to: User
+  type: has_one
+  via: user
+- from: Subscriber
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: Subscriber
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: Subscriber
+  to: Ref
+  type: has_one
+  via: user
+- from: Subscriber
+  to: User
+  type: has_one
+  via: user
+- from: Subscriber
+  to: Ref
+  type: has_many
+  via: tags
+- from: Subscriber
+  to: Tag
+  type: has_many
+  via: tags
+- from: Thread
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: Thread
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: Thread
+  to: Ref
+  type: has_one
+  via: author
+- from: Thread
+  to: User
+  type: has_one
+  via: author
+- from: Thread
+  to: Media
+  type: has_many
+  via: media
+- from: Thread
+  to: Ref
+  type: has_one
+  via: article
+- from: Thread
+  to: Article
+  type: has_one
+  via: article
+- from: Message
+  to: Ref
+  type: has_one
+  via: thread
+- from: Message
+  to: Thread
+  type: has_one
+  via: thread
+- from: Message
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: Message
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: Message
+  to: Ref
+  type: has_one
+  via: author
+- from: Message
+  to: User
+  type: has_one
+  via: author
+- from: Message
+  to: Ref
+  type: has_one
+  via: parent
+- from: Message
+  to: Ref
+  type: has_one
+  via: quoted
+- from: Message
+  to: Media
+  type: has_many
+  via: media
+- from: Message
+  to: Ref
+  type: has_one
+  via: highlight
+- from: Message
+  to: Highlight
+  type: has_one
+  via: highlight
+- from: Message
+  to: Reaction
+  type: has_many
+  via: reactions
+- from: Reaction
+  to: Ref
+  type: has_many
+  via: users
+- from: Membership
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: Membership
+  to: NewsletterSummary
+  type: has_one
+  via: newsletter
+- from: Subscription
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: Subscription
+  to: NewsletterSummary
+  type: has_one
+  via: newsletter
+- from: SavedArticle
+  to: Ref
+  type: has_one
+  via: article
+- from: SavedArticle
+  to: ArticleSummary
+  type: has_one
+  via: article
+- from: LikedArticle
+  to: Ref
+  type: has_one
+  via: article
+- from: LikedArticle
+  to: ArticleSummary
+  type: has_one
+  via: article
+- from: NewsletterSummary
+  to: SocialLinks
+  type: has_one
+  via: social_links
+- from: ArticleSummary
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: SubscriberInsight
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: SubscriberInsight
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: SubscriberInsight
+  to: Ref
+  type: has_one
+  via: subscriber
+- from: SubscriberInsight
+  to: Subscriber
+  type: has_one
+  via: subscriber
+- from: EngagementEvent
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: EngagementEvent
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: EngagementEvent
+  to: Ref
+  type: has_one
+  via: subscriber
+- from: EngagementEvent
+  to: Subscriber
+  type: has_one
+  via: subscriber
+- from: NewsletterStats
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: NewsletterStats
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: NewsletterGrowth
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: NewsletterGrowth
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: Timeseries
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: Timeseries
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: ArticlePerformance
+  to: Ref
+  type: has_one
+  via: article
+- from: ArticlePerformance
+  to: Article
+  type: has_one
+  via: article
+- from: ArticleLikedData
+  to: Article
+  type: belongs_to
+  via: article_id
+- from: ArticleLikedData
+  to: UserRef
+  type: has_one
+  via: reader
+- from: ArticleLikedEvent
+  to: ArticleLikedData
+  type: has_one
+  via: data
+- from: ArticlePublishedData
+  to: Article
+  type: belongs_to
+  via: article_id
+- from: ArticlePublishedEvent
+  to: ArticlePublishedData
+  type: has_one
+  via: data
+- from: ArticleReadData
+  to: Article
+  type: belongs_to
+  via: article_id
+- from: ArticleReadData
+  to: UserRef
+  type: has_one
+  via: reader
+- from: ArticleReadEvent
+  to: ArticleReadData
+  type: has_one
+  via: data
+- from: ArticleScheduledData
+  to: Article
+  type: belongs_to
+  via: article_id
+- from: ArticleScheduledEvent
+  to: ArticleScheduledData
+  type: has_one
+  via: data
+- from: BillingSubscriptionUpdatedData
+  to: Subscription
+  type: belongs_to
+  via: subscription_id
+- from: BillingSubscriptionUpdatedEvent
+  to: BillingSubscriptionUpdatedData
+  type: has_one
+  via: data
+- from: CommunityMember
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: CommunityMember
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: CommunityMember
+  to: Ref
+  type: has_one
+  via: user
+- from: CommunityMember
+  to: User
+  type: has_one
+  via: user
+- from: DeliveryBouncedEvent
+  to: DeliveryEventData
+  type: has_one
+  via: data
+- from: DeliveryClickedEvent
+  to: DeliveryEventData
+  type: has_one
+  via: data
+- from: DeliveryComplainedEvent
+  to: DeliveryEventData
+  type: has_one
+  via: data
+- from: DeliveryDeliveredEvent
+  to: DeliveryEventData
+  type: has_one
+  via: data
+- from: DeliveryEventData
+  to: Article
+  type: belongs_to
+  via: article_id
+- from: DeliveryEventData
+  to: Send
+  type: belongs_to
+  via: send_id
+- from: DeliveryEventData
+  to: Subscriber
+  type: belongs_to
+  via: subscriber_id
+- from: DeliveryOpenedEvent
+  to: DeliveryEventData
+  type: has_one
+  via: data
+- from: DomainVerifiedData
+  to: Domain
+  type: belongs_to
+  via: domain_id
+- from: DomainVerifiedEvent
+  to: DomainVerifiedData
+  type: has_one
+  via: data
+- from: EventEnvelope
+  to: Newsletter
+  type: belongs_to
+  via: newsletter_id
+- from: EventEnvelope
+  to: Actor
+  type: has_one
+  via: actor
+- from: HighlightCreatedData
+  to: Highlight
+  type: belongs_to
+  via: highlight_id
+- from: HighlightCreatedData
+  to: Article
+  type: belongs_to
+  via: article_id
+- from: HighlightCreatedData
+  to: Message
+  type: belongs_to
+  via: message_id
+- from: HighlightCreatedEvent
+  to: HighlightCreatedData
+  type: has_one
+  via: data
+- from: ImportCompletedEvent
+  to: ImportCompletedData
+  type: has_one
+  via: data
+- from: MessageCreatedData
+  to: Message
+  type: belongs_to
+  via: message_id
+- from: MessageCreatedData
+  to: Thread
+  type: belongs_to
+  via: thread_id
+- from: MessageCreatedData
+  to: UserRef
+  type: has_one
+  via: author
+- from: MessageCreatedEvent
+  to: MessageCreatedData
+  type: has_one
+  via: data
+- from: Send
+  to: Ref
+  type: has_one
+  via: article
+- from: Send
+  to: Article
+  type: has_one
+  via: article
+- from: Send
+  to: Ref
+  type: has_one
+  via: newsletter
+- from: Send
+  to: Newsletter
+  type: has_one
+  via: newsletter
+- from: SendCompletedData
+  to: Article
+  type: belongs_to
+  via: article_id
+- from: SendCompletedData
+  to: Send
+  type: belongs_to
+  via: send_id
+- from: SendCompletedEvent
+  to: SendCompletedData
+  type: has_one
+  via: data
+- from: SendFailedData
+  to: Article
+  type: belongs_to
+  via: article_id
+- from: SendFailedData
+  to: Send
+  type: belongs_to
+  via: send_id
+- from: SendFailedEvent
+  to: SendFailedData
+  type: has_one
+  via: data
+- from: SenderVerifiedData
+  to: Sender
+  type: belongs_to
+  via: sender_id
+- from: SenderVerifiedEvent
+  to: SenderVerifiedData
+  type: has_one
+  via: data
+- from: SubscriberCreatedData
+  to: Subscriber
+  type: belongs_to
+  via: subscriber_id
+- from: SubscriberCreatedData
+  to: User
+  type: belongs_to
+  via: user_id
+- from: SubscriberCreatedEvent
+  to: SubscriberCreatedData
+  type: has_one
+  via: data
+- from: SubscriberStatusChangedData
+  to: Subscriber
+  type: belongs_to
+  via: subscriber_id
+- from: SubscriberStatusChangedData
+  to: User
+  type: belongs_to
+  via: user_id
+- from: SubscriberStatusChangedEvent
+  to: SubscriberStatusChangedData
+  type: has_one
+  via: data
+- from: SubscriberTaggedData
+  to: Subscriber
+  type: belongs_to
+  via: subscriber_id
+- from: SubscriberTaggedData
+  to: Tag
+  type: belongs_to
+  via: tag_id
+- from: SubscriberTaggedEvent
+  to: SubscriberTaggedData
+  type: has_one
+  via: data
+- from: SubscriberUnsubscribedData
+  to: Subscriber
+  type: belongs_to
+  via: subscriber_id
+- from: SubscriberUnsubscribedEvent
+  to: SubscriberUnsubscribedData
+  type: has_one
+  via: data
+- from: ThreadCreatedData
+  to: Thread
+  type: belongs_to
+  via: thread_id
+- from: ThreadCreatedData
+  to: UserRef
+  type: has_one
+  via: author
+- from: ThreadCreatedData
+  to: Article
+  type: belongs_to
+  via: article_id
+- from: ThreadCreatedEvent
+  to: ThreadCreatedData
+  type: has_one
+  via: data
+- from: ThreadPublishedData
+  to: Thread
+  type: belongs_to
+  via: thread_id
+- from: ThreadPublishedData
+  to: UserRef
+  type: has_one
+  via: author
+- from: ThreadPublishedData
+  to: UserRef
+  type: has_one
+  via: published_by
+- from: ThreadPublishedData
+  to: Article
+  type: belongs_to
+  via: article_id
+- from: ThreadPublishedEvent
+  to: ThreadPublishedData
+  type: has_one
+  via: data
+- from: UserRef
+  to: User
+  type: belongs_to
+  via: user_id

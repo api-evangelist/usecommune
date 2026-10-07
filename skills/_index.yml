@@ -1,0 +1,23 @@
+generated: '2026-10-07'
+method: generated
+source: >-
+  Packaged Agent Skills generated from the Commune OpenAPI (contract 2026-08-26) and the use-case guides on
+  https://usecommune.dev. Every step is grounded in an operationId verified verbatim in ../openapi/usecommune-openapi.yml;
+  cross-cutting rules cite ../conventions/, ../errors/, ../rate-limits/ and ../authentication/.
+skills:
+  - file: usecommune-publish-an-article.md
+    name: Publish an article
+    api: openapi/usecommune-openapi.yml
+    operations: [listNewsletters, createArticle, updateArticle, sendArticleTest, scheduleArticle, unscheduleArticle, sendArticle, getSend]
+  - file: usecommune-segment-subscribers.md
+    name: Segment subscribers
+    api: openapi/usecommune-openapi.yml
+    operations: [listNewsletterSubscribers, listNewsletterInsights, listNewsletterTags, createTag, addTagSubscribers, addSubscriberTag, removeSubscriberTag, deleteTag]
+  - file: usecommune-newsletter-pulse.md
+    name: Newsletter pulse
+    api: openapi/usecommune-openapi.yml
+    operations: [getMe, listMemberships, getNewsletterStats, getNewsletterGrowth, getNewsletterTimeseries, listNewsletterArticles, getArticleStats, listNewsletterThreads, listThreadMessages, getRateLimit]
+  - file: usecommune-consume-events.md
+    name: Consume events
+    api: openapi/usecommune-openapi.yml
+    operations: [createPortalSession, listNewsletterDestinations, listNewsletterEvents, listNewsletterDeliveryAttempts, getDeliveryAttempt, replayDeliveryAttempt]

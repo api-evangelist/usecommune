@@ -1,0 +1,790 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/usecommune/main/json-schema/usecommune-newsletter-stats-schema.json",
+  "title": "NewsletterStats",
+  "description": "A newsletter's headline numbers over one window: audience movement, what\nwas published, community activity and email performance.\n\nNothing here is a running total. Every number describes the resolved\nwindow, which the response echoes so a client can label a chart without\nrecomputing what it asked for.\n",
+  "x-generated": "2026-10-07",
+  "x-method": "derived",
+  "x-generator": "derive-json-schema.py",
+  "x-source": "openapi/usecommune-openapi.yml#/components/schemas/NewsletterStats",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "object",
+    "newsletter",
+    "period_start",
+    "period_end",
+    "audience",
+    "publishing",
+    "community",
+    "delivery"
+  ],
+  "properties": {
+    "object": {
+      "type": "string",
+      "const": "newsletter_stats",
+      "description": "Always `newsletter_stats`."
+    },
+    "newsletter": {
+      "description": "The newsletter these numbers describe. A `Ref` unless `newsletter`\nis named in `?expand=`.\n",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Ref"
+        },
+        {
+          "$ref": "#/$defs/Newsletter"
+        }
+      ]
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Start of the resolved window, inclusive. Echoed because `period`,\n`since` and `until` can each decide it.\n"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date-time",
+      "description": "End of the resolved window, exclusive."
+    },
+    "audience": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "How the list moved. Every count here comes from Commune's own\nsubscriber records, which are the source of truth only for a\n`commune` newsletter.\n",
+      "required": [
+        "known_subscribers",
+        "net_change",
+        "by_status"
+      ],
+      "properties": {
+        "known_subscribers": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many subscribers Commune has a record of at `period_end`.\nNot the newsletter's subscriber count. For a newsletter\nconnected to an outside provider, Commune's records are a\npartial cache of that provider's list, filled in by imports and\nby people who joined through Commune, so this is a floor and not\na total. Ask the provider for the real number.\n"
+        },
+        "net_change": {
+          "type": "integer",
+          "description": "Subscribers gained minus subscribers lost inside the window,\nagainst the same partial record. Negative when the list shrank.\n"
+        },
+        "by_status": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "How the known subscribers split across the subscription states\nat `period_end`. The keys are the `SubscriberStatus` values.\n",
+          "required": [
+            "subscribed",
+            "unsubscribed",
+            "bounced",
+            "complained",
+            "pending"
+          ],
+          "properties": {
+            "subscribed": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Mailable."
+            },
+            "unsubscribed": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Opted out, and kept so the history survives."
+            },
+            "bounced": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Undeliverable, and suppressed by the send pipeline."
+            },
+            "complained": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Reported the email as spam, and suppressed."
+            },
+            "pending": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Recorded but not yet confirmed as mailable."
+            }
+          }
+        }
+      }
+    },
+    "publishing": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Cadence. These are counts of articles, never counts of emails.\n",
+      "required": [
+        "sent",
+        "scheduled"
+      ],
+      "properties": {
+        "sent": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Articles that went out inside the window and that Commune has a\nrecord of. Commune's record is not exhaustive, so never present\nthis as the number of emails the newsletter sent. That number\nlives on a send.\n\nFor a key that holds only read permissions, only the articles it\ncan read: published and not restricted to a tag.\n"
+        },
+        "scheduled": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Articles queued to go out after `period_end`. A forward looking\ncount, so it does not move when the window does.\n\n`null` for a key that holds only read permissions. Queued\narticles are unpublished, which such a key may not see, so it is\nnot told how many there are. `null` is not a count of zero: the\nnewsletter may well have articles queued.\n"
+        }
+      }
+    },
+    "community": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "What happened in the newsletter's community inside the window. All\nfour are Commune side counts with no email equivalent.\n\nFor a key that holds only read permissions, all four cover only\nwhat it can read: public conversations and the replies in them, and\nhighlights on articles it can read. An article's own discussion is\nvisible to subscribers only, so it is not counted for such a key.\n",
+      "required": [
+        "threads",
+        "messages",
+        "highlights",
+        "reactions"
+      ],
+      "properties": {
+        "threads": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Conversations started, including the ones Commune opens under a\npublished article.\n"
+        },
+        "messages": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Replies posted inside those conversations. An article's comments\nare replies in its thread, so they are counted here.\n"
+        },
+        "highlights": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Passages readers marked inside an article."
+        },
+        "reactions": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Emoji reactions added to a message."
+        }
+      }
+    },
+    "delivery": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "description": "How the email performed across the articles sent inside the window.\n`null` for a newsletter Commune does not send, because the provider\nthat sent the mail holds those numbers and does not hand them over\nper article.\n",
+      "required": [
+        "open_rate",
+        "click_rate"
+      ],
+      "properties": {
+        "open_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Opens over deliveries, as a fraction between `0` and `1`.\n`null` when nothing was delivered in the window, which is not\nthe same as a rate of zero. Open tracking is unreliable by\nnature: a mail client that prefetches images inflates it and one\nthat blocks them suppresses it.\n"
+        },
+        "click_rate": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Recipients who clicked at least one link, over deliveries, as a\nfraction between `0` and `1`. `null` when nothing was delivered\nin the window.\n"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "Article": {
+      "type": "object",
+      "title": "Article",
+      "description": "One article of a newsletter, without its body. Every collection of\narticles returns this shape. `GET /articles/{article}` returns\n`ArticleWithContent`, which is this plus `content`.\n",
+      "required": [
+        "object",
+        "id",
+        "short_id",
+        "slug",
+        "newsletter",
+        "status",
+        "is_imported",
+        "created_at"
+      ],
+      "properties": {
+        "object": {
+          "type": "string",
+          "const": "article",
+          "description": "Always `article`."
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Stable identifier."
+        },
+        "short_id": {
+          "type": "string",
+          "description": "Eight character base62 identifier, unique across Commune. Safe in a\nURL and accepted anywhere `{article}` is.\n"
+        },
+        "slug": {
+          "type": "string",
+          "description": "URL segment under the newsletter, unique within it but not across\nCommune. The permalink is `/n/{handle}/a/{slug}`. Falls back to the\n`short_id` for an untitled article.\n"
+        },
+        "newsletter": {
+          "description": "The newsletter this article belongs to. A `Ref` unless `newsletter` is\nnamed in `?expand=`.\n",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "$ref": "#/$defs/Newsletter"
+            }
+          ]
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Subject line of the article. Null for an untitled draft."
+        },
+        "preview_text": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The short line email clients show after the subject, and what\nCommune uses as the excerpt on a card.\n"
+        },
+        "image_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri",
+          "description": "Cover image. When the creator set none, Commune stamps the first\nimage in the body at send time, so this is usually populated for a\nsent article.\n"
+        },
+        "external_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri",
+          "description": "The article's canonical URL on the newsletter's own provider, for an\nimported article. Null for one written in Commune.\n"
+        },
+        "status": {
+          "$ref": "#/$defs/ArticleStatus"
+        },
+        "is_imported": {
+          "type": "boolean",
+          "description": "`true` when the article came in from the newsletter's provider,\n`false` when it was written and sent in Commune.\n"
+        },
+        "posted_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "When the article went out. An article dated in the future is not\nreturned by any read operation until that moment passes, so this is\nnever ahead of now in a response.\n"
+        },
+        "scheduled_for": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "When a queued article may go out. Set while `status` is `scheduled`\nand null otherwise.\n\nThis is not `posted_at` and the difference matters: a queued article\nhas no publication date yet, which is why it stays invisible on\nevery reader surface until it really goes out. Commune dispatches\nin passes, so this is the moment from which the article may go rather\nthan the moment it will.\n"
+        },
+        "authors": {
+          "type": "array",
+          "description": "The byline, in order. Each entry is a `Ref` unless `authors` is\nnamed in `?expand=`. Empty when no Commune account is credited.\n",
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Ref"
+              },
+              {
+                "$ref": "#/$defs/User"
+              }
+            ]
+          }
+        },
+        "thread": {
+          "description": "The chat thread this article opened, where its discussion lives.\n`null` when the newsletter does not open a thread per article. A `Ref`\nunless `thread` is named in `?expand=`.\n",
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "$ref": "#/$defs/Thread"
+            }
+          ]
+        },
+        "stats": {
+          "$ref": "#/$defs/ArticleStats"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the row was created in Commune."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the article was last edited."
+        }
+      }
+    },
+    "ArticleStats": {
+      "type": "object",
+      "title": "ArticleStats",
+      "description": "Engagement counts for an article, computed at read time. These are\nCommune side counts, not provider side email metrics: opens, clicks and\ndeliveries are not here.\n",
+      "additionalProperties": false,
+      "required": [
+        "likes",
+        "comments",
+        "highlights"
+      ],
+      "properties": {
+        "likes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many people liked the article."
+        },
+        "comments": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Replies in the article's chat thread. Commune has no separate\ncomments store: an article's discussion is a thread like any other,\nso this counts the undeleted replies hanging off it. `0` when the\narticle has no thread.\n"
+        },
+        "highlights": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many passages readers highlighted."
+        }
+      }
+    },
+    "ArticleStatus": {
+      "type": "string",
+      "title": "ArticleStatus",
+      "description": "Where an article is in its life. A credential holding only `read`\npermissions ever sees `sent` and nothing else. An imported article is\nalways `sent`, since Commune sees it after the provider delivered it.\n",
+      "enum": [
+        "draft",
+        "scheduled",
+        "sending",
+        "sent",
+        "failed",
+        "archived"
+      ]
+    },
+    "Esp": {
+      "type": "string",
+      "title": "Esp",
+      "description": "Where a newsletter is published from. `commune` means Commune itself\nsends the email. Every other value is an email service provider whose\nposts Commune imports. `rss` covers any feed that is not one of the\nnamed providers.\n",
+      "enum": [
+        "commune",
+        "beehiiv",
+        "buttondown",
+        "ghost",
+        "kit",
+        "mailchimp",
+        "mailerlite",
+        "rss",
+        "substack"
+      ]
+    },
+    "Media": {
+      "type": "object",
+      "title": "Media",
+      "description": "An image or file attached to a thread or a message.",
+      "additionalProperties": false,
+      "required": [
+        "url"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Where the attachment is served from."
+        },
+        "type": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The attachment's media type when Commune recorded one, for example\n`image/png`. Null for an attachment old enough that none was\nrecorded.\n"
+        },
+        "thumbnail": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri",
+          "description": "A smaller rendition, when one was generated."
+        }
+      }
+    },
+    "Newsletter": {
+      "type": "object",
+      "title": "Newsletter",
+      "description": "A newsletter and its public profile. Nothing operational is exposed:\nESP credentials, OAuth tokens, group and audience ids, feed polling\nstate and language detection bookkeeping all stay server side.\n",
+      "additionalProperties": false,
+      "required": [
+        "object",
+        "id",
+        "handle",
+        "name",
+        "esp",
+        "created_at"
+      ],
+      "properties": {
+        "object": {
+          "type": "string",
+          "const": "newsletter",
+          "description": "Always `newsletter`."
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Stable identifier."
+        },
+        "handle": {
+          "type": "string",
+          "description": "The short, unique, URL safe name. Resolves the public profile at\n`/n/{handle}` and is accepted anywhere `{newsletter}` is.\n"
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name, as the creator writes it."
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The profile blurb. Sanitised HTML, not plain text, because creators\nformat it. Treat it as untrusted markup and render it in a\nsandboxed context.\n"
+        },
+        "esp": {
+          "$ref": "#/$defs/Esp"
+        },
+        "image_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri",
+          "description": "Square avatar for the newsletter."
+        },
+        "website_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri",
+          "description": "The creator's own site, if they linked one."
+        },
+        "social_links": {
+          "$ref": "#/$defs/SocialLinks"
+        },
+        "language": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Best known language of the newsletter's writing as a BCP 47 tag.\nDetected from recent articles rather than declared, so treat it as a\nhint. Null before enough has been published to tell.\n"
+        },
+        "chat_create_permission": {
+          "type": "string",
+          "enum": [
+            "editors",
+            "subscribers",
+            "anyone"
+          ],
+          "description": "Who may start a new chat thread in this community.\n"
+        },
+        "allow_non_subscriber_chat": {
+          "type": "boolean",
+          "description": "Whether people who have not subscribed may reply in existing\nthreads.\n"
+        },
+        "owner": {
+          "description": "The account that owns the newsletter. A `Ref` unless `owner` is\nnamed in `?expand=`.\n",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "$ref": "#/$defs/User"
+            }
+          ]
+        },
+        "featured_article": {
+          "description": "The article the creator pinned to the top of the profile, or `null`\nwhen none is pinned. A `Ref` unless `featured_article` is named in\n`?expand=`.\n",
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "$ref": "#/$defs/Article"
+            }
+          ]
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the newsletter was connected to or created on Commune."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the profile last changed."
+        }
+      }
+    },
+    "Ref": {
+      "type": "object",
+      "title": "Ref",
+      "description": "An unexpanded relationship. Ask for the relationship in `?expand=` to\nget the full object in its place.\n",
+      "additionalProperties": false,
+      "required": [
+        "object",
+        "id"
+      ],
+      "properties": {
+        "object": {
+          "type": "string",
+          "description": "The type of the referenced resource."
+        },
+        "id": {
+          "type": "string",
+          "description": "The referenced resource's `id`, in whatever form that resource's own\nschema declares. Most are UUIDs; a `Ref` whose `object` is `user`\ncarries an account identifier, which is an opaque string and not a\nUUID. Compare it for equality and pass it back; do not parse it.\n"
+        }
+      }
+    },
+    "SocialLinks": {
+      "type": "object",
+      "title": "SocialLinks",
+      "description": "The creator's other homes on the internet, stored as canonical profile\nURLs. Every key is optional and a newsletter that set none returns an\nempty object.\n",
+      "additionalProperties": false,
+      "properties": {
+        "twitter": {
+          "type": "string",
+          "format": "uri",
+          "description": "X or Twitter profile URL."
+        },
+        "bluesky": {
+          "type": "string",
+          "format": "uri",
+          "description": "Bluesky profile URL."
+        },
+        "linkedin": {
+          "type": "string",
+          "format": "uri",
+          "description": "LinkedIn profile URL."
+        },
+        "mastodon": {
+          "type": "string",
+          "format": "uri",
+          "description": "Mastodon profile URL, including the instance host."
+        },
+        "youtube": {
+          "type": "string",
+          "format": "uri",
+          "description": "YouTube channel URL."
+        },
+        "instagram": {
+          "type": "string",
+          "format": "uri",
+          "description": "Instagram profile URL."
+        },
+        "threads": {
+          "type": "string",
+          "format": "uri",
+          "description": "Threads profile URL."
+        },
+        "github": {
+          "type": "string",
+          "format": "uri",
+          "description": "GitHub profile URL."
+        }
+      }
+    },
+    "Thread": {
+      "type": "object",
+      "title": "Thread",
+      "description": "A conversation in a newsletter's community, together with the message\nthat opened it. Its replies are a separate collection.\n",
+      "additionalProperties": false,
+      "required": [
+        "object",
+        "id",
+        "newsletter",
+        "content",
+        "visibility",
+        "is_article_thread",
+        "created_at",
+        "last_activity_at"
+      ],
+      "properties": {
+        "object": {
+          "type": "string",
+          "const": "thread",
+          "description": "Always `thread`."
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Stable identifier."
+        },
+        "short_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Eight character base62 identifier used by the thread's own URL at\n`/n/{handle}/chat/{short_id}`. Null for a thread Commune opened\nunder an article, which is reached through the article instead.\n"
+        },
+        "newsletter": {
+          "description": "The community this thread lives in. A `Ref` unless `newsletter` is\nnamed in `?expand=`.\n",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "$ref": "#/$defs/Newsletter"
+            }
+          ]
+        },
+        "author": {
+          "description": "Who opened the thread. A `Ref` unless `author` is named in\n`?expand=`.\n",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "$ref": "#/$defs/User"
+            }
+          ]
+        },
+        "content": {
+          "type": "string",
+          "description": "The opening message. HTML, since people format what they write.\nTreat it as untrusted markup and render it in a sandboxed context.\n"
+        },
+        "media": {
+          "type": "array",
+          "description": "Attachments on the opening message.",
+          "items": {
+            "$ref": "#/$defs/Media"
+          }
+        },
+        "visibility": {
+          "$ref": "#/$defs/ThreadVisibility"
+        },
+        "is_article_thread": {
+          "type": "boolean",
+          "description": "`true` when Commune opened this thread under an article rather than\na person starting it. These are kept off the global feed, because\nthe article card already represents the conversation there.\n"
+        },
+        "article": {
+          "description": "The article that opened this thread, when `is_article_thread` is\n`true`. `null` otherwise. A `Ref` unless `article` is named in\n`?expand=`.\n",
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "$ref": "#/$defs/Article"
+            }
+          ]
+        },
+        "reply_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Undeleted replies in the thread, at any depth."
+        },
+        "view_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many times the thread was opened."
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the thread was opened."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the thread row last changed for any reason."
+        },
+        "edited_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "When the author last edited the opening message. Null when it was\nnever edited, which is what drives the edited marker in the product.\n"
+        },
+        "last_activity_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the thread last received a reply, or when it was opened if it\nnever did. This is the sort key for the thread list.\n"
+        }
+      }
+    },
+    "ThreadVisibility": {
+      "type": "string",
+      "title": "ThreadVisibility",
+      "description": "Where a thread is placed. `public` puts it on the global Commune feed\nand makes it readable by anyone. `subscribers` keeps it inside the\nnewsletter. `paid` narrows it further to the paying part of the\naudience. Set and changed by the newsletter's team.\n",
+      "enum": [
+        "public",
+        "subscribers",
+        "paid"
+      ]
+    },
+    "User": {
+      "type": "object",
+      "title": "User",
+      "description": "A person's public profile, and the whole of what this API returns about\nanybody other than the credential's own owner. Email address, theme,\nnotification preferences, push subscriptions, read state and saved\narticles are never carried.\n",
+      "additionalProperties": false,
+      "required": [
+        "object",
+        "id"
+      ],
+      "properties": {
+        "object": {
+          "type": "string",
+          "const": "user",
+          "description": "Always `user`."
+        },
+        "id": {
+          "type": "string",
+          "description": "Stable identifier."
+        },
+        "username": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The unique handle the profile resolves on at `/@{username}`. Null\nfor an account that has not finished signing up.\n"
+        },
+        "display_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The name shown next to their messages and bylines."
+        },
+        "avatar": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri",
+          "description": "Profile picture. Commune falls back to a generated avatar when the\nperson never set one, so this is rarely null in practice.\n"
+        }
+      }
+    }
+  }
+}

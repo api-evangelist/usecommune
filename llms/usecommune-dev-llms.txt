@@ -1,0 +1,76 @@
+# Commune API documentation
+
+> Newsletters, articles, threads and the people around them. This origin, https://usecommune.dev, is the developer documentation: the guides, and the front door to the API reference, which covers 63 operations and 23 webhooks at contract version 2026-08-26. The reference itself is rendered on a third origin, https://api-reference.usecommune.dev, and the product and its Markdown reader interface are on a fourth, https://usecommune.com, which has its own llms.txt.
+
+Authentication is a bearer API key. A request pins a contract version with the `Commune-Version` header, whose value is a release date; omitting it pins to the version current when the key was issued.
+
+## Reference
+
+- [Start here](https://usecommune.dev/): what this origin holds, and where each piece of it is.
+- [API reference](https://api-reference.usecommune.dev): every operation and webhook, rendered.
+- [llms-full.txt](https://usecommune.dev/llms-full.txt): the guides and the whole reference as one Markdown document, inlined. Fetch this one if you are answering a question about the API.
+- [openapi.yaml](https://api.usecommune.com/openapi.yaml?profile=docs): the published contract, as bytes to generate a client from.
+- [openapi.json](https://api.usecommune.com/openapi.json?profile=docs): the same document as JSON.
+- [Changelog](https://api-reference.usecommune.dev/changes): what changed in each published contract version, and which of those changes break a caller.
+
+## Use cases
+
+- [Win back readers before they leave](https://usecommune.dev/use-cases/win-back-readers.md): See who is going quiet while there is still time to reach them. As a page: https://usecommune.dev/use-cases/win-back-readers.
+- [Plan your next issue from what readers said](https://usecommune.dev/use-cases/plan-your-next-issue.md): Turn comments, replies and highlights into your next topic. As a page: https://usecommune.dev/use-cases/plan-your-next-issue.
+- [Find and reward your superfans](https://usecommune.dev/use-cases/reward-your-superfans.md): Know your most engaged readers, and give them something back. As a page: https://usecommune.dev/use-cases/reward-your-superfans.
+- [Publish from wherever you write](https://usecommune.dev/use-cases/publish-from-anywhere.md): Write in your CMS, notes app or repository. Commune sends it. As a page: https://usecommune.dev/use-cases/publish-from-anywhere.
+- [React the moment something happens](https://usecommune.dev/use-cases/react-in-real-time.md): A new subscriber, a new reply, an issue sent: start your own workflow in seconds. As a page: https://usecommune.dev/use-cases/react-in-real-time.
+- [Bring the conversation to your site](https://usecommune.dev/use-cases/conversation-on-your-site.md): Show each issue's discussion wherever your readers already are. As a page: https://usecommune.dev/use-cases/conversation-on-your-site.
+- [Get a pulse on your newsletter in plain words](https://usecommune.dev/use-cases/newsletter-pulse.md): Ask how things are going and get an answer, not a dashboard. As a page: https://usecommune.dev/use-cases/newsletter-pulse.
+- [Build an app every creator can connect](https://usecommune.dev/use-cases/build-an-integration.md): Ship an integration other newsletters install in a few clicks. As a page: https://usecommune.dev/use-cases/build-an-integration.
+
+## Errors
+
+- [bad_request](https://usecommune.dev/errors/bad_request.md) (400): Something in the request itself is wrong: a query parameter, a header or the body. Change the request and send it again.
+- [invalid_version](https://usecommune.dev/errors/invalid_version.md) (400): The `Commune-Version` header names a contract version this API does not serve. Send one from `allowed_values`, or leave the header out.
+- [unauthorized](https://usecommune.dev/errors/unauthorized.md) (401): The request carried no credential the API accepts: none at all, a malformed one, or one that is unknown, revoked or expired.
+- [forbidden](https://usecommune.dev/errors/forbidden.md) (403): The credential is valid but cannot act on the newsletter you addressed, or on the key you tried to revoke.
+- [insufficient_scope](https://usecommune.dev/errors/insufficient_scope.md) (403): The credential reaches the newsletter but does not hold the permission this operation, filter or expansion needs.
+- [payment_required](https://usecommune.dev/errors/payment_required.md) (402): The credential may do this, but the newsletter's Commune plan does not include it. Reads outside insights stay free.
+- [not_found](https://usecommune.dev/errors/not_found.md) (404): Nothing this credential may see exists at that identifier. It may not exist at all, or your credential may not be allowed to know it does.
+- [conflict](https://usecommune.dev/errors/conflict.md) (409): The `Idempotency-Key` on this write was already used for a different request, or a request with the same key has not finished.
+- [unprocessable](https://usecommune.dev/errors/unprocessable.md) (422): The request is well formed, and the current state of what it addresses refuses it. The message says what is in the way.
+- [not_commune_newsletter](https://usecommune.dev/errors/not_commune_newsletter.md) (422): Articles can only be created or edited on a newsletter Commune publishes itself, one whose `esp` is `commune`.
+- [rate_limited](https://usecommune.dev/errors/rate_limited.md) (429): A rate limit budget or a daily send limit is spent. Wait `Retry-After` seconds; the message names which limit it was.
+- [internal_error](https://usecommune.dev/errors/internal_error.md) (500): Something failed inside Commune. Retry with backoff, reusing the same `Idempotency-Key` for a write, and quote the request id if it persists.
+- [service_unavailable](https://usecommune.dev/errors/service_unavailable.md) (503): A service this one operation depends on did not answer. The rest of the API is unaffected; retry this operation after `Retry-After`.
+
+## Guides
+
+- [Connect an assistant](https://usecommune.dev/guides/mcp.md): Point an MCP client at Commune and work on your newsletters in words: ask how they are doing, draft, test and send. One URL, one consent screen, no code. As a page: https://usecommune.dev/guides/mcp.
+- [Getting started with the API](https://usecommune.dev/guides/getting-started.md): Mint a key, make your first authenticated call, read the response, make a change safely, and pin the contract version you wrote against. As a page: https://usecommune.dev/guides/getting-started.
+
+Every guide above is inlined in llms-full.txt as well, ahead of the contract, so one fetch gets the prose and the reference together.
+
+## The product, on another origin
+
+- [usecommune.com llms.txt](https://usecommune.com/llms.txt): the index for Commune itself, including the Markdown twin every public reader page serves.
+- [usecommune.com llms-full.txt](https://usecommune.com/llms-full.txt): that corpus, inlined.
+
+These are separate origins. An agent that reads only one of them will answer from half the documentation.
+
+## What the reference covers
+
+- Newsletters (2 operations): A newsletter is the top level object in Commune. It owns its articles, its chat, its subscribers and its team. Everything else in this API hangs off one.
+- Team (2 operations): Who may act on behalf of a newsletter: its owner, plus the members the owner added as admins, editors or guests. Both sides of that edge are here. A newsletter's roster answers "who is on this team" and needs `settings`. `GET /memberships` answers "which teams is this account on", which is the same membership read from the person rather than from the newsletter, and needs `account: read` instead: the set of teams somebody is on is a fact about them.
+- Users (2 operations): A person with a Commune account: the readers who join a community and the writers who are credited on an article. Looked up by identifier or by username, and only ever as a public profile: never an email address. The one account read from the inside is the credential's own. `GET /me` is the same person as the profile above plus the address and verification state that one withholds, and it sits here rather than under a heading of its own because it is the private view of exactly what this tag already documents. It needs no permission at all.
+- Search (1 operation): One query across newsletters, articles, people and chat. Where a reader starts who does not yet have an identifier for any of them.
+- Articles (12 operations): An article is one thing a newsletter published: written in Commune and sent, or imported from the newsletter's provider. Two rules gate every article read and are described on each operation. First, an article stamped with an audience is visible only to the newsletter's team and to subscribers holding one of its tags. Second, an article dated in the future is invisible until that moment passes. An article written in Commune can be created and edited here, its body sent and returned as Markdown, and moved through its life: sent to a test address, queued for a time, taken back off the schedule, sent to the list, and re-attempted for the recipients a dispatch could not reach. An imported article is read only. What one reader did with an article is here too, from their side of it. `GET /saved-articles` and `GET /liked-articles` are the articles an account put aside and the articles it liked, across every newsletter it reads, and they need `account: read` rather than `content`. Both obey the two rules above, applied against the person rather than against a newsletter, so an article they may no longer read leaves the page on its own.
+- Highlights (2 operations): A highlight is a passage of an article a reader marked. It anchors a comment to the exact sentence that prompted it.
+- Threads (5 operations): A thread is a conversation inside a newsletter's community. Commune has no separate posts or comments stack: a creator's broadcast, a reader's question and the discussion under an article are all threads in the same newsletter scoped chat.
+- Messages (2 operations): A message is a reply inside a thread, up to two levels deep. Reactions hang off a message.
+- Subscribers (4 operations): Who receives a newsletter. Needs `audience`, and never a public surface: a newsletter's list belongs to its creator. `GET /subscriptions` is that edge read from the other end, the lists one account is on rather than the people on one list, and it needs `account: read` instead. It carries none of what a newsletter's own record of a subscriber carries: no address, no lifecycle status, none of the tags the newsletter applied and nothing about how they were acquired.
+- Subscriber tags (8 operations): A tag segments a newsletter's audience. Sending an article to a tag stamps that article with an audience, which is what makes it invisible to everyone outside it. Named for the subscribers it is applied to, because a tag called `Tags` inside a document made of tags says nothing. Applying and removing a tag are writes, and they are grants and revocations of access to whatever articles that segment was addressed to, not only labels. Creating, renaming and retiring a tag are not operations here yet.
+- Engagement (2 operations): What Commune knows about one subscriber that a newsletter's email provider cannot answer: engagement scored across the inbox and the community together, and the raw event stream those scores are summed from. Row shaped and high cardinality, which is what a CRM or a re-engagement automation reads. Needs `insights`, and part of the one read surface Commune may put behind a plan.
+- Metrics (4 operations): The rolled up numbers for a newsletter and for one article: headline stats for a period, acquisition attribution, bucketed series for charting, and one article's email performance beside its community response. What a dashboard reads, where Engagement is what an automation reads. Creator scope, and part of the one read surface Commune may put behind a plan.
+- Sends (2 operations): A send is one dispatch of one article to a newsletter's list: when it started, when it finished, and the three numbers it finished on. Not to be confused with Senders, one heading below: a sender is the address an article goes out from and is configuration, a send is something that happened. Starting one is an operation under Articles, because it is a moment in an article's life. Reading what became of it is here, because a run is its own object with its own identifier and one article can have more than one. The same run is announced as a `send.completed` event, carrying the same three numbers under the same names, and these operations are how a consumer reads them back afterwards from the identifier that event carried. Needs `sending`.
+- Senders (2 operations): The addresses a newsletter sends from, and the state of the DNS that has to be in place for them to work. The sending half of the pair; Website domains is the other. Needs `sending`.
+- Website domains (2 operations): A creator's own domain pointed at their Commune site, so their community lives at their address rather than at ours. The same prove you own this hostname flow as Senders, pointed at the site rather than at the mail. Needs `settings`: a website domain is how the newsletter is configured, not how it sends.
+- Platform (6 operations): The API's own machinery rather than any newsletter's data: the readiness probe, what a credential has left of its rate limit budgets, what its newsletter's plan allows, and the newsletter's API keys. A key can be listed and revoked here but never created, so a stolen credential cannot mint itself a replacement.
+- Event delivery (5 operations): Where a newsletter's events go, and how a creator changes it. Commune hands every event it publishes to a delivery service that owns fan out, retries, signing and the delivery log, and a destination is one place that service sends them: an HTTPS endpoint, or a queue, stream or object store for a consumer that would rather not run a web server. Reading the list is an operation here, and so is reading the delivery attempt log: what was handed to which destination, what came back, and asking for one to be handed over again. Changing the destinations themselves is not. `portal-session` mints a link into the delivery service's own portal, where a creator adds an endpoint, disables one and rotates a signing secret. Asking for an attempt to be replayed is the one write here, and is the same action as the portal's retry button. Needs `webhooks` throughout, since a destination is a private endpoint of the creator's, the list of them says which systems a newsletter is wired into, and the attempt log says what those systems were told and when.
+- Webhooks (23 events): every event Commune publishes, each one a single HTTPS POST carrying a shared envelope. An endpoint is registered in the delivery service's portal, which a creator reaches from their dashboard or from a link the API mints; the webhooks guide above carries the envelope and the signing scheme.

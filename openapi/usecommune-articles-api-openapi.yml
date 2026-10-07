@@ -1,0 +1,3960 @@
+openapi: 3.2.0
+info:
+  title: Usecommune Articles API
+  version: '2026-08-26'
+  contact:
+    name: Commune
+    url: https://usecommune.com
+    email: support@usecommune.com
+  description: 'Operations tagged Articles across 2 of this provider''s published API definitions: usecommune-openapi.json, usecommune-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://api.usecommune.com
+  description: 'Production. There is no separate sandbox host.
+
+    '
+security:
+- apiKey: []
+tags:
+- name: Articles
+  description: 'An article is one thing a newsletter published: written in Commune and
+
+    sent, or imported from the newsletter''s provider.'
+paths:
+  /newsletters/{newsletter}/articles:
+    parameters:
+    - $ref: '#/components/parameters/CommuneVersion'
+    - $ref: '#/components/parameters/NewsletterPath'
+    get:
+      operationId: listNewsletterArticles
+      summary: List a newsletter's articles
+      description: 'The newsletter''s articles, most recently published first, ordered by
+
+        `posted_at` descending with articles that never got a date last.
+
+
+        Two gates apply and neither can be turned off. An article stamped with
+
+        an audience is returned only to a credential that may read that
+
+        audience: the
+
+        newsletter''s owner, an admin or editor, or a subscriber holding one of
+
+        the article''s tags. An article whose `posted_at` is in the future is not
+
+        returned at all until that moment passes, so a scheduled article never
+
+        leaks early through this collection.
+
+
+        `content` is never included here, whatever `?fields=` asks for. An article
+
+        body is large enough that returning a page of them is the wrong default,
+
+        so read it from `GET /articles/{article}`.'
+      tags:
+      - Articles
+      security:
+      - apiKey: []
+      - oauth2:
+        - content:read
+      parameters:
+      - $ref: '#/components/parameters/Cursor'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Expand'
+      - $ref: '#/components/parameters/Fields'
+      - name: status
+        in: query
+        required: false
+        description: 'Return only articles in this state. A credential holding only
+
+          `read` permissions may ask for `sent` alone, since a draft or a
+
+          failed send is not published. Repeat the parameter to accept
+
+          several.
+
+          '
+        schema:
+          $ref: '#/components/schemas/ArticleStatus'
+      - name: imported
+        in: query
+        required: false
+        description: '`true` returns only articles imported from the newsletter''s
+
+          provider, `false` only articles written in Commune. Omit
+
+          for both.
+
+          '
+        schema:
+          type: boolean
+      - name: tag
+        in: query
+        required: false
+        description: 'Return only articles stamped with this subscriber tag, by tag `id`.
+
+          Needs `content: read`, because the audience of an article is not public.
+
+          '
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: A page of articles, each without `content`.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ListEnvelope'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      description: 'This page of the newsletter''s articles, most recently
+
+                        published first by `posted_at`, with articles that
+
+                        never got a date last. Two gates remove rows before
+
+                        the page is built, and neither is marked in the
+
+                        response: an article dated in the future is absent
+
+                        until that moment passes, and an article stamped with
+
+                        an audience is absent unless the credential may read
+
+                        that audience. A page shorter than expected is those gates
+
+                        rather than an error. No entry carries `content`,
+
+                        whatever `?fields=` asked for.
+
+                        '
+                      items:
+                        $ref: '#/components/schemas/Article'
+              examples:
+                twoRecentArticles:
+                  summary: An article written in Commune and an imported one, newest first, neither carrying a body.
+                  value:
+                    object: list
+                    data:
+                    - object: article
+                      id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                      short_id: k7Rm2xQp
+                      slug: what-newsletters-get-wrong-about-community
+                      newsletter:
+                        object: newsletter
+                        id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                      title: What newsletters get wrong about community
+                      preview_text: The moderation load is the product, not a tax on it.
+                      image_url: https://cdn.example.com/articles/k7Rm2xQp/cover.png
+                      external_url: null
+                      status: sent
+                      is_imported: false
+                      posted_at: '2026-08-26T09:32:11Z'
+                      scheduled_for: null
+                      authors:
+                      - object: user
+                        id: usr_2Nf8Kq1pWc
+                      thread:
+                        object: thread
+                        id: b1c2d3e4-f506-4718-8293-a4b5c6d7e8f9
+                      stats:
+                        likes: 148
+                        comments: 27
+                        highlights: 63
+                      created_at: '2026-08-24T11:04:52Z'
+                      updated_at: '2026-08-26T09:32:11Z'
+                    - object: article
+                      id: 5b7a1d90-2c34-4e18-9f6b-8d0a1c2b3e4f
+                      short_id: q4Ts9wLm
+                      slug: the-week-we-stopped-chasing-opens
+                      newsletter:
+                        object: newsletter
+                        id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                      title: The week we stopped chasing opens
+                      preview_text: null
+                      image_url: null
+                      external_url: https://example.com/p/the-week-we-stopped-chasing-opens
+                      status: sent
+                      is_imported: true
+                      posted_at: '2026-08-19T09:30:00Z'
+                      scheduled_for: null
+                      authors:
+                      - object: user
+                        id: usr_5Qw8Hn2vFd
+                      thread: null
+                      stats:
+                        likes: 61
+                        comments: 9
+                        highlights: 14
+                      created_at: '2026-08-26T20:21:09Z'
+                      updated_at: '2026-08-26T20:21:09Z'
+                    pagination:
+                      has_more: true
+                      next_cursor: Y3Vyc29yOjE3NTY0MjM2MDAwMDA6MDE5MmM4
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createArticle
+      summary: Create an article
+      description: 'Writes a new article and returns it. Needs `content: write`, and is a
+
+        write.
+
+
+        The article''s text goes in `content_markdown`, as Markdown: the same
+
+        rendition `GET /articles/{article}` returns as `content_markdown` under
+
+        `?expand=content`, so what you read back is what you send. HTML is not
+
+        accepted. Commune parses it strictly: text it cannot read answers `400`
+
+        naming the line, and nothing is written, rather than guessing at a
+
+        document you did not write and sending it to your list.
+
+
+        **What you get is always a draft.** `status`, `posted_at` and
+
+        `scheduled_for` are not properties of the request. A draft is invisible
+
+        on every reader surface, so nothing this operation does reaches anybody.
+
+        It goes out through Schedule an article
+
+        (`POST /articles/{article}/schedule`) or Send an article to the list (`POST /articles/{article}/send`),
+
+        each of which runs the six gates described on the second before its
+
+        email leaves Commune.
+
+
+        **Send no body at all and Commune seeds one.** `{}` creates an empty
+
+        untitled draft: two blank lines and an editable unsubscribe line. Send a body and it is stored exactly as sent,
+
+        with nothing appended. The send operations refuse an article whose body
+
+        carries no unsubscribe mechanism and no postal address, so a body you
+
+        intend to send should carry `{{ unsubscribe_url }}` and `{{ address }}`.
+
+
+        **Only a newsletter Commune publishes.** A newsletter whose `esp` is
+
+        anything but `commune` has its articles written elsewhere and mirrored
+
+        into Commune afterwards, so there is nothing here to create. That
+
+        answers `422` with the code `not_commune_newsletter`, whose `docs_url` is
+
+        `https://usecommune.dev/errors/not_commune_newsletter`, the page on
+
+        what the refusal means and how to move a newsletter onto Commune.
+
+
+        Publishes no event. A draft has neither gone out nor been queued, and
+
+        `status` is what says so until one of those happens.
+
+
+        ## The Markdown `content_markdown` takes
+
+
+        Headings, paragraphs, bold, italic, strikethrough, inline code, links,
+
+        images, blockquotes, bullet and ordered lists, fenced code blocks with
+
+        a language, tables and thematic breaks. A line ending in two spaces or
+
+        a backslash is a line break; a code fence without a language is stored
+
+        without one rather than guessed at.
+
+
+        Merge tags survive exactly as written. `{{ subscriber.first_name }}`
+
+        and `{% if %}` are personalization rather than Markdown, so nothing
+
+        inside a Liquid construct is escaped or read as formatting.
+
+
+        Raw HTML is refused rather than passed through or dropped. Write a
+
+        literal `` ... `` wraps blocks in a styled band. Optional
+
+        `backgroundColor`, `textColor` (hex, with the `#`), `fontFamily`
+
+        (`sans`, `serif`, `mono`), `fontSize` (a number, in px) and
+
+        `textAlign` (`left`, `center`, `right`).
+
+        * `` ... `` wraps blocks that belong in the
+
+        inbox and not on the web. This is where the unsubscribe line and the
+
+        mailing address go: on the website there is no subscriber, so the
+
+        link is dead and the address is noise. Commune seeds exactly this
+
+        into a draft created with no body.
+
+        * `Label` is a call to action. `href` is
+
+        required; `alignment` is optional.
+
+        * `` is a row of linked platform icons. `items`
+
+        is required and is a JSON array of
+
+        `{"platform": "...", "url": "...", "imageUrl": null}`. Optional
+
+        `align`, `iconColor` and `iconBgColor`.
+
+        * `` is a video. The URL has to be one Commune can
+
+        read a video id out of (`youtube.com/watch?v=`, `youtu.be/`,
+
+        `youtube.com/shorts/` or `youtube.com/embed/`), because the email
+
+        shows a thumbnail built from that id rather than an iframe, which
+
+        every major email client strips.
+
+
+        Attributes are written `name="value"` or `name={json}`. A component
+
+        that holds nothing is written self-closing; one that holds content is
+
+        opened and closed on their own lines.'
+      tags:
+      - Articles
+      security:
+      - apiKey: []
+      - oauth2:
+        - content:write
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleCreateRequest'
+      responses:
+        '201':
+          description: 'The article, as created: a draft, with the `id`, `short_id` and `slug`
+
+            every other operation addresses it by. Read it back with
+
+            `GET /articles/{article}` to see the stored body.
+
+            '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+              examples:
+                newDraft:
+                  summary: A draft with a title and a body, not yet scheduled.
+                  value:
+                    object: article
+                    id: 8f1b7c44-2a19-4d90-b7e2-51d6c3a8f012
+                    short_id: Vn3Pq8Zt
+                    slug: what-we-learned-in-march
+                    newsletter:
+                      object: newsletter
+                      id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                    title: What we learned in March
+                    preview_text: The third one surprised us.
+                    image_url: null
+                    external_url: null
+                    status: draft
+                    is_imported: false
+                    posted_at: null
+                    scheduled_for: null
+                    authors:
+                    - object: user
+                      id: usr_2Nf8Kq1pWc
+                    thread: null
+                    stats:
+                      likes: 0
+                      comments: 0
+                      highlights: 0
+                    created_at: '2026-09-18T10:22:04Z'
+                    updated_at: '2026-09-18T10:22:04Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  /articles/{article}:
+    parameters:
+    - $ref: '#/components/parameters/CommuneVersion'
+    - $ref: '#/components/parameters/ArticlePath'
+    get:
+      operationId: getArticle
+      summary: Retrieve an article
+      description: 'Read one article, including its `content`. This is the only operation
+
+        that returns a body.
+
+
+        The same two gates apply as on the list. An article stamped with an
+
+        audience answers `404` to a credential that does not hold that
+
+        audience, and a
+
+        future dated article answers `404` until it goes live, including to the
+
+        newsletter''s own team, so that a preview link cannot be shared early.
+
+
+        For an article written in Commune, `content` is the email rendered to HTML
+
+        with personalization placeholders resolved against an empty context, so
+
+        a merge tag never leaks as raw text. For an imported article it is the
+
+        body as it arrived from the provider.
+
+
+        `?expand=content` adds `content_markdown`, the same body as Markdown.
+
+        Ask for it when a model is going to read the article, and ask for
+
+        `?fields=content_markdown` with it to leave the HTML behind entirely.'
+      tags:
+      - Articles
+      security:
+      - apiKey: []
+      - oauth2:
+        - content:read
+      parameters:
+      - $ref: '#/components/parameters/Expand'
+      - $ref: '#/components/parameters/Fields'
+      responses:
+        '200':
+          description: The article, with `content`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleWithContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    patch:
+      operationId: updateArticle
+      summary: Edit an article
+      description: 'Changes an article that already exists. Needs `content: write`, and is a
+
+        write.
+
+
+        **Absent and null are different.** A property you leave out is left
+
+        alone; a property you send as `null` is cleared. Send at least one
+
+        property: an empty object answers `400`.
+
+
+        **`content_markdown` replaces the article''s text in full.** Send the
+
+        whole article, not just the part that changed. It can''t be `null`: an
+
+        article always has text. It takes the same Markdown as Create an
+
+        article (`POST /newsletters/{newsletter}/articles`), which documents
+
+        it, and is parsed as strictly: text Commune cannot read answers `400`
+
+        naming the line, and nothing is written.
+
+
+        **This never moves the article''s state.** There is no `status` here, no
+
+        `posted_at`, no `scheduled_for`. Queueing, cancelling, sending and
+
+        retrying are their own operations. Neither is the byline: who is
+
+        credited on an article cannot be changed here.
+
+
+        ## Which articles may be edited
+
+
+        A draft, a scheduled article, and one whose send failed. Everything
+
+        else answers `422` with a message saying which case it is:
+
+
+        * **being sent right now**: an edit mid send would reach part of the
+
+        list and not the rest. Wait for it to finish.
+
+        * **sent**: the email cannot be recalled, so an edit would change only
+
+        the web page.
+
+        * **archived**: unarchive it in Commune first.
+
+        * **imported**: the body is a copy of what the newsletter''s provider
+
+        published and cannot be edited here.
+
+
+        **Only a newsletter Commune publishes.** Anything but a `commune`
+
+        newsletter has its articles written elsewhere, and answers `422` with
+
+        the code `not_commune_newsletter`, carrying a `docs_url` of
+
+        `https://usecommune.dev/errors/not_commune_newsletter`.
+
+
+        Editing the body clears the HTML `content` returns until the article is
+
+        next opened in Commune''s editor. `content_markdown` is rendered from the
+
+        article itself and is correct immediately.
+
+
+        Publishes no event. The article''s `updated_at` is what says it changed.'
+      tags:
+      - Articles
+      security:
+      - apiKey: []
+      - oauth2:
+        - content:write
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleUpdateRequest'
+      responses:
+        '200':
+          description: 'The article, as it now stands. Without `content`: read it back with
+
+            `GET /articles/{article}` when you want the stored body.
+
+            '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  /articles/{article}/authors:
+    parameters:
+    - $ref: '#/components/parameters/CommuneVersion'
+    - $ref: '#/components/parameters/ArticlePath'
+    get:
+      operationId: listArticleAuthors
+      summary: List an article's authors
+      description: 'Everyone credited on the byline, in the order the creator arranged them.
+
+
+        An article whose author was never mapped to a Commune account returns an
+
+        empty page rather than a placeholder person.'
+      tags:
+      - Articles
+      security:
+      - apiKey: []
+      - oauth2:
+        - content:read
+      parameters:
+      - $ref: '#/components/parameters/Cursor'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Fields'
+      responses:
+        '200':
+          description: A page of authors, in byline order.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ListEnvelope'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      description: 'Everyone credited on this article''s byline, in the
+
+                        order the creator arranged them rather than by time.
+
+                        Usually one entry; an imported article attributed to
+
+                        several people through the provider''s creator field,
+
+                        or a co-signed Commune article, has more. Empty for an
+
+                        article whose byline was never mapped to a Commune
+
+                        account, which is an ordinary outcome for an imported
+
+                        article rather than an error.
+
+                        '
+                      items:
+                        $ref: '#/components/schemas/User'
+              examples:
+                coSignedArticle:
+                  summary: Two people on one byline, in the order the creator arranged them.
+                  value:
+                    object: list
+                    data:
+                    - object: user
+                      id: usr_2Nf8Kq1pWc
+                      username: mira
+                      display_name: Mira Okafor
+                      avatar: https://cdn.example.com/avatars/mira.png
+                    - object: user
+                      id: usr_5Qw8Hn2vFd
+                      username: sam
+                      display_name: Sam Ortega
+                      avatar: null
+                    pagination:
+                      has_more: false
+                      next_cursor: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  /articles/{article}/images:
+    parameters:
+    - $ref: '#/components/parameters/CommuneVersion'
+    - $ref: '#/components/parameters/IdempotencyKey'
+    - $ref: '#/components/parameters/ArticlePath'
+    post:
+      operationId: createArticleImage
+      summary: Store an image for an article
+      description: 'Stores an image for this article and answers with the URL it is served
+
+        at, so whatever writes the article never needs somewhere of its own
+
+        to host one. Needs `content: write`.
+
+
+        Two ways in, chosen by the body:
+
+
+        - **`source_url`**: Commune downloads the image and stores a copy. For
+
+        an image you hold as a link, including a generated one on a link
+
+        that will expire. It has to be a public http or https URL on the
+
+        standard port; private and local network addresses are refused,
+
+        redirects included.
+
+        - **`content_type`**: Commune answers with a one-time `upload` URL and
+
+        the image''s final `url`. `PUT` the file''s bytes to `upload.url` with
+
+        the `upload.headers`, before `upload.expires_at`. The bytes go
+
+        straight to storage, so a file on disk never has to pass through a
+
+        model or through this API. Until the upload is made, `url` answers
+
+        `404`.
+
+
+        Either way the image is a JPEG, PNG, WebP or GIF of at most 10MB, and
+
+        the article itself is not changed: put the `url` in the body''s
+
+        Markdown (`!alt`) or in `image_url` with Update an article
+
+        (`PATCH /articles/{article}`).'
+      tags:
+      - Articles
+      security:
+      - apiKey: []
+      - oauth2:
+        - content:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleImageRequest'
+      responses:
+        '201':
+          description: 'The stored image, or for an upload, where it will be once the file
+
+            is uploaded.
+
+            '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleImage'
+              examples:
+                imported:
+                  summary: Downloaded from `source_url` and stored.
+                  value:
+                    object: article_image
+                    url: https://project.supabase.co/storage/v1/object/public/article-images/7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411/c0ffee00-1111-4a4a-8b8b-123456789abc/1790000000000-k3j9x2a1.png
+                    content_type: image/png
+                    size_bytes: 48213
+                    source_url: https://example.com/chart.png
+                    upload: null
+                upload:
+                  summary: Ready for you to upload the file yourself.
+                  value:
+                    object: article_image
+                    url: https://project.supabase.co/storage/v1/object/public/article-images/7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411/c0ffee00-1111-4a4a-8b8b-123456789abc/1790000000000-p0q8w7e2.jpg
+                    content_type: image/jpeg
+                    size_bytes: null
+                    source_url: null
+                    upload:
+                      url: https://project.supabase.co/storage/v1/object/upload/sign/article-images/7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411/c0ffee00-1111-4a4a-8b8b-123456789abc/1790000000000-p0q8w7e2.jpg?token=eyJhbGciOi...
+                      method: PUT
+                      headers:
+                        Content-Type: image/jpeg
+                      max_bytes: 10485760
+                      expires_at: '2026-10-01T18:00:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  /articles/{article}/test-send:
+    parameters:
+    - $ref: '#/components/parameters/CommuneVersion'
+    - $ref: '#/components/parameters/IdempotencyKey'
+    - $ref: '#/components/parameters/ArticlePath'
+    post:
+      operationId: sendArticleTest
+      summary: Send a test copy of an article
+      description: 'Sends this article to addresses you name, or to yourself when you name
+
+        none, so somebody can look at it before the list does. Needs
+
+        `sending: write`.
+
+
+        Leave out `to` (or the whole body) and the copy goes to the person the
+
+        credential belongs to. Their address is not echoed back: the answer
+
+        says `sent_to_owner: true` and `recipients` is empty, because an email
+
+        address is revealed only by `GET /me`.
+
+
+        **Nobody on the list receives anything.** No subscriber is touched, no
+
+        delivery is recorded, the article''s status does not move and no event is
+
+        published. Run it as often as you like on the same draft: it changes
+
+        nothing about the article, so a repeat is a second look rather than a
+
+        second send.
+
+
+        The article is rendered the way a real send renders it, with three
+
+        differences. Personalization placeholders are filled with example data
+
+        rather than left as raw text. The unsubscribe link points at a page that
+
+        explains itself rather than at a live token, so a forwarded test cannot
+
+        unsubscribe a real person. And the subject is prefixed, so a test is
+
+        never mistaken for the article.
+
+
+        **Three of the six send gates apply here.** There has to be an article,
+
+        a verified sending address, and something in the body. The footer
+
+        required on commercial email, the article''s status and the image
+
+        reachability check do not refuse a test, so a test is where you go to
+
+        see that the footer has gone. Send an article to the list (`POST /articles/{article}/send`) refuses on all six.
+
+
+        Test sends count towards the same daily sending allowance real sends do.'
+      tags:
+      - Articles
+      security:
+      - apiKey: []
+      - oauth2:
+        - sending:write
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestSendRequest'
+      responses:
+        '200':
+          description: 'What was attempted and what the sending provider accepted. `sent`
+
+            plus `failed` is always the number of addresses the copy went to,
+
+            and an address named twice is only sent once.
+
+            '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestSend'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/SendLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  /articles/{article}/schedule:
+    parameters:
+    - $ref: '#/components/parameters/CommuneVersion'
+    - $ref: '#/components/parameters/IdempotencyKey'
+    - $ref: '#/components/parameters/ArticlePath'
+    post:
+      operationId: scheduleArticle
+      summary: Schedule an article
+      description: 'Queues this article to go out at a time you choose.
+
+
+        Only a draft or an already scheduled article can be scheduled, and
+
+        `scheduled_for` has to be in the future. Scheduling an already scheduled
+
+        article moves it, which is how a send time is changed: there is no
+
+        separate reschedule.
+
+
+        **A scheduled article is not published.** Its `status` becomes
+
+        `scheduled` and `posted_at` stays null, so it stays invisible on every
+
+        reader surface until it goes out. The newsletter''s own credentials can
+
+        read it, which is how you check what is queued.
+
+
+        **Every gate Send an article to the list (`POST /articles/{article}/send`)
+
+        runs is run here**, so a missing footer, an
+
+        unreachable image, an unverified sending address or an empty body
+
+        refuses the schedule now rather than failing silently at six in the
+
+        morning.
+
+
+        The time is honoured to within a few minutes, not to the second.
+
+        Commune dispatches queued articles in passes, so `scheduled_for` is the
+
+        moment from which an article may go out rather than the moment it will.
+
+
+        Publishes `article.scheduled`.'
+      tags:
+      - Articles
+      security:
+      - apiKey: []
+      - oauth2:
+        - sending:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleRequest'
+      responses:
+        '200':
+          description: 'The article, as it now stands: `status` is `scheduled` and
+
+            `scheduled_for` is the time it will go out from.
+
+            '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/SendLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  /articles/{article}/unschedule:
+    parameters:
+    - $ref: '#/components/parameters/CommuneVersion'
+    - $ref: '#/components/parameters/IdempotencyKey'
+    - $ref: '#/components/parameters/ArticlePath'
+    post:
+      operationId: unscheduleArticle
+      summary: Cancel a scheduled article
+      description: 'Takes a queued article back off the schedule. Needs `sending: write`.
+
+
+        The article returns to `draft` and its send time is cleared, so nothing
+
+        will dispatch it until it is scheduled or sent again. It was never
+
+        visible to readers while it was queued, so nothing a reader sees
+
+        changes.
+
+
+        **An article that is not scheduled answers `422`** rather than
+
+        succeeding quietly. `draft` and `sent` are both "not scheduled", and a
+
+        caller cancelling a send needs to know which one it is looking at: an
+
+        article that has already gone out cannot be recalled.
+
+
+        **Publishes no event.** A consumer told the article was scheduled gets
+
+        no second event saying it no longer is, so read `status` on the article
+
+        to know where it stands.'
+      tags:
+      - Articles
+      security:
+      - apiKey: []
+      - oauth2:
+        - sending:write
+      responses:
+        '200':
+          description: 'The article, back as a draft, with `scheduled_for` null.
+
+            '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  /articles/{article}/send:
+    parameters:
+    - $ref: '#/components/parameters/CommuneVersion'
+    - $ref: '#/components/parameters/IdempotencyKey'
+    - $ref: '#/components/parameters/ArticlePath'
+    post:
+      operationId: sendArticle
+      x-commune-destructive: Emails the article to the list. Mail that has left cannot be recalled, so a client should confirm with a person before calling this.
+      summary: Send an article to the list
+      description: 'Sends this article to the newsletter''s subscribers. Cannot be undone.
+
+
+        **It answers before the article has gone out.** The article is queued
+
+        for immediate dispatch and the answer is `202` with the article as it
+
+        now stands: `status` is `scheduled` and `scheduled_for` is the moment it
+
+        was queued. Commune begins sending within a few minutes.
+
+
+        Watch `send.completed` for the outcome and the counts, or `send.failed`
+
+        if the dispatch broke. `article.published` fires when the article goes
+
+        live on the web. All three carry the credential that asked for the send
+
+        and the idempotency key it was made under, so a consumer can tie them
+
+        back to this call.
+
+
+        **Six gates.** Four are simple: there has to be an article, a verified
+
+        sending address, something in the body, and a status that can be sent
+
+        from. An article that is already sending or sent answers `422`. The
+
+        other two are worth knowing about before you call this:
+
+
+        * **`missing_footer`** (`422`) when the body no longer carries an
+
+        unsubscribe link or a mailing address. Both are seeded into a draft as
+
+        ordinary content and can be edited away, and commercial email is
+
+        required to carry them. The error names which half is gone.
+
+        * **`broken_images`** (`422`) when an image definitively will not load,
+
+        naming the URLs and why each one failed. An inbox fetches images when
+
+        the reader opens the article, so a rotted image is broken for
+
+        everybody and cannot be repaired after the send. Only a definite
+
+        answer refuses: a merely slow host is reported and never blocks. Set
+
+        `acknowledge_broken_images` to send anyway. That acknowledgement
+
+        covers the body as it currently reads and any edit clears it.
+
+
+        An article addressed to a tag goes only to the subscribers holding it.
+
+        An article with no subscribers to send to is still published: it goes
+
+        live on the web and reports zero recipients.
+
+
+        **Failed deliveries are Commune''s to follow up.** A recipient the
+
+        sending provider turns away for a moment is retried automatically
+
+        during the send. One that still fails is followed up by Commune''s team
+
+        rather than re-sent blindly, because some of those may already have
+
+        been delivered and a second copy is worse than a late one.
+
+
+        Publishes `article.scheduled` when the article is queued, then
+
+        `article.published` and `send.completed` or `send.failed` when the
+
+        dispatch runs.'
+      tags:
+      - Articles
+      security:
+      - apiKey: []
+      - oauth2:
+        - sending:write
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendRequest'
+      responses:
+        '202':
+          description: 'The article is queued. `status` is `scheduled` and `scheduled_for` is
+
+            the moment it was queued; sending begins within a few minutes.
+
+            '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/SendLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  /saved-articles:
+    parameters:
+    - $ref: '#/components/parameters/CommuneVersion'
+    get:
+      operationId: listSavedArticles
+      summary: List the articles this account saved
+      description: 'This account''s reading list: the articles this person put aside to come
+
+        back to, most recently saved first. It is private to them, and no
+
+        operation in this API reads somebody else''s.
+
+
+        A save is never reported to the newsletter that published the article.
+
+        Reads and likes are, as engagement records and as the `article.read` and
+
+        `article.liked` topics; a save has no topic, no tally on
+
+        `Article.stats`, and no engagement event type.
+
+
+        **Needs `account: read`**, which either an API key or an OAuth token can
+
+        carry.
+
+
+        The two rules that gate every article this API serves gate this page
+
+        too, applied against the person rather than against a newsletter. An
+
+        article dated in the future is not returned until that moment passes. An
+
+        article stamped with an audience is returned only while this person is
+
+        entitled to it: the newsletter''s owner, one of its admins or editors, or
+
+        a subscriber holding one of the article''s tags. Leave the segment an
+
+        article was addressed to and it leaves this page.
+
+
+        So a page can be shorter than the number of saves the person made, and
+
+        an entry can disappear without the person having removed it. Neither is
+
+        an error and nothing in the response marks it.
+
+
+        `article` is a reference, and `?expand=article` replaces it with an
+
+        `ArticleSummary`: title, preview line, cover and publication date,
+
+        without the body.
+
+
+        **Expanding cannot widen the page.** The two rules above are applied
+
+        again when the article is resolved, so an entry the person may no longer
+
+        read, or one whose article has been deleted, keeps its bare reference.
+
+        Treat a reference that stayed a reference as "no detail available",
+
+        never as an error.
+
+
+        `GET /liked-articles` is the same page for likes and follows every rule
+
+        above.'
+      tags:
+      - Articles
+      security:
+      - apiKey: []
+      - oauth2:
+        - account:read
+      parameters:
+      - $ref: '#/components/parameters/Cursor'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Expand'
+      - $ref: '#/components/parameters/Fields'
+      responses:
+        '200':
+          description: A page of saved articles, most recently saved first.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ListEnvelope'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      description: 'The articles this account put aside to read later, most
+
+                        recently saved first. An entry is present only while
+
+                        this person may still read the article it names, so a
+
+                        page can be shorter than the number of saves they
+
+                        made and an entry can disappear without them having
+
+                        removed it. Neither is an error and nothing in the
+
+                        response marks it. Each `article` is a reference
+
+                        unless `?expand=article` asks for the summary, and an
+
+                        article this person may no longer read keeps its
+
+                        reference either way.
+
+                        '
+                      items:
+                        $ref: '#/components/schemas/SavedArticle'
+              examples:
+                twoSaves:
+                  summary: Two articles on the reading list, most recently saved first.
+                  value:
+                    object: list
+                    data:
+                    - object: saved_article
+                      article:
+                        object: article
+                        id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                      created_at: '2026-08-26T10:02:37Z'
+                    - object: saved_article
+                      article:
+                        object: article
+                        id: 5b7a1d90-2c34-4e18-9f6b-8d0a1c2b3e4f
+                      created_at: '2026-08-19T18:20:04Z'
+                    pagination:
+                      has_more: false
+                      next_cursor: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  /liked-articles:
+    parameters:
+    - $ref: '#/components/parameters/CommuneVersion'
+    get:
+      operationId: listLikedArticles
+      summary: List the articles this account liked
+      description: 'The articles this person liked, most recently liked first.
+
+
+        The same page as `GET /saved-articles`: the same gates, the same
+
+        `?expand=article` gated the same way, the same silence when an entry is
+
+        gated away. Read that operation for every rule this one also obeys.
+
+
+        **A like is not a save.** A save is a private list a person keeps; a
+
+        like is a signal they gave the newsletter, and the newsletter can read
+
+        it. Do not treat the two as interchangeable.
+
+
+        **This is the reader''s half of a like, not the newsletter''s.** The tally
+
+        is `article.stats.likes`, which any credential reads. Who is behind it
+
+        is readable by the newsletter the like was aimed at, as engagement
+
+        records on `GET /newsletters/{newsletter}/events?event_type=like` and as
+
+        the `article.liked` topic. This operation is scoped to a person instead:
+
+        one person''s own likes across every newsletter they read.
+
+
+        **Needs `account: read`**, which either an API key or an OAuth token can
+
+        carry.'
+      tags:
+      - Articles
+      security:
+      - apiKey: []
+      - oauth2:
+        - account:read
+      parameters:
+      - $ref: '#/components/parameters/Cursor'
+      - $ref: '#/components/parameters/Limit'
+      - $ref: '#/components/parameters/Expand'
+      - $ref: '#/components/parameters/Fields'
+      responses:
+        '200':
+          description: A page of liked articles, most recently liked first.
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/ListEnvelope'
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      description: 'The articles this account liked, most recently liked
+
+                        first. Same gates as the saved list: an entry is
+
+                        present only while this person may still read the
+
+                        article, so a page can be shorter than the number of
+
+                        likes they left and an entry can disappear on its
+
+                        own. This is one person''s own likes across every
+
+                        newsletter they read, never a roster of who liked one
+
+                        article. Each `article` is a reference unless
+
+                        `?expand=article` asks for the summary.
+
+                        '
+                      items:
+                        $ref: '#/components/schemas/LikedArticle'
+              examples:
+                twoLikes:
+                  summary: Two liked articles, most recently liked first, each a bare reference.
+                  value:
+                    object: list
+                    data:
+                    - object: liked_article
+                      article:
+                        object: article
+                        id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                      created_at: '2026-08-26T09:58:12Z'
+                    - object: liked_article
+                      article:
+                        object: article
+                        id: 5b7a1d90-2c34-4e18-9f6b-8d0a1c2b3e4f
+                      created_at: '2026-08-19T09:47:51Z'
+                    pagination:
+                      has_more: false
+                      next_cursor: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+components:
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: 'A value of your choosing naming the change this request is making.
+
+
+        Send the same value again to retry the same request. Commune replays
+
+        the answer the first attempt gave instead of making the change twice,
+
+        and marks the replay with an `Idempotent-Replay: true` response header.
+
+        Send a different value for a different change: a key reused for a
+
+        request that differs in any way answers `409`, because replaying an
+
+        answer to a question you did not ask is a wrong answer you could not
+
+        detect.
+
+
+        A UUID per change is the usual choice. Remembered for 24 hours, per
+
+        credential, so two credentials choosing the same value never see each
+
+        other''s answers.
+
+
+        Required, not optional.
+
+        '
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 255
+      examples:
+        uuid:
+          summary: A UUID per change
+          value: 3f7c1a26-9b0e-4f5a-9a2c-2c8f1d6b4e77
+    ArticlePath:
+      name: article
+      in: path
+      required: true
+      description: 'The article''s `id` (a UUID) or its `short_id`, an eight character base62
+
+        string that is unique across Commune. The `slug` is not accepted here
+
+        because it is unique only within a newsletter.
+
+        '
+      schema:
+        type: string
+      examples:
+        byShortId:
+          summary: By short id
+          value: k7Rm2xQp
+    Limit:
+      name: limit
+      in: query
+      required: false
+      description: 'How many items to return in this page. This is a page size, not an
+
+        offset. Fewer items than requested may come back and that does not mean
+
+        the collection is exhausted, only an absent `next_cursor` does.
+
+        '
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Expand:
+      name: expand
+      in: query
+      required: false
+      description: 'Comma-separated list of relationship paths to inline in the response.
+
+        Unexpanded relationships are returned as a reference object carrying
+
+        only `id` and `object`. Each operation documents the paths it accepts,
+
+        and an unknown path answers `400`. Nested paths use a dot, for example
+
+        `article.newsletter`.
+
+        '
+      schema:
+        type: string
+      examples:
+        singleRelation:
+          summary: Inline the newsletter of each item
+          value: newsletter
+        nestedRelation:
+          summary: Inline the newsletter of the article of each item
+          value: article.newsletter
+        secondRendition:
+          summary: Add the Markdown rendition of an article body
+          value: content
+    Fields:
+      name: fields
+      in: query
+      required: false
+      description: 'Comma-separated allow-list of top level properties to return on each
+
+        object, so a client can trim a response it does not need in full. `id`
+
+        and `object` are always returned. An unknown property name answers
+
+        `400`. Properties omitted by an operation, such as `content` on any
+
+        article list, cannot be brought back with `fields`.
+
+        '
+      schema:
+        type: string
+      examples:
+        trimmed:
+          summary: Only the fields a link list needs
+          value: title,slug,posted_at
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: 'The `pagination.next_cursor` value from the previous page. Omit it to
+
+        read the first page. A cursor is opaque, is only valid for the same
+
+        operation with the same filters, and is not a durable identifier.
+
+        '
+      schema:
+        type: string
+        maxLength: 512
+    CommuneVersion:
+      name: Commune-Version
+      in: header
+      required: false
+      description: 'The contract version this request is written against. Every version
+
+        published so far is a release date (`YYYY-MM-DD`), which is why the
+
+        examples look like one, but the value is an opaque identifier: match it
+
+        against the versions this API publishes rather than parsing it, because
+
+        a future one may not be only a date. An unknown value answers `400`
+
+        with `invalid_version`.
+
+
+        Omitting the header pins the request to the version that was current
+
+        when the API key was issued, so an integration keeps working when a
+
+        newer version ships.
+
+        '
+      schema:
+        type: string
+        minLength: 1
+        examples:
+        - '2026-08-26'
+    NewsletterPath:
+      name: newsletter
+      in: path
+      required: true
+      description: 'The newsletter''s `id` (a UUID) or its `handle`. A handle is unique
+
+        across Commune and is the identifier its public web profile uses, so it
+
+        is the one to hardcode in an integration.
+
+        '
+      schema:
+        type: string
+      examples:
+        byId:
+          summary: By UUID
+          value: 9a4c1c6e-0f2b-4f47-9d3f-6d1b1a2c3d4e
+        byHandle:
+          summary: By handle
+          value: the-weekly
+  schemas:
+    Error:
+      type: object
+      title: Error
+      description: 'The error envelope. Every non `2xx` response from every operation has
+
+        this shape, so a client can branch on `error.code` without knowing which
+
+        operation produced it.
+
+        '
+      additionalProperties: false
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required:
+          - code
+          - message
+          properties:
+            code:
+              $ref: '#/components/schemas/ErrorCode'
+            message:
+              type: string
+              description: 'A human readable sentence describing what went wrong. Written
+
+                for a developer reading a log, not for an end user. Do not
+
+                branch on it, branch on `code`.
+
+                '
+              examples:
+              - Newsletter not found.
+            param:
+              type: string
+              description: 'The query, path or body parameter the error is attributed to,
+
+                when the error is attributable to exactly one. Absent otherwise.
+
+                '
+              examples:
+              - cursor
+            allowed_values:
+              type: array
+              description: 'Everything `param` would have accepted, when what it accepts is
+
+                a finite set. Absent when it is not: a cursor, an identifier or
+
+                a numeric range has nothing to enumerate, and an empty array
+
+                would read as "nothing is allowed".
+
+
+                It repeats what `message` says in prose, so a caller can correct
+
+                a request from this one response: the array is what a program
+
+                branches on, the sentence is what a person or a model reads.
+
+
+                On an unknown parameter name rather than an unknown value, this
+
+                carries the parameter names the operation does accept, since
+
+                that is the set the caller has to pick from.
+
+
+                On an `insufficient_scope` failure there is usually no
+
+                parameter at fault and `param` is absent, and this carries the
+
+                one permission that was needed, written the way the permission
+
+                table writes it, such as `content: read`. The exception is a
+
+                credential that may call the operation but not with one value
+
+                of a parameter, such as `?expand=subscriber` on
+
+                `listNewsletterInsights` without `audience: read`: then `param`
+
+                names the parameter and this carries the values this credential
+
+                may send instead.
+
+                '
+              items:
+                type: string
+              examples:
+              - - subscribed
+                - unsubscribed
+                - bounced
+                - complained
+                - pending
+            request_id:
+              type: string
+              description: 'Identifier for this request, echoed in the `Commune-Request-Id`
+
+                response header. Quote it in support requests.
+
+                '
+              examples:
+              - req_01j9c8h1q7m3n4p5r6s7t8u9v0
+            docs_url:
+              type: string
+              format: uri
+              description: 'Link to the documentation for this error code: always
+
+                `https://usecommune.dev/errors/` followed by the code, a page
+
+                on what the code means, what usually causes it and how to fix
+
+                it.
+
+                '
+              examples:
+              - https://usecommune.dev/errors/not_found
+    Media:
+      type: object
+      title: Media
+      description: An image or file attached to a thread or a message.
+      additionalProperties: false
+      required:
+      - url
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Where the attachment is served from.
+        type:
+          type:
+          - string
+          - 'null'
+          description: 'The attachment''s media type when Commune recorded one, for example
+
+            `image/png`. Null for an attachment old enough that none was
+
+            recorded.
+
+            '
+        thumbnail:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: A smaller rendition, when one was generated.
+    ArticleSummary:
+      type: object
+      title: ArticleSummary
+      description: 'An article as anybody sees it, without its body: what expanding the
+
+        `article` on a save or a like returns.
+
+
+        **The expansion is gated exactly as the collection is.** The two rules
+
+        that decide whether an entry appears at all, that an article dated in
+
+        the future is not served and that an article stamped with an audience is
+
+        served only to the newsletter''s team and to subscribers holding one of
+
+        its tags, are applied again when the article is resolved. An entry the
+
+        person may no longer read keeps its `Ref`, so expanding a page can fill
+
+        it in but can never lengthen it.
+
+
+        **A different schema from `Article`, not a trimmed one.** `Article`
+
+        carries a lifecycle a reader has no part in: what state the dispatch is
+
+        in, when a queued article may go out, whether it was imported. The body
+
+        is absent too, as it would be on any list.
+
+
+        `object` is `article_summary` rather than `article`, so a client routing
+
+        on `object` never has to guess whether a missing property was withheld
+
+        or unset.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - id
+      - short_id
+      - slug
+      - newsletter
+      properties:
+        object:
+          type: string
+          const: article_summary
+          description: Always `article_summary`.
+        id:
+          type: string
+          format: uuid
+          description: 'Stable identifier, the same value `Article.id` and a `Ref` to this
+
+            article carry.
+
+            '
+        short_id:
+          type: string
+          description: 'Eight character base62 identifier, unique across Commune and safe
+
+            in a URL.
+
+            '
+          examples:
+          - k7Rm2xQp
+        slug:
+          type: string
+          description: 'URL segment under the newsletter. With the newsletter''s handle it
+
+            makes the permalink, `/n/{handle}/a/{slug}`.
+
+            '
+        newsletter:
+          $ref: '#/components/schemas/Ref'
+          description: 'The newsletter that published it, always as a reference. There is
+
+            no nested `?expand=article.newsletter`. Expand `newsletter` on
+
+            `GET /memberships` or `GET /subscriptions` to put names to these
+
+            identifiers.
+
+            '
+        title:
+          type:
+          - string
+          - 'null'
+          description: Subject line of the article.
+        preview_text:
+          type:
+          - string
+          - 'null'
+          description: 'The short line email clients show after the subject, and what
+
+            Commune uses as the excerpt on a card.
+
+            '
+        image_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Cover image.
+        external_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: 'The article''s canonical URL on the newsletter''s own provider, for an
+
+            imported article. Null for one written in Commune.
+
+            '
+        posted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: 'When the article went out. Never ahead of now in a response: an article
+
+            dated in the future is not resolved at all.
+
+            '
+    ArticleBodyMarkdown:
+      type: string
+      title: ArticleBodyMarkdown
+      description: 'An article''s text, as Markdown. Create an article documents the
+
+        Markdown Commune accepts.
+
+        '
+      examples:
+      - '# What we learned in March
+
+
+        Three things, and the **third** one surprised us.
+
+
+        <Button href="https://example.com/read" alignment="center">Read the full piece</Button>
+
+
+        <EmailOnly>
+
+        [Unsubscribe]({{ unsubscribe_url }}) | {{ address }}
+
+        </EmailOnly>
+
+        '
+    ArticleWithContent:
+      title: ArticleWithContent
+      description: 'An article including its rendered body. Returned only by
+
+        `GET /articles/{article}`. `content` cannot be requested on any list,
+
+        including through `?fields=`.
+
+        '
+      allOf:
+      - $ref: '#/components/schemas/Article'
+      - type: object
+        required:
+        - content
+        properties:
+          content:
+            type: string
+            description: 'The body as HTML. For an article written in Commune this is the
+
+              email rendered for the web, with personalization placeholders
+
+              resolved against an empty context so no raw merge tag is ever
+
+              served. For an imported article it is what the provider published.
+
+
+              Treat it as untrusted markup from a third party and render it in
+
+              a sandboxed context.
+
+              '
+          content_markdown:
+            type:
+            - string
+            - 'null'
+            description: 'The same body as Markdown, present only when `content` is named
+
+              in `?expand=`. It is what a model should read: the HTML is
+
+              mostly markup it will not use, and one article body can fill a
+
+              context window on its own.
+
+
+              It is a conversion of the body rather than of the HTML above.
+
+              For an article written in Commune it comes from the document the
+
+              author wrote, so a code block keeps its language and a table
+
+              that declares a header becomes a Markdown table. For an
+
+              imported article it comes from the provider''s HTML. Either way
+
+              the words, the links, the images, the lists, the code and the
+
+              quotes survive, and everything presentational does not.
+
+
+              `null` means Commune holds no body it can convert faithfully.
+
+              That happens when the only body it stored is a rendered email,
+
+              whose words cannot be told apart from its layout. An empty
+
+              string means the article has no body, which is different.
+
+
+              No merge tag ever appears here, resolved or not.
+
+              '
+      unevaluatedProperties: false
+    User:
+      type: object
+      title: User
+      description: 'A person''s public profile, and the whole of what this API returns about
+
+        anybody other than the credential''s own owner. Email address, theme,
+
+        notification preferences, push subscriptions, read state and saved
+
+        articles are never carried.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - id
+      properties:
+        object:
+          type: string
+          const: user
+          description: Always `user`.
+        id:
+          type: string
+          description: Stable identifier.
+        username:
+          type:
+          - string
+          - 'null'
+          description: 'The unique handle the profile resolves on at `/@{username}`. Null
+
+            for an account that has not finished signing up.
+
+            '
+        display_name:
+          type:
+          - string
+          - 'null'
+          description: The name shown next to their messages and bylines.
+        avatar:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: 'Profile picture. Commune falls back to a generated avatar when the
+
+            person never set one, so this is rarely null in practice.
+
+            '
+    Article:
+      type: object
+      title: Article
+      description: 'One article of a newsletter, without its body. Every collection of
+
+        articles returns this shape. `GET /articles/{article}` returns
+
+        `ArticleWithContent`, which is this plus `content`.
+
+        '
+      required:
+      - object
+      - id
+      - short_id
+      - slug
+      - newsletter
+      - status
+      - is_imported
+      - created_at
+      properties:
+        object:
+          type: string
+          const: article
+          description: Always `article`.
+        id:
+          type: string
+          format: uuid
+          description: Stable identifier.
+        short_id:
+          type: string
+          description: 'Eight character base62 identifier, unique across Commune. Safe in a
+
+            URL and accepted anywhere `{article}` is.
+
+            '
+          examples:
+          - k7Rm2xQp
+        slug:
+          type: string
+          description: 'URL segment under the newsletter, unique within it but not across
+
+            Commune. The permalink is `/n/{handle}/a/{slug}`. Falls back to the
+
+            `short_id` for an untitled article.
+
+            '
+        newsletter:
+          description: 'The newsletter this article belongs to. A `Ref` unless `newsletter` is
+
+            named in `?expand=`.
+
+            '
+          oneOf:
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/Newsletter'
+        title:
+          type:
+          - string
+          - 'null'
+          description: Subject line of the article. Null for an untitled draft.
+        preview_text:
+          type:
+          - string
+          - 'null'
+          description: 'The short line email clients show after the subject, and what
+
+            Commune uses as the excerpt on a card.
+
+            '
+        image_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: 'Cover image. When the creator set none, Commune stamps the first
+
+            image in the body at send time, so this is usually populated for a
+
+            sent article.
+
+            '
+        external_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: 'The article''s canonical URL on the newsletter''s own provider, for an
+
+            imported article. Null for one written in Commune.
+
+            '
+        status:
+          $ref: '#/components/schemas/ArticleStatus'
+        is_imported:
+          type: boolean
+          description: '`true` when the article came in from the newsletter''s provider,
+
+            `false` when it was written and sent in Commune.
+
+            '
+        posted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: 'When the article went out. An article dated in the future is not
+
+            returned by any read operation until that moment passes, so this is
+
+            never ahead of now in a response.
+
+            '
+        scheduled_for:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: 'When a queued article may go out. Set while `status` is `scheduled`
+
+            and null otherwise.
+
+
+            This is not `posted_at` and the difference matters: a queued article
+
+            has no publication date yet, which is why it stays invisible on
+
+            every reader surface until it really goes out. Commune dispatches
+
+            in passes, so this is the moment from which the article may go rather
+
+            than the moment it will.
+
+            '
+        authors:
+          type: array
+          description: 'The byline, in order. Each entry is a `Ref` unless `authors` is
+
+            named in `?expand=`. Empty when no Commune account is credited.
+
+            '
+          items:
+            anyOf:
+            - $ref: '#/components/schemas/Ref'
+            - $ref: '#/components/schemas/User'
+        thread:
+          description: 'The chat thread this article opened, where its discussion lives.
+
+            `null` when the newsletter does not open a thread per article. A `Ref`
+
+            unless `thread` is named in `?expand=`.
+
+            '
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/Thread'
+        stats:
+          $ref: '#/components/schemas/ArticleStats'
+        created_at:
+          type: string
+          format: date-time
+          description: When the row was created in Commune.
+        updated_at:
+          type: string
+          format: date-time
+          description: When the article was last edited.
+    Esp:
+      type: string
+      title: Esp
+      description: 'Where a newsletter is published from. `commune` means Commune itself
+
+        sends the email. Every other value is an email service provider whose
+
+        posts Commune imports. `rss` covers any feed that is not one of the
+
+        named providers.
+
+        '
+      enum:
+      - commune
+      - beehiiv
+      - buttondown
+      - ghost
+      - kit
+      - mailchimp
+      - mailerlite
+      - rss
+      - substack
+    Pagination:
+      type: object
+      title: Pagination
+      description: 'Cursor pagination state. Commune never exposes an offset or a page
+
+        number: a collection is a moving window, and an offset silently skips or
+
+        repeats items when the window shifts between two requests.
+
+        '
+      additionalProperties: false
+      required:
+      - has_more
+      - next_cursor
+      properties:
+        has_more:
+          type: boolean
+          description: 'Whether another page exists. When `false`, `next_cursor` is `null`.
+
+            '
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: 'Pass this back as `?cursor=` to read the next page. `null` on the
+
+            last page. Opaque, and valid only for the same operation with the
+
+            same filters.
+
+            '
+          examples:
+          - Y3Vyc29yOjE3NTY0MjM2MDAwMDA6MDE5MmM4
+    ArticleImageRequest:
+      type: object
+      title: ArticleImageRequest
+      description: 'Exactly one of `source_url` or `content_type`.
+
+        '
+      additionalProperties: false
+      properties:
+        source_url:
+          type: string
+          format: uri
+          maxLength: 2000
+          description: 'A public http or https URL of the image for Commune to download
+
+            and store.
+
+            '
+          examples:
+          - https://example.com/chart.png
+        content_type:
+          type: string
+          enum:
+          - image/jpeg
+          - image/png
+          - image/webp
+          - image/gif
+          description: 'The type of the file you will upload yourself. The answer carries
+
+            the upload URL.
+
+            '
+      examples:
+      - source_url: https://example.com/chart.png
+      - content_type: image/png
+    Newsletter:
+      type: object
+      title: Newsletter
+      description: 'A newsletter and its public profile. Nothing operational is exposed:
+
+        ESP credentials, OAuth tokens, group and audience ids, feed polling
+
+        state and language detection bookkeeping all stay server side.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - id
+      - handle
+      - name
+      - esp
+      - created_at
+      properties:
+        object:
+          type: string
+          const: newsletter
+          description: Always `newsletter`.
+        id:
+          type: string
+          format: uuid
+          description: Stable identifier.
+        handle:
+          type: string
+          description: 'The short, unique, URL safe name. Resolves the public profile at
+
+            `/n/{handle}` and is accepted anywhere `{newsletter}` is.
+
+            '
+          examples:
+          - the-weekly
+        name:
+          type: string
+          description: Display name, as the creator writes it.
+        description:
+          type:
+          - string
+          - 'null'
+          description: 'The profile blurb. Sanitised HTML, not plain text, because creators
+
+            format it. Treat it as untrusted markup and render it in a
+
+            sandboxed context.
+
+            '
+        esp:
+          $ref: '#/components/schemas/Esp'
+        image_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Square avatar for the newsletter.
+        website_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: The creator's own site, if they linked one.
+        social_links:
+          $ref: '#/components/schemas/SocialLinks'
+        language:
+          type:
+          - string
+          - 'null'
+          description: 'Best known language of the newsletter''s writing as a BCP 47 tag.
+
+            Detected from recent articles rather than declared, so treat it as a
+
+            hint. Null before enough has been published to tell.
+
+            '
+          examples:
+          - en
+        chat_create_permission:
+          type: string
+          enum:
+          - editors
+          - subscribers
+          - anyone
+          description: 'Who may start a new chat thread in this community.
+
+            '
+        allow_non_subscriber_chat:
+          type: boolean
+          description: 'Whether people who have not subscribed may reply in existing
+
+            threads.
+
+            '
+        owner:
+          description: 'The account that owns the newsletter. A `Ref` unless `owner` is
+
+            named in `?expand=`.
+
+            '
+          anyOf:
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/User'
+        featured_article:
+          description: 'The article the creator pinned to the top of the profile, or `null`
+
+            when none is pinned. A `Ref` unless `featured_article` is named in
+
+            `?expand=`.
+
+            '
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/Article'
+        created_at:
+          type: string
+          format: date-time
+          description: When the newsletter was connected to or created on Commune.
+        updated_at:
+          type: string
+          format: date-time
+          description: When the profile last changed.
+    ArticleStatus:
+      type: string
+      title: ArticleStatus
+      description: 'Where an article is in its life. A credential holding only `read`
+
+        permissions ever sees `sent` and nothing else. An imported article is
+
+        always `sent`, since Commune sees it after the provider delivered it.
+
+        '
+      enum:
+      - draft
+      - scheduled
+      - sending
+      - sent
+      - failed
+      - archived
+    TestSend:
+      type: object
+      title: TestSend
+      description: 'What one test send attempted and what the sending provider accepted.
+
+        Nothing about the article changed and nobody on the list was touched.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - article
+      - recipients
+      - sent_to_owner
+      - sent
+      - failed
+      properties:
+        object:
+          type: string
+          const: test_send
+          description: Always `test_send`.
+        article:
+          description: 'The article a copy of which was sent. Always a `Ref`: a test changes
+
+            nothing about the article, so there is nothing on it to read back.
+
+            '
+          $ref: '#/components/schemas/Ref'
+        recipients:
+          type: array
+          description: 'Where the test went, deduplicated and in the order given. These are
+
+            the addresses sent in the request; Commune adds none and reveals
+
+            none, so this is empty when the copy went to the credential''s
+
+            owner.
+
+            '
+          items:
+            type: string
+            format: email
+        sent_to_owner:
+          type: boolean
+          description: 'True when the request named no addresses and the copy went to the
+
+            person the credential belongs to, whose address is not echoed.
+
+            '
+        sent:
+          type: integer
+          minimum: 0
+          description: How many of them the sending provider accepted.
+        failed:
+          type: integer
+          minimum: 0
+          description: 'How many it refused. `sent` plus `failed` is always the number of
+
+            `recipients`, or one when `sent_to_owner` is true. A test where
+
+            every address failed answers `502` rather than this shape.
+
+            '
+    Thread:
+      type: object
+      title: Thread
+      description: 'A conversation in a newsletter''s community, together with the message
+
+        that opened it. Its replies are a separate collection.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - id
+      - newsletter
+      - content
+      - visibility
+      - is_article_thread
+      - created_at
+      - last_activity_at
+      properties:
+        object:
+          type: string
+          const: thread
+          description: Always `thread`.
+        id:
+          type: string
+          format: uuid
+          description: Stable identifier.
+        short_id:
+          type:
+          - string
+          - 'null'
+          description: 'Eight character base62 identifier used by the thread''s own URL at
+
+            `/n/{handle}/chat/{short_id}`. Null for a thread Commune opened
+
+            under an article, which is reached through the article instead.
+
+            '
+        newsletter:
+          description: 'The community this thread lives in. A `Ref` unless `newsletter` is
+
+            named in `?expand=`.
+
+            '
+          oneOf:
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/Newsletter'
+        author:
+          description: 'Who opened the thread. A `Ref` unless `author` is named in
+
+            `?expand=`.
+
+            '
+          anyOf:
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/User'
+        content:
+          type: string
+          description: 'The opening message. HTML, since people format what they write.
+
+            Treat it as untrusted markup and render it in a sandboxed context.
+
+            '
+        media:
+          type: array
+          description: Attachments on the opening message.
+          items:
+            $ref: '#/components/schemas/Media'
+        visibility:
+          $ref: '#/components/schemas/ThreadVisibility'
+        is_article_thread:
+          type: boolean
+          description: '`true` when Commune opened this thread under an article rather than
+
+            a person starting it. These are kept off the global feed, because
+
+            the article card already represents the conversation there.
+
+            '
+        article:
+          description: 'The article that opened this thread, when `is_article_thread` is
+
+            `true`. `null` otherwise. A `Ref` unless `article` is named in
+
+            `?expand=`.
+
+            '
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/Article'
+        reply_count:
+          type: integer
+          minimum: 0
+          description: Undeleted replies in the thread, at any depth.
+        view_count:
+          type: integer
+          minimum: 0
+          description: How many times the thread was opened.
+        created_at:
+          type: string
+          format: date-time
+          description: When the thread was opened.
+        updated_at:
+          type: string
+          format: date-time
+          description: When the thread row last changed for any reason.
+        edited_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: 'When the author last edited the opening message. Null when it was
+
+            never edited, which is what drives the edited marker in the product.
+
+            '
+        last_activity_at:
+          type: string
+          format: date-time
+          description: 'When the thread last received a reply, or when it was opened if it
+
+            never did. This is the sort key for the thread list.
+
+            '
+    ArticleImageUpload:
+      type: object
+      title: ArticleImageUpload
+      description: 'A one-time upload. Send the file''s bytes as the request body, with
+
+        these headers, before it expires; for example
+
+        `curl -X PUT -H "Content-Type: image/png" --data-binary @chart.png "<url>"`.
+
+        '
+      additionalProperties: false
+      required:
+      - url
+      - method
+      - headers
+      - max_bytes
+      - expires_at
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Where to send the file. It works once.
+        method:
+          type: string
+          const: PUT
+          description: Always `PUT`.
+        headers:
+          type: object
+          description: The headers the upload has to carry.
+          additionalProperties:
+            type: string
+        max_bytes:
+          type: integer
+          description: The largest file the upload accepts.
+        expires_at:
+          type: string
+          format: date-time
+          description: When the upload URL stops working.
+    SocialLinks:
+      type: object
+      title: SocialLinks
+      description: 'The creator''s other homes on the internet, stored as canonical profile
+
+        URLs. Every key is optional and a newsletter that set none returns an
+
+        empty object.
+
+        '
+      additionalProperties: false
+      properties:
+        twitter:
+          type: string
+          format: uri
+          description: X or Twitter profile URL.
+        bluesky:
+          type: string
+          format: uri
+          description: Bluesky profile URL.
+        linkedin:
+          type: string
+          format: uri
+          description: LinkedIn profile URL.
+        mastodon:
+          type: string
+          format: uri
+          description: Mastodon profile URL, including the instance host.
+        youtube:
+          type: string
+          format: uri
+          description: YouTube channel URL.
+        instagram:
+          type: string
+          format: uri
+          description: Instagram profile URL.
+        threads:
+          type: string
+          format: uri
+          description: Threads profile URL.
+        github:
+          type: string
+          format: uri
+          description: GitHub profile URL.
+    SendRequest:
+      type: object
+      title: SendRequest
+      description: 'Options for a send. Every field is optional, and sending no body at all
+
+        is the ordinary case.
+
+        '
+      additionalProperties: false
+      properties:
+        acknowledge_broken_images:
+          type: boolean
+          default: false
+          description: 'Send even though an image in the body will not load for a reader.
+
+
+            Without this, an image Commune could definitively not fetch refuses
+
+            the send. With it, the send proceeds and the acknowledgement is
+
+            recorded against the article as it currently reads, so the dispatch
+
+            that happens a few minutes later honours the same decision. Any
+
+            edit to the body clears it, which keeps it scoped to the images
+
+            that were actually looked at.
+
+
+            It does not suppress anything else. An unreadable image is still
+
+            reported on the article, and the footer gate is not escapable at all.
+
+            '
+    SavedArticle:
+      type: object
+      title: SavedArticle
+      description: 'One article this account put aside to read later.
+
+
+        It carries no identifier of its own, and that is the shape rather than
+
+        an omission: a save has no identity apart from the pair of the person
+
+        who made it and the article it points at, and the person is the
+
+        credential that reads it. There is nothing to address it by, and no
+
+        operation that would take one.
+
+
+        An entry is present only while the person may still read the article it
+
+        names, so a page of these is a live view rather than a log of what was
+
+        ever saved.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - article
+      properties:
+        object:
+          type: string
+          const: saved_article
+          description: Always `saved_article`.
+        article:
+          description: 'The article that was saved. A `Ref` unless `article` is named in
+
+            `?expand=`, and then an `ArticleSummary`: the title, the preview
+
+            line, the cover and the publication date, without the body.
+
+
+            Expanding it can never widen the page. The same two rules that
+
+            decide which saves appear at all are applied again when the article
+
+            is resolved, so an entry whose article this person may no longer read
+
+            stays a `Ref`. A `Ref` is also what a caller gets for an article that
+
+            has since been deleted, so treat the reference as "no detail
+
+            available" rather than as an error.
+
+            '
+          anyOf:
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/ArticleSummary'
+        created_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the person saved it.
+    TestSendRequest:
+      type: object
+      title: TestSendRequest
+      description: 'Where a test copy of an article goes. Empty, or no body at all, sends
+
+        it to the person the credential belongs to.
+
+        '
+      additionalProperties: false
+      properties:
+        to:
+          type: array
+          description: 'The addresses to send the test to. Leave it out to send it to
+
+            yourself. A repeated address is sent to once. Five at most, because
+
+            this is a look before you send rather than a way to reach a group.
+
+            '
+          minItems: 1
+          maxItems: 5
+          items:
+            type: string
+            format: email
+          examples:
+          - - editor@example.com
+            - proofreader@example.com
+    ArticleImage:
+      type: object
+      title: ArticleImage
+      description: 'An image stored for an article, at a URL that does not change. The
+
+        article does not show it until its URL is in the body or `image_url`.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - url
+      - content_type
+      - size_bytes
+      - source_url
+      - upload
+      properties:
+        object:
+          type: string
+          const: article_image
+          description: Always `article_image`.
+        url:
+          type: string
+          format: uri
+          description: 'Where the image is served. Use it in the article''s Markdown or as
+
+            its `image_url`. For an upload, it answers `404` until the file is
+
+            uploaded.
+
+            '
+        content_type:
+          type: string
+          enum:
+          - image/jpeg
+          - image/png
+          - image/webp
+          - image/gif
+          description: 'The image''s type. For a download, read from the bytes themselves,
+
+            whatever the source said.
+
+            '
+        size_bytes:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          description: 'How large the stored image is. Null for an upload, whose size is
+
+            not known until the file arrives.
+
+            '
+        source_url:
+          type:
+          - string
+          - 'null'
+          description: The URL the image was downloaded from. Null for an upload.
+        upload:
+          description: 'Where to send the file, when the request named a `content_type`.
+
+            Null when the image was downloaded.
+
+            '
+          oneOf:
+          - $ref: '#/components/schemas/ArticleImageUpload'
+          - type: 'null'
+    ArticleStats:
+      type: object
+      title: ArticleStats
+      description: 'Engagement counts for an article, computed at read time. These are
+
+        Commune side counts, not provider side email metrics: opens, clicks and
+
+        deliveries are not here.
+
+        '
+      additionalProperties: false
+      required:
+      - likes
+      - comments
+      - highlights
+      properties:
+        likes:
+          type: integer
+          minimum: 0
+          description: How many people liked the article.
+        comments:
+          type: integer
+          minimum: 0
+          description: 'Replies in the article''s chat thread. Commune has no separate
+
+            comments store: an article''s discussion is a thread like any other,
+
+            so this counts the undeleted replies hanging off it. `0` when the
+
+            article has no thread.
+
+            '
+        highlights:
+          type: integer
+          minimum: 0
+          description: How many passages readers highlighted.
+    ArticleUpdateRequest:
+      type: object
+      title: ArticleUpdateRequest
+      description: 'The properties of an article to change. Send at least one; an empty object
+
+        answers `400` rather than doing nothing.
+
+
+        **Absent and null are different.** A property you leave out is left
+
+        alone. A property you send as `null` is cleared. An empty string is the
+
+        same as null, because a title that is present and empty reads as a
+
+        missing one everywhere it is shown.
+
+
+        `slug` is the exception: it can be changed but not cleared, since every
+
+        article has to have one.
+
+
+        This never moves the article''s state and never changes its byline. The
+
+        state moves through `POST /articles/{article}/schedule`,
+
+        `/unschedule` and `/send`; the byline is not in this contract.
+
+        '
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        title:
+          type:
+          - string
+          - 'null'
+          maxLength: 300
+          description: The subject line. Null clears it.
+        preview_text:
+          type:
+          - string
+          - 'null'
+          maxLength: 500
+          description: 'The short line email clients show after the subject. Null clears it.
+
+            '
+        image_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          maxLength: 2000
+          description: The cover image. Null clears it.
+        slug:
+          type: string
+          maxLength: 60
+          pattern: ^[a-z0-9]+(?:-[a-z0-9]+)*$
+          description: 'The article''s URL segment. Changing it moves the article''s permalink,
+
+            and nothing forwards the old one, so change it knowing that.
+
+
+            It is not re-derived when you change the title. A slug that already
+
+            belongs to another article of this newsletter answers `422`.
+
+            '
+        content_markdown:
+          $ref: '#/components/schemas/ArticleBodyMarkdown'
+      examples:
+      - title: What we learned in March, revisited
+      - image_url: null
+    ErrorCode:
+      type: string
+      title: ErrorCode
+      description: 'The stable, machine readable reason a request failed. New codes may be
+
+        added in a minor version, so treat an unrecognised code as a generic
+
+        failure of its HTTP status class.
+
+
+        Two of these share a status with a neighbour and exist because what a
+
+        caller does next is different. `invalid_version` is a `400` that is
+
+        never fixed by changing the request body. `not_commune_newsletter` is a
+
+        `422` that is never fixed by changing the request at all: it says the
+
+        newsletter''s articles are published somewhere else and mirrored into
+
+        Commune afterwards, so Commune cannot write one. Its page at
+
+        `https://usecommune.dev/errors/not_commune_newsletter`, like every
+
+        code''s, is its `docs_url`, and it covers moving a newsletter onto
+
+        Commune''s own publishing, which is the only thing that resolves it.
+
+        '
+      enum:
+      - bad_request
+      - invalid_version
+      - unauthorized
+      - forbidden
+      - insufficient_scope
+      - payment_required
+      - not_found
+      - conflict
+      - unprocessable
+      - not_commune_newsletter
+      - rate_limited
+      - internal_error
+      - service_unavailable
+    ArticleCreateRequest:
+      type: object
+      title: ArticleCreateRequest
+      description: 'A new article. Every property is optional: `{}` creates an empty
+
+        untitled draft.
+
+
+        What is created is always a **draft**. There is no `status` here, no
+
+        `posted_at` and no `scheduled_for`: an article reaches anybody through
+
+        Schedule an article (`POST /articles/{article}/schedule`) or
+
+        Send an article to the list (`POST /articles/{article}/send`), both of which run the gates
+
+        that keep a non-compliant article out of an inbox.
+
+        '
+      additionalProperties: false
+      properties:
+        title:
+          type:
+          - string
+          - 'null'
+          maxLength: 300
+          description: 'The subject line. Null or absent leaves the article untitled, which
+
+            is legal: a draft is often started before it is named.
+
+            '
+        preview_text:
+          type:
+          - string
+          - 'null'
+          maxLength: 500
+          description: 'The short line email clients show after the subject.
+
+            '
+        image_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          maxLength: 2000
+          description: 'The cover image. Leave it out and Commune stamps the first image in
+
+            the body when the article is sent.
+
+            '
+        slug:
+          type: string
+          maxLength: 60
+          pattern: ^[a-z0-9]+(?:-[a-z0-9]+)*$
+          description: 'The article''s URL segment, unique within the newsletter. Lowercase
+
+            letters, digits and single hyphens.
+
+
+            Leave it out and Commune derives one from the title, adding a
+
+            numeric suffix if that one is taken. An untitled article falls back to
+
+            its `short_id`. A slug you choose yourself is never renamed for you:
+
+            one that is already taken answers `422` rather than quietly becoming
+
+            something else, because a permalink you did not choose is worse than
+
+            an error you can act on.
+
+            '
+        content_markdown:
+          $ref: '#/components/schemas/ArticleBodyMarkdown'
+      examples:
+      - title: What we learned in March
+        preview_text: The third one surprised us.
+        content_markdown: '# What we learned in March
+
+
+          Three things, and the **third** one surprised us.
+
+
+          <EmailOnly>
+
+          [Unsubscribe]({{ unsubscribe_url }}) | {{ address }}
+
+          </EmailOnly>
+
+          '
+    ThreadVisibility:
+      type: string
+      title: ThreadVisibility
+      description: 'Where a thread is placed. `public` puts it on the global Commune feed
+
+        and makes it readable by anyone. `subscribers` keeps it inside the
+
+        newsletter. `paid` narrows it further to the paying part of the
+
+        audience. Set and changed by the newsletter''s team.
+
+        '
+      enum:
+      - public
+      - subscribers
+      - paid
+    ScheduleRequest:
+      type: object
+      title: ScheduleRequest
+      description: 'When an article should go out.
+
+        '
+      additionalProperties: false
+      required:
+      - scheduled_for
+      properties:
+        scheduled_for:
+          type: string
+          format: date-time
+          description: 'The moment from which the article may go out. Has to be in the
+
+            future. Commune dispatches queued articles in passes, so this is the
+
+            earliest it will go rather than the exact moment it does.
+
+            '
+          examples:
+          - '2026-10-01T09:00:00Z'
+        acknowledge_broken_images:
+          type: boolean
+          default: false
+          description: 'Schedule even though an image in the body will not load. See the
+
+            same field on the send operation for what this acknowledges and how
+
+            long it lasts.
+
+            '
+    LikedArticle:
+      type: object
+      title: LikedArticle
+      description: 'One article this account liked.
+
+
+        Property for property the same shape as `SavedArticle`, and a separate
+
+        schema so a client routing on `object` can tell the two apart.
+
+
+        **What they say differs.** A save is a list the person keeps for
+
+        themselves, and nothing else in this API reveals one. A like is a signal
+
+        the person gave a newsletter: its tally is public on `Article.stats`,
+
+        and the newsletter it was aimed at reads who left it on its engagement
+
+        stream and is pushed it as `article.liked`. Neither gesture is assembled
+
+        across the newsletters a person reads anywhere but here.
+
+
+        Carries no identifier of its own. A like has no identity apart from the
+
+        person who left it and the article it points at.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - article
+      properties:
+        object:
+          type: string
+          const: liked_article
+          description: Always `liked_article`.
+        article:
+          description: 'The article that was liked. A `Ref` unless `article` is named in
+
+            `?expand=`, and then an `ArticleSummary`, under exactly the rules
+
+            `SavedArticle.article` sets out: the expansion is gated the same way
+
+            the page is, so it can never reveal an article the page withheld.
+
+            '
+          anyOf:
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/ArticleSummary'
+        created_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the person liked it.
+    ListEnvelope:
+      type: object
+      title: ListEnvelope
+      description: 'The envelope every collection is returned in. `data` holds the page,
+
+        `pagination` holds the cursor state.
+
+
+        `data` is required here and typed by each list operation, as an array
+
+        of the one thing that operation returns, so the item type is stated on
+
+        the page you are reading.
+
+        '
+      required:
+      - object
+      - data
+      - pagination
+      properties:
+        object:
+          type: string
+          const: list
+          description: Always `list`, so a response is self describing.
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    Ref:
+      type: object
+      title: Ref
+      description: 'An unexpanded relationship. Ask for the relationship in `?expand=` to
+
+        get the full object in its place.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - id
+      properties:
+        object:
+          type: string
+          description: The type of the referenced resource.
+          examples:
+          - newsletter
+        id:
+          type: string
+          description: 'The referenced resource''s `id`, in whatever form that resource''s own
+
+            schema declares. Most are UUIDs; a `Ref` whose `object` is `user`
+
+            carries an account identifier, which is an opaque string and not a
+
+            UUID. Compare it for equality and pass it back; do not parse it.
+
+            '
+          examples:
+          - 9a4c1c6e-0f2b-4f47-9d3f-6d1b1a2c3d4e
+  responses:
+    Unauthorized:
+      description: 'No credential was presented, or it is malformed, unknown, revoked or
+
+        expired, or it is an access token minted for a different audience.
+
+
+        Every one of these answers identically, down to the wording and the
+
+        headers, so a refusal never confirms that a string was once real.
+
+        '
+      headers:
+        WWW-Authenticate:
+          description: 'The authentication scheme this API accepts, and where to find out
+
+            how to get a credential for it. Always
+
+            `Bearer realm="Commune API", resource_metadata="https://api.usecommune.com/.well-known/oauth-protected-resource"`.
+
+
+            `resource_metadata` is the RFC 9728 pointer to this API''s protected
+
+            resource metadata, which names the authorization server an OAuth
+
+            client should send its user to. A client holding an API key can
+
+            ignore it. The header carries no `error` parameter, not even
+
+            `error="invalid_token"`, because it describes what this API accepts
+
+            rather than what was wrong with the credential sent, and the
+
+            reasons above are deliberately indistinguishable.
+
+
+            There is no second scheme and no query-parameter fallback, because
+
+            a credential that can travel in a URL ends up in access logs and
+
+            referer headers.
+
+            '
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    PaymentRequired:
+      description: 'The credential is allowed to do this but the newsletter''s plan does not
+
+        include it.
+
+
+        Two surfaces can answer it: **insights**, the engagement and metrics
+
+        operations, which are the only reads Commune reserves the right to
+
+        meter, and **writing**, every operation that changes something.
+
+
+        Every other read stays free on every plan, so a credential refused at
+
+        one of these can still read everything else. The body names the plan the
+
+        newsletter is on and the plans that would work.
+
+
+        **This status is predictable and should not be how you discover it.**
+
+        `GET /newsletters/{newsletter}/entitlements` answers the same question
+
+        in advance, carrying the same plan list this puts in `allowed_values`
+
+        and the same sentence it puts in `message`. Read it once at the start
+
+        of a run rather than finding out in the middle of one.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    SendLimited:
+      description: 'Too many requests. Back off and retry after the interval named by the
+
+        `Retry-After` response header.
+
+
+        Usually one of the budgets in `RateLimit-Policy` ran out, and the
+
+        `RateLimit-*` headers on this response say which and when it resets.
+
+
+        This operation can also reach a **daily send limit**, which is counted
+
+        apart from those budgets and is not reported in them: how many times an
+
+        article may be dispatched to a newsletter''s whole list in a day, or how
+
+        many test copies a credential may send to addresses it names. Neither
+
+        counts recipients, so the size of a send is never what refuses it. When
+
+        one of these is what answered, the message says so by name and
+
+        `Retry-After` is measured in hours rather than seconds, which is how to
+
+        tell the two apart.
+
+        '
+      headers:
+        Retry-After:
+          description: Seconds to wait before retrying.
+          schema:
+            type: integer
+            minimum: 1
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: 'No such resource, or the key is not allowed to know that it exists.
+
+        Commune answers `404` rather than `403` where distinguishing the two
+
+        would leak the existence of private content.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: 'Too many requests. Back off and retry after the interval named by the
+
+        `Retry-After` response header.
+
+
+        One of the budgets in `RateLimit-Policy` ran out, and the
+
+        `RateLimit-*` headers on this response say which and when it resets.
+
+        '
+      headers:
+        Retry-After:
+          description: Seconds to wait before retrying.
+          schema:
+            type: integer
+            minimum: 1
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: 'The credential is valid but is not allowed to do this. Two codes answer
+
+        with this status, and `error.code` says which.
+
+
+        **`insufficient_scope`: it does not hold the permission.** The
+
+        operation needs, say, `audience: read` on the newsletter addressed, and
+
+        this credential holds less than that there. `allowed_values` carries
+
+        the permission that was needed, and the message says what the
+
+        credential does hold on that newsletter, because a credential granted
+
+        the wrong family and a credential belonging to somebody whose standing
+
+        on the team has narrowed look identical without it. The answer can
+
+        differ per newsletter: the same credential may be allowed here and
+
+        refused on the next one it reaches.
+
+
+        The same code answers an operation that needs the **account
+
+        permission** from a credential that does not carry it. That permission
+
+        is about the person a credential belongs to rather than about any
+
+        newsletter, so nothing granted on a newsletter adds up to it. It is
+
+        granted on the credential itself, when a key is minted or when an
+
+        authorization asks for `account:read`.
+
+
+        And it answers a parameter the credential may send, but not with the
+
+        value it sent: a filter a credential holding only `read` permissions
+
+        may not use, or an `expand` path whose rows need a permission the
+
+        operation does not. `param` names the parameter, and `allowed_values`
+
+        carries what this credential may send instead, or is absent when it may
+
+        send nothing there at all.
+
+
+        **`forbidden`: it may not act here at all.** Either the credential does
+
+        not reach the newsletter addressed, because it was never granted it or
+
+        because the person it belongs to can no longer act on it, or it reaches
+
+        no newsletter at all; `param` is `newsletter`, and `GET /newsletters`
+
+        lists the ones it does reach. Or, on `DELETE /api-keys/{key}`, the
+
+        credential named belongs to somebody else. Neither carries
+
+        `allowed_values`, because there is no value to send instead.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ServiceUnavailable:
+      description: 'A capability this operation depends on did not answer. Every other
+
+        operation is unaffected, so back off on this one rather than on the API.
+
+
+        Two parts of the API can answer this, because they are the only ones
+
+        Commune cannot serve out of its own database.
+
+
+        **Event delivery.** Destinations, the attempt log and the portal all
+
+        live in the delivery service. It is never an empty answer instead,
+
+        because a destination list or an attempt log that came back empty for
+
+        this reason reads exactly like a newsletter that has registered no
+
+        endpoints and sent nothing anywhere.
+
+
+        **`sendArticleTest`.** A test copy is sent while the request is open,
+
+        by Commune''s sending service, and this answers when that service could
+
+        not be reached or when the sending provider refused every address on
+
+        the test, so nothing arrived. Nothing about the article changes either
+
+        way, and the message says which of the two happened.
+
+        '
+      headers:
+        Retry-After:
+          description: 'Seconds to wait before retrying. Absent in the one case that will
+
+            not pass on its own, a deployment where event delivery is not
+
+            available at all; the message says so, and retrying will not clear
+
+            it.
+
+            '
+          schema:
+            type: integer
+            minimum: 1
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: 'The request collided with something. On a write this is always the
+
+        `Idempotency-Key`, in one of two ways, and the message says which.
+
+
+        Either the key was already used for a **different** request, which is
+
+        refused rather than answered with the earlier request''s result. Or an
+
+        earlier request using the same key has not finished, or never reported
+
+        an outcome, in which case this one was not run and the key becomes
+
+        usable again shortly.
+
+
+        Nothing was changed by a request that answers this.
+
+        '
+      headers:
+        Retry-After:
+          description: 'Seconds to wait before retrying, on the second case only.
+
+            '
+          schema:
+            type: integer
+            minimum: 1
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unprocessable:
+      description: 'The request is well formed and every value in it is legal, and the
+
+        state of what it addresses refuses it anyway. The message says what
+
+        about that state is in the way.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalError:
+      description: Something failed inside Commune. The request may be retried.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: "The request was malformed, and the same request will fail the same way\nuntil it is changed. `param` names the parameter or header at fault\nwhen there is exactly one, and `allowed_values` lists what it accepts\nwhen that is a finite set. The code is `bad_request` for every case\nbelow except the last.\n\n* **A query parameter**: one the operation does not have, a value\n  outside its set, range or format (an unparseable cursor, an unknown\n  `expand` path or `fields` name, an identifier that is not a UUID),\n  or a required one left out, such as `q` on a search or `newsletter`\n  when the credential reaches more than one.\n* **The request body**: not JSON, not the shape the operation reads,\n  a property it does not write, or a value of the wrong type, length\n  or format. `param` is absent here, since the body is not a\n  parameter, and the message names the property.\n* **The `Idempotency-Key` header**, on an operation that changes\n  something: missing, or a value this API will not store.\n* **An unrecognised `Commune-Version`**, which answers with its own\n  code, `invalid_version`, because it is never fixed by changing the\n  body.\n"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      description: 'An OAuth access token, sent as `Authorization: Bearer <token>`. The
+
+        walkthrough of the whole flow is at
+
+        [usecommune.dev/use-cases/build-an-integration](https://usecommune.dev/use-cases/build-an-integration):
+
+        discovery, registration, PKCE, the consent screen, the exchange, refresh
+
+        and revocation.
+
+
+        Ask for a family scope and the person picks which newsletter
+
+        the token reaches; ask for `account:read` alone and it reaches no
+
+        newsletter and reads only the account it belongs to.
+
+
+        Each operation lists the scopes a token must carry to call it. An
+
+        operation that lists none takes any token.
+
+
+        Discover the URLs under `flows` at runtime from
+
+        `GET /.well-known/oauth-authorization-server` rather than hardcoding
+
+        them.
+
+        '
+      flows:
+        authorizationCode:
+          authorizationUrl: https://usecommune.com/api/oauth/authorize
+          tokenUrl: https://usecommune.com/api/oauth/token
+          refreshUrl: https://usecommune.com/api/oauth/token
+          scopes:
+            content:read: Read articles, threads and the rest of what a newsletter publishes.
+            content:write: Create, edit and delete that content.
+            audience:read: Read subscribers, tags and segments, including email addresses.
+            audience:write: Add, tag and remove subscribers.
+            insights:read: Read engagement, delivery and growth figures.
+            insights:write: Write back an insight the newsletter owns.
+            sending:read: Read sends, schedules and delivery outcomes.
+            sending:write: Send an article, schedule one, and cancel a schedule.
+            settings:read: Read a newsletter's configuration, senders and domains.
+            settings:write: Change that configuration.
+            webhooks:read: Read event destinations and their delivery history.
+            webhooks:write: Create and remove event destinations.
+            account:read: Read the person the credential belongs to, and nothing about any newsletter.
+    apiKey:
+      type: http
+      scheme: bearer
+      bearerFormat: Commune API key
+      description: 'A Commune API key, sent as `Authorization: Bearer <key>`. A key is
+
+        granted one or more newsletters and carries six permission families on
+
+        each, every one of them `none`, `read` or `write`. An operation names
+
+        the family and the level it needs.
+
+
+        A key is minted by a creator in Commune''s settings: no flow, no consent
+
+        screen, no expiry. That is the whole difference from `oauth2`. An
+
+        operation that declares both accepts either credential, and what each
+
+        may do is what it was granted.
+
+        '
+x-refined-from:
+- usecommune-openapi.json
+- usecommune-openapi.yml
+x-deferred:
+- resource: user_newsletters
+  scope: partner
+  reason: The newsletters a person owns or is on the team of. Public one profile at a time, but served in bulk it maps the network. A Partner API candidate.
+- resource: user_subscriptions
+  scope: partner
+  reason: The newsletters a person subscribes to. The reader side of the same network graph, so it waits for a Partner API with it.
+- resource: user_activity
+  scope: public
+  reason: The threads, highlights and articles sub resources of a public profile. Each filters a collection that has its own operation.
+- resource: user_settings
+  scope: reader
+  reason: Theme, contrast and the rest of a person's account preferences. Personal, and of no use to an integration.
+- resource: notification_preferences
+  scope: reader
+  reason: Personal account settings.
+- resource: push_subscriptions
+  scope: reader
+  reason: Per device push endpoints. Credential shaped, and personal.
+- resource: newsletter_settings
+  scope: creator
+  reason: Chat permissions, physical address and editor defaults. Split from the core object so the public schema stays frozen, and deferred with the write surface it exists to serve.
+- resource: invitations
+  scope: creator
+  reason: Carries invitee email addresses and single use tokens, and is write shaped. This version of the API is reads only.
+- resource: esp_connections
+  scope: creator
+  reason: Holds provider OAuth tokens and API keys. The connection becomes readable without them; the credentials never do.
+- resource: esp_imports
+  scope: creator
+  reason: Import and migration runs are long running writes against an outside provider. This version of the API is reads only.
+- resource: esp_share_audiences
+  scope: creator
+  reason: The provider side allow list that decides what Commune ingests. Import configuration, not a resource an integration reads.
+- resource: rss_authors
+  scope: creator
+  reason: The feed author to team member mapping. Import configuration, wired to one provider path.
+- resource: newsletter_exports
+  scope: never
+  reason: An admin only operation, not part of the creator catalog.
+- resource: article_drafts
+  scope: creator
+  reason: Commune's editor stores its own document format, and pinning it in a public contract would stop the editor evolving.
+- resource: article_preview
+  scope: creator
+  reason: Renders an article to final email HTML. Worth exposing, and it would pin the merge tag engine and the block system while both are still moving.
+- resource: article_compliance
+  scope: creator
+  reason: The pre send gate as a readable resource, answering "would this send?" without sending. Its blocker vocabulary is still growing, and freezing it now would freeze the gate; the send and schedule operations report the same refusals when they refuse.
+- resource: article_move
+  scope: creator
+  reason: Moving a draft from one newsletter to another. A credential reads one newsletter, so both ends of the move cannot be named by one of them.
+- resource: article_thread
+  scope: public
+  reason: An article's discussion, reachable as a sub resource. It is a thread and has an operation already; a second path to it is navigation.
+- resource: article_comments
+  scope: public
+  reason: Dead table. An article's discussion is its chat thread, so the count is on `article.stats.comments` and the comments themselves are that thread's messages.
+- resource: article_saved_event
+  scope: creator
+  reason: 'A topic for an article being saved or unsaved. Built alongside `article.liked` and `article.read` and then withdrawn before it shipped, on the ground that it is not the same kind of change they are.
+
+
+    Those two ride a disclosure that already exists. A credential holding `insights: read` reads `GET /newsletters/{newsletter}/events` today, which names which subscriber viewed or liked which article, so a topic carrying the same facts tells a creator nothing they could not already fetch. A save has no counterpart anywhere: no entry in `EngagementEventType`, no tally on `Article.stats`, nothing in the product that shows a creator who saved what, and a row only its owner can read. The topic would therefore have been the first thing ever to tell a creator anything about saves, and the thing it told them would be who.
+
+
+    That is a decision about what readers are told is private, not a gap in the catalog, and it is deferred until that decision is made rather than shipped as a side effect of building its two neighbours. `article_saves` itself is untouched: `GET /saved-articles` still returns a person their own list.'
+- resource: article_shared_event
+  scope: creator
+  reason: 'A topic for an article being shared. Refused rather than queued, because Commune does not observe a share and cannot: the product hands the reader to the operating system''s own share sheet, which reports nothing back, so the only shares that could ever be counted are the ones that begin with a button inside Commune, and even those end somewhere Commune cannot see.
+
+
+    Read `share` in `EngagementEventType` as the record of an earlier attempt rather than as a signal that exists. The value is declared, the insight scores weight it, and the collection at `GET /newsletters/{newsletter}/events` will return one if it ever finds one. None of that makes a share observable, and a `share` row is not something any newsletter has.
+
+
+    Publishing a topic for it would put a channel in this catalog that can never carry a message, which is worse than an absence: an absence is visible, and a silent channel reads as a quiet week.'
+- resource: article_read_state
+  scope: reader
+  reason: 'Per reader read and unread state, as a resource a client reads back and writes. Written on every read in the product, so exposing it invites the polling loop `article_views` is deferred for, on the same hot path. The `article.read` topic is not this resource arriving early: it is pushed rather than polled, which is the whole of what the objection was about, it reports one crossing per reader per article rather than a state a client can re-read, and it cannot be written.'
+- resource: article_views
+  scope: creator
+  reason: 'A write on every read in the product. Exposing it as a readable counter invites polling loops against a hot path. Still deferred after `article.read` landed, and not made redundant by it: that topic deliberately reports neither anonymous reads nor repeat visits, so it is not the counter and a consumer cannot build the counter out of it.'
+- resource: thread_demotion
+  scope: creator
+  reason: Taking a thread back off the global feed. Promoting one is an operation; the reverse has no topic and no considered answer to what a consumer already told about it should do.
+- resource: article_schedule_cancelled_event
+  scope: creator
+  reason: A topic for a cancelled schedule. Cancelling is an operation; the event is not, for the reason directly above, and the article's own status is the authority until there is an answer.
+- resource: thread_read_state
+  scope: reader
+  reason: Per user last read timestamps and mutes. A user token could hold it; a row names a thread, and handing one back would let an app walk into a private thread whose other participants consented to nothing.
+- resource: thread_participants
+  scope: public
+  reason: Who spoke in a thread. Derivable from the thread's messages, which have an operation of their own.
+- resource: moderation
+  scope: creator
+  reason: No moderation queue exists yet. An auditable log is worth having before write access rather than after it.
+- resource: posts
+  scope: public
+  reason: Retired. Posts were folded into newsletter scoped chat threads, so the resource is `threads`, and modelling `posts` would put a dead stack into a contract with outside consumers.
+- resource: post_replies
+  scope: public
+  reason: Retired with posts. A reply is a `message` in a thread.
+- resource: reposts
+  scope: public
+  reason: 'Retired with posts, and never wired up: the internal surface returns a hardcoded zero.'
+- resource: community_member
+  scope: public
+  reason: One person's place in a community, addressable on its own. The person has an operation and the place carries nothing but a date, so a second path to it is navigation rather than a resource.
+- resource: suppressions
+  scope: creator
+  reason: Bounces, complaints and unsubscribes as one list. The data is spread across two tables and there is no single surface to freeze yet.
+- resource: audience_count
+  scope: creator
+  reason: Commune's subscriber records are a partial cache of an outside provider's list, so any total derived from them would misstate the audience. Ask the provider.
+- resource: article_deliveries
+  scope: creator
+  reason: Per recipient send results, including bounces. Deferred until the send pipeline's own shape is stable enough to freeze.
+- resource: article_send_stats
+  scope: creator
+  reason: Opens and clicks come from the sending provider on the provider's schedule, so a number read here would be stale in a way the contract could not describe.
+- resource: send_links
+  scope: creator
+  reason: Click breakdown per destination URL. Clicks are recorded as events and never aggregated by destination, so the rollup does not exist.
+- resource: deliverability
+  scope: creator
+  reason: Rolling bounce and complaint health against thresholds. Derivable, and nothing computes it today.
+- resource: delivery_retries
+  scope: never
+  reason: Re-sending a send's failed recipients. Commune retries transient failures itself; what still fails is followed up by its team, because some of it may already have been delivered.
+- resource: network_metrics
+  scope: never
+  reason: Internal analytics, computed on a cron for Commune's own use.
+- resource: feed
+  scope: public
+  reason: Public threads, articles and highlights unioned into one stream. A discriminated union whose member shapes and ranking are still moving.
+- resource: newsletter_feed
+  scope: public
+  reason: The same union scoped to one newsletter. Deferred with `feed`.
+- resource: discover
+  scope: public
+  reason: An editorial surface whose ranking is still being tuned. Freezing its shape now would freeze an experiment.
+- resource: notifications
+  scope: reader
+  reason: A person's notification inbox. A user token is the right credential for it; every item points at a thread, message or article somewhere, and serving those references needs the subject registry to answer what an app may follow them to.
+- resource: notification_stream
+  scope: reader
+  reason: The server sent events channel behind a person's notification inbox. Deferred with `notifications` above, and additionally because a stream is not a Path Item. It was described in a separate AsyncAPI document for a while, on the grounds that a stream is not a Path Item, but it was never built and that document was the only thing that document held which this one could not express. Both are gone. A stream that is worth publishing to API keys brings the second document back with it.
+- resource: reader_digest
+  scope: reader
+  reason: The weekly roundup as data rather than as an email. Personal.
+- resource: creator_digest
+  scope: creator
+  reason: The creator side weekly. Every number in it is readable from the Metrics operations, so it is a rendering rather than a resource.
+- resource: billing
+  scope: creator
+  reason: Plan, usage and payment method. A money surface deserves its own contract and its own review, not a corner of the read catalog.
+- resource: media
+  scope: reader
+  reason: Upload only, and this version of the API is reads only.
+- resource: render_email
+  scope: creator
+  reason: 'Renders arbitrary editor JSON to email safe HTML. Same reason as `article_preview`: it would pin the block system in a public contract.'
+- resource: oembed
+  scope: public
+  reason: oEmbed for articles, threads and highlights. A separately published spec with its own discovery rules, not a resource in this one.
+- resource: api_key_mint
+  scope: never
+  reason: 'Minting a credential, which is refused rather than queued. A key that can mint keys outlives its own revocation: an intruder makes a second one, the creator revokes the first, and nothing they did stopped anything. A key is minted by a signed in person in Commune''s settings, where the secret is shown once. Listing and revoking keys are operations above.'
+- resource: oauth
+  scope: public
+  reason: 'The authorize and token endpoints a third party app uses. Built, and on the authorization server rather than here: they live in the Commune app, because issuing a credential means showing a signed-in person a screen and this service has no sessions. `GET /.well-known/oauth-protected-resource` is how a client finds them, and the flow is walked through in full at `usecommune.dev/use-cases/build-an-integration`. Not to be confused with `oauth_protected_resource` below: that one is this service saying where tokens for *it* come from.'
+- resource: oauth_protected_resource
+  scope: public
+  reason: '`GET /.well-known/oauth-protected-resource`, the RFC 9728 metadata document a client fetches after a `401` to find the authorization server. It is not a Commune resource and it is not versioned by `Commune-Version`: its shape is fixed by the RFC, it is the same bytes for every caller, and it is unauthenticated because discovery is what a caller does when it has no usable credential. The authorization server it names is not this API; it is the Commune app itself, where the creator''s session and the consent screen already are.'
+- resource: spec_documents
+  scope: public
+  reason: This document, served as JSON and as YAML, each with `?version=`, `?profile=` and `?lang=`. Describing itself inside itself is circular.
+- resource: mcp_server
+  scope: creator
+  reason: '`POST /mcp`, the Model Context Protocol endpoint. It is a JSON-RPC envelope over the operations declared above rather than a resource of its own: one tool is one Arazzo workflow, and every step of every workflow is one of these operations, dispatched through the same gateway with the caller''s own key. Declaring the envelope here would publish a second, untyped way to call operations that are already typed, and OpenAPI cannot describe what a `tools/call` body may contain without restating all twenty argument schemas the manifest already carries.'
+- resource: webhooks
+  scope: never
+  reason: 'Inbound endpoints for outside services, authenticated by signature rather than by key. The outbound direction is not this resource: the events a consumer receives are the generated `webhooks` block.'
+- resource: cron
+  scope: never
+  reason: Internal scheduled jobs, guarded by a shared secret.
+- resource: admin
+  scope: never
+  reason: Commune staff surface. Never public.

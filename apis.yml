@@ -1,25 +1,840 @@
 aid: usecommune
 name: Commune
-description: 'Commune is a company surfaced via the API Evangelist harvest backlog (source: new-submission)
-  and added to the network as a stub for full-pipeline profiling.'
+description: 'Commune turns newsletters into communities: each newsletter has an archive of articles and every article carries
+  a threaded chat, with engagement insights, subscriber analytics, growth tracking and superfan identification on top. The
+  Commune API (63 operations, 23 webhook topics, contract version 2026-08-26) exposes newsletters, articles, threads, messages,
+  subscribers, tags, senders, domains, metrics, sends and event delivery over a cursor-paginated REST surface at api.usecommune.com,
+  authenticated with bearer API keys or OAuth 2.1 (PKCE, dynamic client registration, RFC 9728 protected-resource metadata),
+  versioned by a Commune-Version date header, with a required Idempotency-Key on every write and a hosted MCP server at api.usecommune.com/mcp.'
 url: https://raw.githubusercontent.com/api-evangelist/usecommune/refs/heads/main/apis.yml
 x-type: company
 x-source: harvest:new-submission
-x-tier: stub
-x-tier-reason: harvest
+x-tier: profiled
+x-tier-reason: enrichment pass 2026-10-07 (local-v5; was harvest)
 specificationVersion: '0.20'
 created: '2026-10-07'
 modified: '2026-10-07'
 tags:
-- Company
-apis: []
+- Newsletters
+- Email
+- Community
+- Publishing
+- Creator Economy
+- Subscribers
+- Webhooks
+- MCP
+- Analytics
+- Content
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
+image: https://usecommune.com/favicon.ico
 common:
+- type: MCPServer
+  url: mcp/usecommune-mcp.yml
+- type: LLMsTxt
+  url: llms/usecommune-api-reference-llms.txt
+- type: AgenticAccess
+  url: agentic-access/usecommune-agentic-access.yml
+- type: RateLimits
+  url: rate-limits/usecommune-rate-limits.yml
+- type: Plans
+  url: plans/usecommune-plans-pricing.yml
+- type: Spectral
+  url: rules/usecommune-rules.yml
+- type: JSONLD
+  url: json-ld/usecommune-context.jsonld
+- type: Vocabulary
+  url: vocabulary/usecommune-vocabulary.yml
+- type: AgentSkill
+  url: skills/_index.yml
+- type: Webhooks
+  url: asyncapi/usecommune-webhooks.yml
+- type: DataModel
+  url: data-model/usecommune-data-model.yml
+- type: ChangeLog
+  url: changelog/usecommune-changelog.yml
+- type: Idempotency
+  url: conventions/usecommune-conventions.yml
+- type: Conventions
+  url: conventions/usecommune-conventions.yml
+- type: Lifecycle
+  url: lifecycle/usecommune-lifecycle.yml
+- type: ErrorCatalog
+  url: errors/usecommune-problem-types.yml
+- type: Conformance
+  url: conformance/usecommune-conformance.yml
+- type: Overlay
+  url: overlays/usecommune-openapi-overlay.yaml
+- type: LLMsTxt
+  url: llms/usecommune-llms.txt
+- type: LLMsTxt
+  url: llms/usecommune-dev-llms.txt
+- type: WellKnown
+  url: well-known/usecommune-well-known.yml
+- type: Hosts
+  url: hosts/usecommune-hosts.yml
+- type: Vendors
+  url: vendors/usecommune-vendors.yml
+- type: Authentication
+  url: authentication/usecommune-authentication.yml
+- type: OAuthScopes
+  url: scopes/usecommune-scopes.yml
 - type: Website
   url: https://usecommune.com
+- type: DeveloperPortal
+  url: https://usecommune.dev/
 - type: Documentation
+  url: https://usecommune.dev/guides
+- type: APIReference
   url: https://api-reference.usecommune.dev/
+- type: GettingStarted
+  url: https://usecommune.dev/guides/getting-started
+- type: ChangeLog
+  url: https://api-reference.usecommune.dev/changes
+- type: Pricing
+  url: https://usecommune.com/pricing
+- type: SignUp
+  url: https://usecommune.com/register
+- type: Login
+  url: https://usecommune.com/login
+- type: TermsOfService
+  url: https://usecommune.com/terms
+- type: PrivacyPolicy
+  url: https://usecommune.com/privacy
+- type: Discord
+  url: https://discord.gg/P6FtchV5e
+- type: DomainSecurity
+  url: security/usecommune-domain-security.yml
+apis:
+- aid: usecommune:usecommune-articles-api
+  name: Commune Articles API
+  description: >-
+    An article is one thing a newsletter published: written in Commune and
+
+    sent, or imported from the newsletter's provider. Two rules
+
+    gate every article read and are described on each operation. First, an
+
+    article stamped with an audience is visible only to the newsletter's team
+
+    and to subscribers holding one of its tags. Second, an article dated in
+
+    the future is invisible until that moment passes.
+
+
+    An article written in Commune can be created and edited here, its body sent
+
+    and returned as Markdown, and moved through its life: sent to a test
+
+    address, queued for a time, taken back off the schedule, sent to the list,
+
+    and re-attempted for the recipients a dispatch could not reach. An
+
+    imported article is read only.
+
+
+    What one reader did with an article is here too, from their side of it.
+
+    `GET /saved-articles` and `GET /liked-articles` are the articles an account
+
+    put aside and the articles it liked, across every newsletter it reads, and
+
+    they need `account: read` rather than `content`. Both obey the two rules
+
+    above, applied against the person rather than against a newsletter, so an
+
+    article they may no longer read leaves the page on its own.
+  humanURL: https://api-reference.usecommune.dev/
+  baseURL: https://api.usecommune.com
+  tags:
+  - Articles
+  properties:
+  - type: OpenAPI
+    url: openapi/usecommune-articles-api-openapi.yml
+  - type: Documentation
+    url: https://api-reference.usecommune.dev/
+  - type: JSONSchema
+    url: json-schema/usecommune-newsletter-stats-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-api-key-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-delivery-attempt-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-performance-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-send-schema.json
+- aid: usecommune:usecommune-engagement-api
+  name: Commune Engagement API
+  description: >-
+    What Commune knows about one subscriber that a newsletter's email provider
+
+    cannot answer: engagement scored across the inbox and the community
+
+    together, and the raw event stream those scores are summed from. Row
+
+    shaped and high cardinality, which is what a CRM or a re-engagement
+
+    automation reads. Needs `insights`, and part of the one read surface Commune
+
+    may put behind a plan.
+  humanURL: https://api-reference.usecommune.dev/
+  baseURL: https://api.usecommune.com
+  tags:
+  - Engagement
+  properties:
+  - type: OpenAPI
+    url: openapi/usecommune-engagement-api-openapi.yml
+  - type: Documentation
+    url: https://api-reference.usecommune.dev/
+  - type: JSONSchema
+    url: json-schema/usecommune-newsletter-stats-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-api-key-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-delivery-attempt-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-performance-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-send-schema.json
+- aid: usecommune:usecommune-event-delivery-api
+  name: Commune Event delivery API
+  description: >-
+    Where a newsletter's events go, and how a creator changes it. Commune
+
+    hands every event it publishes to a delivery service that owns fan out,
+
+    retries, signing and the delivery log, and a destination is one place that
+
+    service sends them: an HTTPS endpoint, or a queue, stream or object store
+
+    for a consumer that would rather not run a web server.
+
+
+    Reading the list is an operation here, and so is reading the delivery
+
+    attempt log: what was handed to which destination, what came back, and
+
+    asking for one to be handed over again.
+
+
+    Changing the destinations themselves is not. `portal-session` mints a link
+
+    into the delivery service's own portal, where a creator adds an endpoint,
+
+    disables one and rotates a signing secret. Asking for an attempt to be
+
+    replayed is the one write here, and is the same action as the portal's
+
+    retry button.
+
+
+    Needs `webhooks` throughout, since a destination is a private endpoint of
+
+    the creator's, the list of them says which systems a newsletter is wired
+
+    into, and the attempt log says what those systems were told and when.
+  humanURL: https://api-reference.usecommune.dev/
+  baseURL: https://api.usecommune.com
+  tags:
+  - Event delivery
+  properties:
+  - type: OpenAPI
+    url: openapi/usecommune-event-delivery-api-openapi.yml
+  - type: Documentation
+    url: https://api-reference.usecommune.dev/
+  - type: JSONSchema
+    url: json-schema/usecommune-newsletter-stats-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-api-key-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-delivery-attempt-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-performance-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-send-schema.json
+- aid: usecommune:usecommune-highlights-api
+  name: Commune Highlights API
+  description: >-
+    A highlight is a passage of an article a reader marked. It anchors a
+
+    comment to the exact sentence that prompted it.
+  humanURL: https://api-reference.usecommune.dev/
+  baseURL: https://api.usecommune.com
+  tags:
+  - Highlights
+  properties:
+  - type: OpenAPI
+    url: openapi/usecommune-highlights-api-openapi.yml
+  - type: Documentation
+    url: https://api-reference.usecommune.dev/
+  - type: JSONSchema
+    url: json-schema/usecommune-newsletter-stats-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-api-key-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-delivery-attempt-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-performance-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-send-schema.json
+- aid: usecommune:usecommune-messages-api
+  name: Commune Messages API
+  description: >-
+    A message is a reply inside a thread, up to two levels deep. Reactions
+
+    hang off a message.
+  humanURL: https://api-reference.usecommune.dev/
+  baseURL: https://api.usecommune.com
+  tags:
+  - Messages
+  properties:
+  - type: OpenAPI
+    url: openapi/usecommune-messages-api-openapi.yml
+  - type: Documentation
+    url: https://api-reference.usecommune.dev/
+  - type: JSONSchema
+    url: json-schema/usecommune-newsletter-stats-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-api-key-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-delivery-attempt-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-performance-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-send-schema.json
+- aid: usecommune:usecommune-metrics-api
+  name: Commune Metrics API
+  description: >-
+    The rolled up numbers for a newsletter and for one article: headline stats
+
+    for a period, acquisition attribution, bucketed series for charting, and
+
+    one article's email performance beside its community response. What a
+
+    dashboard reads, where Engagement is what an automation reads. Creator
+
+    scope, and part of the one read surface Commune may put behind a plan.
+  humanURL: https://api-reference.usecommune.dev/
+  baseURL: https://api.usecommune.com
+  tags:
+  - Metrics
+  properties:
+  - type: OpenAPI
+    url: openapi/usecommune-metrics-api-openapi.yml
+  - type: Documentation
+    url: https://api-reference.usecommune.dev/
+  - type: JSONSchema
+    url: json-schema/usecommune-newsletter-stats-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-api-key-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-delivery-attempt-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-performance-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-send-schema.json
+- aid: usecommune:usecommune-newsletters-api
+  name: Commune Newsletters API
+  description: >-
+    A newsletter is the top level object in Commune. It owns its articles, its
+
+    chat, its subscribers and its team. Everything else in this API hangs
+
+    off one.
+  humanURL: https://api-reference.usecommune.dev/
+  baseURL: https://api.usecommune.com
+  tags:
+  - Newsletters
+  properties:
+  - type: OpenAPI
+    url: openapi/usecommune-newsletters-api-openapi.yml
+  - type: Documentation
+    url: https://api-reference.usecommune.dev/
+  - type: JSONSchema
+    url: json-schema/usecommune-newsletter-stats-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-api-key-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-delivery-attempt-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-performance-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-send-schema.json
+- aid: usecommune:usecommune-platform-api
+  name: Commune Platform API
+  description: >-
+    The API's own machinery rather than any newsletter's data: the readiness
+
+    probe, what a credential has left of its rate limit budgets, what its
+
+    newsletter's plan allows, and the newsletter's API keys. A key can be
+
+    listed and revoked here but never created, so a stolen credential cannot
+
+    mint itself a replacement.
+  humanURL: https://api-reference.usecommune.dev/
+  baseURL: https://api.usecommune.com
+  tags:
+  - Platform
+  properties:
+  - type: OpenAPI
+    url: openapi/usecommune-platform-api-openapi.yml
+  - type: Documentation
+    url: https://api-reference.usecommune.dev/
+  - type: JSONSchema
+    url: json-schema/usecommune-newsletter-stats-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-api-key-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-delivery-attempt-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-performance-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-send-schema.json
+- aid: usecommune:usecommune-search-api
+  name: Commune Search API
+  description: >-
+    One query across newsletters, articles, people and chat. Where a reader
+
+    starts who does not yet have an identifier for any of them.
+  humanURL: https://api-reference.usecommune.dev/
+  baseURL: https://api.usecommune.com
+  tags:
+  - Search
+  properties:
+  - type: OpenAPI
+    url: openapi/usecommune-search-api-openapi.yml
+  - type: Documentation
+    url: https://api-reference.usecommune.dev/
+  - type: JSONSchema
+    url: json-schema/usecommune-newsletter-stats-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-api-key-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-delivery-attempt-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-performance-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-send-schema.json
+- aid: usecommune:usecommune-senders-api
+  name: Commune Senders API
+  description: >-
+    The addresses a newsletter sends from, and the state of the DNS that has
+
+    to be in place for them to work. The sending half of the pair; Website
+
+    domains is the other. Needs `sending`.
+  humanURL: https://api-reference.usecommune.dev/
+  baseURL: https://api.usecommune.com
+  tags:
+  - Senders
+  properties:
+  - type: OpenAPI
+    url: openapi/usecommune-senders-api-openapi.yml
+  - type: Documentation
+    url: https://api-reference.usecommune.dev/
+  - type: JSONSchema
+    url: json-schema/usecommune-newsletter-stats-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-api-key-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-delivery-attempt-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-performance-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-send-schema.json
+- aid: usecommune:usecommune-sends-api
+  name: Commune Sends API
+  description: >-
+    A send is one dispatch of one article to a newsletter's list: when it
+
+    started, when it finished, and the three numbers it finished on. Not to
+
+    be confused with Senders, one heading below: a sender is the address an
+
+    article goes out from and is configuration, a send is something that
+
+    happened.
+
+
+    Starting one is an operation under Articles, because it is a moment in an
+
+    article's life. Reading what became of it is here, because a run is its own
+
+    object with its own identifier and one article can have more than one.
+
+
+    The same run is announced as a `send.completed` event, carrying the same
+
+    three numbers under the same names, and these operations are how a
+
+    consumer reads them back afterwards from the identifier that event
+
+    carried. Needs `sending`.
+  humanURL: https://api-reference.usecommune.dev/
+  baseURL: https://api.usecommune.com
+  tags:
+  - Sends
+  properties:
+  - type: OpenAPI
+    url: openapi/usecommune-sends-api-openapi.yml
+  - type: Documentation
+    url: https://api-reference.usecommune.dev/
+  - type: JSONSchema
+    url: json-schema/usecommune-newsletter-stats-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-api-key-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-delivery-attempt-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-performance-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-send-schema.json
+- aid: usecommune:usecommune-subscriber-tags-api
+  name: Commune Subscriber tags API
+  description: >-
+    A tag segments a newsletter's audience. Sending an article to a tag stamps
+
+    that article with an audience, which is what makes it invisible to everyone
+
+    outside it. Named for the subscribers it is applied to, because a tag
+
+    called `Tags` inside a document made of tags says nothing.
+
+
+    Applying and removing a tag are writes, and they are grants and
+
+    revocations of access to whatever articles that segment was addressed to,
+
+    not only labels. Creating, renaming and retiring a tag are not operations
+
+    here yet.
+  humanURL: https://api-reference.usecommune.dev/
+  baseURL: https://api.usecommune.com
+  tags:
+  - Subscriber tags
+  properties:
+  - type: OpenAPI
+    url: openapi/usecommune-subscriber-tags-api-openapi.yml
+  - type: Documentation
+    url: https://api-reference.usecommune.dev/
+  - type: JSONSchema
+    url: json-schema/usecommune-newsletter-stats-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-api-key-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-delivery-attempt-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-performance-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-send-schema.json
+- aid: usecommune:usecommune-subscribers-api
+  name: Commune Subscribers API
+  description: >-
+    Who receives a newsletter. Needs `audience`, and never a public
+
+    surface: a newsletter's list belongs to its creator.
+
+
+    `GET /subscriptions` is that edge read from the other end, the lists one
+
+    account is on rather than the people on one list, and it needs
+
+    `account: read` instead. It carries none of what a newsletter's own record
+
+    of a subscriber carries: no address, no lifecycle status, none of the tags
+
+    the newsletter applied and nothing about how they were acquired.
+  humanURL: https://api-reference.usecommune.dev/
+  baseURL: https://api.usecommune.com
+  tags:
+  - Subscribers
+  properties:
+  - type: OpenAPI
+    url: openapi/usecommune-subscribers-api-openapi.yml
+  - type: Documentation
+    url: https://api-reference.usecommune.dev/
+  - type: JSONSchema
+    url: json-schema/usecommune-newsletter-stats-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-api-key-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-delivery-attempt-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-performance-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-send-schema.json
+- aid: usecommune:usecommune-team-api
+  name: Commune Team API
+  description: >-
+    Who may act on behalf of a newsletter: its owner, plus the members the
+
+    owner added as admins, editors or guests.
+
+
+    Both sides of that edge are here. A newsletter's roster answers "who is on
+
+    this team" and needs `settings`. `GET /memberships` answers "which teams
+
+    is this account on", which is the same membership read from the person
+
+    rather than from the newsletter, and needs `account: read` instead:
+
+    the set of teams somebody is on is a fact about them.
+  humanURL: https://api-reference.usecommune.dev/
+  baseURL: https://api.usecommune.com
+  tags:
+  - Team
+  properties:
+  - type: OpenAPI
+    url: openapi/usecommune-team-api-openapi.yml
+  - type: Documentation
+    url: https://api-reference.usecommune.dev/
+  - type: JSONSchema
+    url: json-schema/usecommune-newsletter-stats-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-api-key-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-delivery-attempt-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-performance-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-send-schema.json
+- aid: usecommune:usecommune-threads-api
+  name: Commune Threads API
+  description: >-
+    A thread is a conversation inside a newsletter's community. Commune has no
+
+    separate posts or comments stack: a creator's broadcast, a reader's
+
+    question and the discussion under an article are all threads in the same
+
+    newsletter scoped chat.
+  humanURL: https://api-reference.usecommune.dev/
+  baseURL: https://api.usecommune.com
+  tags:
+  - Threads
+  properties:
+  - type: OpenAPI
+    url: openapi/usecommune-threads-api-openapi.yml
+  - type: Documentation
+    url: https://api-reference.usecommune.dev/
+  - type: JSONSchema
+    url: json-schema/usecommune-newsletter-stats-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-api-key-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-delivery-attempt-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-performance-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-send-schema.json
+- aid: usecommune:usecommune-users-api
+  name: Commune Users API
+  description: >-
+    A person with a Commune account: the readers who join a community and the
+
+    writers who are credited on an article. Looked up by identifier or by
+
+    username, and only ever as a public profile: never an email address.
+
+
+    The one account read from the inside is the credential's own. `GET /me`
+
+    is the same person as the profile above plus the address and verification
+
+    state that one withholds, and it sits here rather than under a heading of
+
+    its own because it is the private view of exactly what this tag already
+
+    documents. It needs no permission at all.
+  humanURL: https://api-reference.usecommune.dev/
+  baseURL: https://api.usecommune.com
+  tags:
+  - Users
+  properties:
+  - type: OpenAPI
+    url: openapi/usecommune-users-api-openapi.yml
+  - type: Documentation
+    url: https://api-reference.usecommune.dev/
+  - type: JSONSchema
+    url: json-schema/usecommune-newsletter-stats-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-api-key-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-delivery-attempt-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-performance-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-send-schema.json
+- aid: usecommune:usecommune-webhooks-api
+  name: Commune Webhooks API
+  description: >-
+    The events Commune pushes to a consumer, rather than the resources a
+
+    consumer pulls. Commune publishes state changes on 23 topics, each
+
+    delivered as one HTTPS POST to an endpoint the consumer registered.
+
+
+    Every message shares one envelope, so a consumer can route on `type` and
+
+    dedupe on `id` without knowing anything about the specific event, and the
+
+    same values arrive as `Commune-Event-Type` and `Commune-Event-Id` headers
+
+    so both can be read before the body is parsed.
+
+
+    Delivery is at least once and unordered. A non-2xx response or a timeout
+
+    is retried with backoff, so a consumer has to treat `id` as the dedupe key
+
+    and tolerate replays. `occurred_at` is the ordering field, not arrival
+
+    time.
+
+
+    Two envelope fields say where a change came from rather than what
+
+    changed. `actor` names the credential when the change was made through
+
+    this API's write operations, and `idempotency_key` carries the key that
+
+    write was made under. Both are `null` for a change made anywhere else,
+
+    which is most of them.
+
+
+    **If your consumer writes, read `idempotency_key` before you act.** A
+
+    write through this API publishes an event, and that event is delivered to
+
+    every endpoint registered for the newsletter, including yours. A consumer
+
+    that reacts to events by writing therefore receives the echo of its own
+
+    write, cannot tell it from a change somebody else made, and writes again.
+
+
+    You already hold what breaks the loop: you generated the key you sent on
+
+    the write, so keep it and skip any event whose `idempotency_key` is one of
+
+    yours. `actor` is not the field for this. It names Commune's own id for
+
+    your credential, and no operation here tells you what that id is.
+
+
+    Registering an endpoint happens in the delivery portal, which
+
+    `POST /newsletters/{newsletter}/portal-session` mints a link into. The
+
+    endpoints already registered are readable at
+
+    `GET /newsletters/{newsletter}/destinations`.
+
+
+    What happened to a particular message is readable.
+
+    `GET /newsletters/{newsletter}/delivery-attempts` lists every handover
+
+    Commune made, filterable by the `event_id` a consumer reads off its own
+
+    `Commune-Event-Id` header, so "did that event reach me" is answerable from
+
+    both sides of the same identifier.
+  humanURL: https://api-reference.usecommune.dev/
+  baseURL: https://api.usecommune.com
+  tags:
+  - Webhooks
+  properties:
+  - type: OpenAPI
+    url: openapi/usecommune-webhooks-api-openapi.yml
+  - type: Documentation
+    url: https://api-reference.usecommune.dev/
+  - type: JSONSchema
+    url: json-schema/usecommune-newsletter-stats-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-api-key-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-delivery-attempt-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-performance-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-send-schema.json
+- aid: usecommune:usecommune-website-domains-api
+  name: Commune Website domains API
+  description: >-
+    A creator's own domain pointed at their Commune site, so their community
+
+    lives at their address rather than at ours. The same prove you own this
+
+    hostname flow as Senders, pointed at the site rather than at the mail.
+
+    Needs `settings`: a website domain is how the newsletter is configured,
+
+    not how it sends.
+  humanURL: https://api-reference.usecommune.dev/
+  baseURL: https://api.usecommune.com
+  tags:
+  - Website domains
+  properties:
+  - type: OpenAPI
+    url: openapi/usecommune-website-domains-api-openapi.yml
+  - type: Documentation
+    url: https://api-reference.usecommune.dev/
+  - type: JSONSchema
+    url: json-schema/usecommune-newsletter-stats-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-api-key-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-delivery-attempt-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-performance-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-article-schema.json
+  - type: JSONSchema
+    url: json-schema/usecommune-send-schema.json
+x-enrichment:
+  date: '2026-10-07'
+  status: enriched
+  artifacts_added: 41
+  pass: local-v5

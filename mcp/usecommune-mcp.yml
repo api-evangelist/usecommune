@@ -1,0 +1,67 @@
+generated: '2026-10-07'
+method: searched
+status: published
+source: https://usecommune.dev/guides/mcp
+description: Commune ships a hosted, remote MCP server at https://api.usecommune.com/mcp (Streamable HTTP). The
+  guide describes job-shaped tools (for example 'which readers am I about to lose', draft/test/schedule/send an
+  article) rather than one tool per endpoint; each tool declares the permission family and level it needs and tools
+  that change something say so. The guide publishes no tool-name table, and the live tools/list is behind OAuth,
+  so no tool names are recorded here.
+server:
+  name: commune
+  transport: http
+  url: https://api.usecommune.com/mcp
+  default_newsletter_param: ?newsletter=<handle>
+deployment:
+  mode: remote
+  endpoint: https://api.usecommune.com/mcp
+  auth: oauth
+  verified: probed
+  auth_detail: 'Anonymous POST tools/list on 2026-10-07 answered 401 with WWW-Authenticate: Bearer realm="Commune
+    API", resource_metadata="https://api.usecommune.com/.well-known/oauth-protected-resource" (RFC 9728). Clients
+    register dynamically at https://usecommune.com/api/oauth/register, run PKCE (S256) through https://usecommune.com/api/oauth/authorize
+    and reach a per-newsletter consent screen. Clients that cannot open a browser may instead send an API key as
+    Authorization: Bearer cmn_sk_... on the same URL.'
+  client_config:
+    mcpServers:
+      commune:
+        type: http
+        url: https://api.usecommune.com/mcp
+  claude_code: claude mcp add --transport http commune https://api.usecommune.com/mcp
+rfc9728:
+  resource: https://api.usecommune.com
+  authorization_servers:
+  - https://usecommune.com
+  resource_documentation: https://usecommune.dev
+  scopes_supported:
+  - content:read
+  - content:write
+  - audience:read
+  - audience:write
+  - sending:read
+  - sending:write
+  - insights:read
+  - insights:write
+  - settings:read
+  - settings:write
+  - webhooks:read
+  - webhooks:write
+  - account:read
+  probed: https://api.usecommune.com/.well-known/oauth-protected-resource (200, 2026-10-07)
+tools: []
+tools_note: tools/list is auth-gated (401) and https://usecommune.dev/guides/mcp names no tools; it says each tool
+  is a job rather than an endpoint, takes the newsletter to act on, and declares which family/level it needs. Schemas
+  need authenticated introspection.
+related_servers:
+- name: Bump.sh documentation portal MCP
+  url: https://api-reference.usecommune.dev/mcp
+  owner: bump.sh (docs platform), serving the Commune reference
+  verified: probed
+  tools:
+  - search
+  - get_pages
+  - list_pages
+  - list_changes
+  - get_change
+  note: Documentation search/changelog tools over the rendered reference, not the Commune API itself; anonymous
+    tools/list answered 200 on 2026-10-07.

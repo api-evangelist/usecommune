@@ -1,0 +1,28 @@
+generated: '2026-10-07'
+method: none
+source: probed 2026-10-07 on usecommune.com, usecommune.dev and api.usecommune.com
+signals: {}
+checked:
+- url: https://usecommune.com/security
+  status: 404
+- url: https://usecommune.com/accessibility
+  status: 404
+- url: https://usecommune.com/legal/subprocessors
+  status: 404
+- url: https://usecommune.com/subprocessors
+  status: 404
+- url: https://usecommune.com/legal/dpa
+  status: 404
+- url: https://usecommune.com/dpa
+  status: 404
+- url: https://usecommune.com/trust
+  status: 404
+- url: https://usecommune.com/.well-known/security.txt
+  status: 404
+- url: https://usecommune.dev/.well-known/security.txt
+  status: 404
+- url: https://api.usecommune.com/.well-known/security.txt
+  status: 404
+note: 'Only a privacy policy (https://usecommune.com/privacy) and terms (https://usecommune.com/terms) are published;
+  no SBOM, VPAT, subprocessor list, DPA, data-residency or transparency page was found. robots.txt on usecommune.com
+  carries Content-Signal: ai-train=no, which is a crawler directive rather than a regulatory signal.'

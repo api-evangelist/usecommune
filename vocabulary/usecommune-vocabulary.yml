@@ -1,0 +1,497 @@
+generated: '2026-10-07'
+method: derived
+generator: derive-vocabulary.py
+source: openapi/usecommune-openapi.yml
+vocabulary:
+  name: Commune Domain Vocabulary
+  description: 'Terms declared by Commune''s own API contract: its resource groups, objects and enumerations, with the contract''s definitions.
+    Derived, not authored.'
+  version: '2026-10-07'
+  terms:
+  - term: Newsletters
+    definition: A newsletter is the top level object in Commune. It owns its articles, its chat, its subscribers and its team. Everything else
+      in this API hangs off one.
+    tags:
+    - Resource Group
+    source: openapi/usecommune-openapi.yml
+  - term: Team
+    definition: 'Who may act on behalf of a newsletter: its owner, plus the members the owner added as admins, editors or guests. Both sides of
+      that edge are here. A newsletter''s roster answers "who is on this team" and needs `settings`. `GET /memberships` answers "which teams is
+      this account on", which is the same membership read from the person rather than from the newsletter, and needs `account: read` instead: '
+    tags:
+    - Resource Group
+    source: openapi/usecommune-openapi.yml
+  - term: Users
+    definition: 'A person with a Commune account: the readers who join a community and the writers who are credited on an article. Looked up by
+      identifier or by username, and only ever as a public profile: never an email address. The one account read from the inside is the credential''s
+      own. `GET /me` is the same person as the profile above plus the address and verification state that one withholds, and it sits her'
+    tags:
+    - Resource Group
+    source: openapi/usecommune-openapi.yml
+  - term: Search
+    definition: One query across newsletters, articles, people and chat. Where a reader starts who does not yet have an identifier for any of
+      them.
+    tags:
+    - Resource Group
+    source: openapi/usecommune-openapi.yml
+  - term: Articles
+    definition: 'An article is one thing a newsletter published: written in Commune and sent, or imported from the newsletter''s provider. Two
+      rules gate every article read and are described on each operation. First, an article stamped with an audience is visible only to the newsletter''s
+      team and to subscribers holding one of its tags. Second, an article dated in the future is invisible until that moment passes. An'
+    tags:
+    - Resource Group
+    source: openapi/usecommune-openapi.yml
+  - term: Highlights
+    definition: A highlight is a passage of an article a reader marked. It anchors a comment to the exact sentence that prompted it.
+    tags:
+    - Resource Group
+    source: openapi/usecommune-openapi.yml
+  - term: Threads
+    definition: 'A thread is a conversation inside a newsletter''s community. Commune has no separate posts or comments stack: a creator''s broadcast,
+      a reader''s question and the discussion under an article are all threads in the same newsletter scoped chat.'
+    tags:
+    - Resource Group
+    source: openapi/usecommune-openapi.yml
+  - term: Messages
+    definition: A message is a reply inside a thread, up to two levels deep. Reactions hang off a message.
+    tags:
+    - Resource Group
+    source: openapi/usecommune-openapi.yml
+  - term: Subscribers
+    definition: 'Who receives a newsletter. Needs `audience`, and never a public surface: a newsletter''s list belongs to its creator. `GET /subscriptions`
+      is that edge read from the other end, the lists one account is on rather than the people on one list, and it needs `account: read` instead.
+      It carries none of what a newsletter''s own record of a subscriber carries: no address, no lifecycle status, none of the ta'
+    tags:
+    - Resource Group
+    source: openapi/usecommune-openapi.yml
+  - term: Subscriber tags
+    definition: 'A tag segments a newsletter''s audience. Sending an article to a tag stamps that article with an audience, which is what makes
+      it invisible to everyone outside it. Named for the subscribers it is applied to, because a tag called `Tags` inside a document made of tags
+      says nothing. Applying and removing a tag are writes, and they are grants and revocations of access to whatever articles that segment '
+    tags:
+    - Resource Group
+    source: openapi/usecommune-openapi.yml
+  - term: Engagement
+    definition: 'What Commune knows about one subscriber that a newsletter''s email provider cannot answer: engagement scored across the inbox
+      and the community together, and the raw event stream those scores are summed from. Row shaped and high cardinality, which is what a CRM
+      or a re-engagement automation reads. Needs `insights`, and part of the one read surface Commune may put behind a plan.'
+    tags:
+    - Resource Group
+    source: openapi/usecommune-openapi.yml
+  - term: Metrics
+    definition: 'The rolled up numbers for a newsletter and for one article: headline stats for a period, acquisition attribution, bucketed series
+      for charting, and one article''s email performance beside its community response. What a dashboard reads, where Engagement is what an automation
+      reads. Creator scope, and part of the one read surface Commune may put behind a plan.'
+    tags:
+    - Resource Group
+    source: openapi/usecommune-openapi.yml
+  - term: Sends
+    definition: 'A send is one dispatch of one article to a newsletter''s list: when it started, when it finished, and the three numbers it finished
+      on. Not to be confused with Senders, one heading below: a sender is the address an article goes out from and is configuration, a send is
+      something that happened. Starting one is an operation under Articles, because it is a moment in an article''s life. Reading what beca'
+    tags:
+    - Resource Group
+    source: openapi/usecommune-openapi.yml
+  - term: Senders
+    definition: The addresses a newsletter sends from, and the state of the DNS that has to be in place for them to work. The sending half of
+      the pair; Website domains is the other. Needs `sending`.
+    tags:
+    - Resource Group
+    source: openapi/usecommune-openapi.yml
+  - term: Website domains
+    definition: 'A creator''s own domain pointed at their Commune site, so their community lives at their address rather than at ours. The same
+      prove you own this hostname flow as Senders, pointed at the site rather than at the mail. Needs `settings`: a website domain is how the
+      newsletter is configured, not how it sends.'
+    tags:
+    - Resource Group
+    source: openapi/usecommune-openapi.yml
+  - term: Platform
+    definition: 'The API''s own machinery rather than any newsletter''s data: the readiness probe, what a credential has left of its rate limit
+      budgets, what its newsletter''s plan allows, and the newsletter''s API keys. A key can be listed and revoked here but never created, so
+      a stolen credential cannot mint itself a replacement.'
+    tags:
+    - Resource Group
+    source: openapi/usecommune-openapi.yml
+  - term: Event delivery
+    definition: 'Where a newsletter''s events go, and how a creator changes it. Commune hands every event it publishes to a delivery service that
+      owns fan out, retries, signing and the delivery log, and a destination is one place that service sends them: an HTTPS endpoint, or a queue,
+      stream or object store for a consumer that would rather not run a web server. Reading the list is an operation here, and so is readi'
+    tags:
+    - Resource Group
+    source: openapi/usecommune-openapi.yml
+  - term: Webhooks
+    definition: The events Commune pushes to a consumer, rather than the resources a consumer pulls. Commune publishes state changes on 23 topics,
+      each delivered as one HTTPS POST to an endpoint the consumer registered. Every message shares one envelope, so a consumer can route on `type`
+      and dedupe on `id` without knowing anything about the specific event, and the same values arrive as `Commune-Event-Type` and `C
+    tags:
+    - Resource Group
+    source: openapi/usecommune-openapi.yml
+  - term: Pagination
+    definition: 'Cursor pagination state. Commune never exposes an offset or a page number: a collection is a moving window, and an offset silently
+      skips or repeats items when the window shifts between two requests.'
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/Pagination
+  - term: ListEnvelope
+    definition: The envelope every collection is returned in. `data` holds the page, `pagination` holds the cursor state. `data` is required here
+      and typed by each list operation, as an array of the one thing that operation returns, so the item type is stated on the page you are reading.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/ListEnvelope
+  - term: Ref
+    definition: An unexpanded relationship. Ask for the relationship in `?expand=` to get the full object in its place.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/Ref
+  - term: Error
+    definition: The error envelope. Every non `2xx` response from every operation has this shape, so a client can branch on `error.code` without
+      knowing which operation produced it.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/Error
+  - term: ErrorCode
+    definition: The stable, machine readable reason a request failed. New codes may be added in a minor version, so treat an unrecognised code
+      as a generic failure of its HTTP status class. Two of these share a status with a neighbour and exist because what a caller does next is
+      different. `invalid_version` is a `400` that is never fixed by changing the request body. `not_commune_newsletter` is a `422` that is ne
+    tags:
+    - Enumeration
+    source: openapi/usecommune-openapi.yml#/components/schemas/ErrorCode
+  - term: DependencyState
+    definition: How a single dependency answered its last check. `up` is a successful answer, `degraded` is an answer that arrived but was slow
+      or partial, and `down` is no usable answer at all. `down` covers every way a dependency can be unavailable to this deployment and does not
+      distinguish between them. Read it as "not usable right now", never as a statement about why.
+    tags:
+    - Enumeration
+    source: openapi/usecommune-openapi.yml#/components/schemas/DependencyState
+  - term: Dependency
+    definition: 'One capability the API depends on, and how it answered. `required` is the field that matters when deciding what to do about a
+      failure: a required dependency being down means no operation can be served, while an optional one being down costs only the operations that
+      touch it. A dependency is named by the capability it provides, never by the vendor providing it, and carries no free text. `GET /statu'
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/Dependency
+  - term: RateLimitPolicy
+    definition: One budget a key is measured against. A request is charged to every budget that applies to its operation, and has to pass all
+      of them.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/RateLimitPolicy
+  - term: RateLimit
+    definition: A key's rate limit state. The top level fields repeat the `general` budget, which every request is charged to; `policies` carries
+      every budget, which is what a client should read before deciding it has been cut off.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/RateLimit
+  - term: ServiceStatus
+    definition: The service's own health, the state of what it depends on, and the contract version it is currently serving.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/ServiceStatus
+  - term: Esp
+    definition: Where a newsletter is published from. `commune` means Commune itself sends the email. Every other value is an email service provider
+      whose posts Commune imports. `rss` covers any feed that is not one of the named providers.
+    tags:
+    - Enumeration
+    source: openapi/usecommune-openapi.yml#/components/schemas/Esp
+  - term: SocialLinks
+    definition: The creator's other homes on the internet, stored as canonical profile URLs. Every key is optional and a newsletter that set none
+      returns an empty object.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/SocialLinks
+  - term: Newsletter
+    definition: 'A newsletter and its public profile. Nothing operational is exposed: ESP credentials, OAuth tokens, group and audience ids, feed
+      polling state and language detection bookkeeping all stay server side.'
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/Newsletter
+  - term: ArticleStatus
+    definition: Where an article is in its life. A credential holding only `read` permissions ever sees `sent` and nothing else. An imported article
+      is always `sent`, since Commune sees it after the provider delivered it.
+    tags:
+    - Enumeration
+    source: openapi/usecommune-openapi.yml#/components/schemas/ArticleStatus
+  - term: ArticleStats
+    definition: 'Engagement counts for an article, computed at read time. These are Commune side counts, not provider side email metrics: opens,
+      clicks and deliveries are not here.'
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/ArticleStats
+  - term: Article
+    definition: One article of a newsletter, without its body. Every collection of articles returns this shape. `GET /articles/{article}` returns
+      `ArticleWithContent`, which is this plus `content`.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/Article
+  - term: ArticleWithContent
+    definition: An article including its rendered body. Returned only by `GET /articles/{article}`. `content` cannot be requested on any list,
+      including through `?fields=`.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/ArticleWithContent
+  - term: ArticleBodyMarkdown
+    definition: An article's text, as Markdown. Create an article documents the Markdown Commune accepts.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/ArticleBodyMarkdown
+  - term: ThreadCreateRequest
+    definition: A new thread in a newsletter's community.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/ThreadCreateRequest
+  - term: MessageCreateRequest
+    definition: A reply in a thread.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/MessageCreateRequest
+  - term: MediaCreateRequest
+    definition: 'An attachment, by URL. Commune does not copy it: the URL is shown as given, so it has to stay reachable.'
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/MediaCreateRequest
+  - term: ArticleCreateRequest
+    definition: 'A new article. Every property is optional: `{}` creates an empty untitled draft. What is created is always a **draft**. There
+      is no `status` here, no `posted_at` and no `scheduled_for`: an article reaches anybody through Schedule an article (`POST /articles/{article}/schedule`)
+      or Send an article to the list (`POST /articles/{article}/send`), both of which run the gates that keep a non-compliant a'
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/ArticleCreateRequest
+  - term: ArticleUpdateRequest
+    definition: 'The properties of an article to change. Send at least one; an empty object answers `400` rather than doing nothing. **Absent
+      and null are different.** A property you leave out is left alone. A property you send as `null` is cleared. An empty string is the same
+      as null, because a title that is present and empty reads as a missing one everywhere it is shown. `slug` is the exception: it can be change'
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/ArticleUpdateRequest
+  - term: ArticleImageRequest
+    definition: Exactly one of `source_url` or `content_type`.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/ArticleImageRequest
+  - term: ArticleImage
+    definition: An image stored for an article, at a URL that does not change. The article does not show it until its URL is in the body or `image_url`.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/ArticleImage
+  - term: ArticleImageUpload
+    definition: 'A one-time upload. Send the file''s bytes as the request body, with these headers, before it expires; for example `curl -X PUT
+      -H "Content-Type: image/png" --data-binary @chart.png ""`.'
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/ArticleImageUpload
+  - term: TestSendRequest
+    definition: Where a test copy of an article goes. Empty, or no body at all, sends it to the person the credential belongs to.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/TestSendRequest
+  - term: TestSend
+    definition: What one test send attempted and what the sending provider accepted. Nothing about the article changed and nobody on the list
+      was touched.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/TestSend
+  - term: ScheduleRequest
+    definition: When an article should go out.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/ScheduleRequest
+  - term: SendRequest
+    definition: Options for a send. Every field is optional, and sending no body at all is the ordinary case.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/SendRequest
+  - term: DnsRecord
+    definition: 'A record the creator has to publish in their own DNS before Commune can send from an address or serve a domain. These are public
+      by nature: they end up in a zone anyone can query.'
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/DnsRecord
+  - term: SenderKind
+    definition: '`commune` is an address Commune provisioned on a domain it owns, which works without the creator touching DNS. `custom` is an
+      address on the creator''s own domain, which does not work until they publish the records.'
+    tags:
+    - Enumeration
+    source: openapi/usecommune-openapi.yml#/components/schemas/SenderKind
+  - term: SenderVerificationStatus
+    definition: How far along the address is. Only `verified` can send. `provisioning` means Commune is still setting it up and the creator has
+      nothing to do yet.
+    tags:
+    - Enumeration
+    source: openapi/usecommune-openapi.yml#/components/schemas/SenderVerificationStatus
+  - term: Sender
+    definition: 'An address a newsletter sends from. Nothing about the underlying email infrastructure is exposed: the provider''s own identifiers
+      for the domain stay server side, because they are an implementation detail Commune reserves the right to change.'
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/Sender
+  - term: DomainVerificationStatus
+    definition: Whether ownership of the domain was proved and a certificate issued. `active` does not by itself mean the site is reachable, see
+      `routing_ok`.
+    tags:
+    - Enumeration
+    source: openapi/usecommune-openapi.yml#/components/schemas/DomainVerificationStatus
+  - term: Domain
+    definition: A creator's own domain serving their Commune site. The certificate provider's internal identifier for it is not exposed.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/Domain
+  - term: Destination
+    definition: One place a newsletter's published events are delivered to. **Nothing a destination authenticates with is on this shape**, and
+      neither is its full configuration, which for an HTTPS endpoint can include request headers holding an API key. `target` is what this shape
+      carries in their place, and the portal is where the person who set the destination up can read the rest.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/Destination
+  - term: DeliveryAttemptStatus
+    definition: 'How one attempt ended. `succeeded` is a 2xx from the destination. `failed` is anything else, including no answer at all, and
+      is not final: the delivery service retries on its own.'
+    tags:
+    - Enumeration
+    source: openapi/usecommune-openapi.yml#/components/schemas/DeliveryAttemptStatus
+  - term: DeliveryAttempt
+    definition: 'One handover of one event to one destination, and what came of it. A record of something that happened rather than a thing with
+      a state: it never changes after it is written, and a retry is a second `DeliveryAttempt` with a higher `attempt` rather than an edit to
+      this one. **Two fields a reader might expect are not here.** The body your endpoint answered with is never returned, since a refusing en'
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/DeliveryAttempt
+  - term: DeliveryReplay
+    definition: 'The acknowledgement that a replay was accepted. Not an attempt: the attempt this produces does not exist yet when the response
+      is written. What it carries is enough to find that attempt once it appears, by reading the delivery log filtered to the same event.'
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/DeliveryReplay
+  - term: PortalSession
+    definition: 'A link into the delivery portal, and the moment it stops working. Not a resource: it has no identifier, nothing addresses it,
+      and it cannot be fetched again. It is a credential that was minted for one person to follow once, and the only copy of it is the one in
+      this response.'
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/PortalSession
+  - term: MeteredFeature
+    definition: 'Something in this API that can be put behind a plan. There are two: reads are free, with one exception. `writes` covers every
+      operation that changes something. `insights` covers the engagement and metrics reads, which are the only reads Commune reserves the right
+      to meter. New members may be added in a minor version. Treat one you do not recognise as a capability that does not concern you, the sam'
+    tags:
+    - Enumeration
+    source: openapi/usecommune-openapi.yml#/components/schemas/MeteredFeature
+  - term: Entitlement
+    definition: One capability, and whether this newsletter's key has it. `granted` answers "will my next call work". `included` answers "does
+      this plan carry the capability at all". They differ only while Commune is not charging for the feature, which is what `metered` reports.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/Entitlement
+  - term: Entitlements
+    definition: What this newsletter's plan includes, and what a key bound to it may call. Read it before the first write of a reconciliation
+      rather than after the `402` that stops one halfway.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/Entitlements
+  - term: PermissionLevel
+    definition: 'How much of one family a credential holds on one newsletter. `none` is no access at all. `read` reads that part of the newsletter
+      as it has been published. `write` adds changing it, and with it the newsletter as it is being made: a credential that can change something
+      about a newsletter also sees its drafts, its scheduled articles and the threads addressed to one segment, because those are unpubli'
+    tags:
+    - Enumeration
+    source: openapi/usecommune-openapi.yml#/components/schemas/PermissionLevel
+  - term: NewsletterPermissions
+    definition: What a credential may do on one newsletter, family by family. Every family is always present, so a client never has to decide
+      what an absent one means. What a credential holds is granted per newsletter, so the same credential can carry different permissions on each
+      of the newsletters it reaches. These are what was **granted**. What a credential can actually do is that intersected with what the per
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/NewsletterPermissions
+  - term: ApiKey
+    definition: A credential, as it can be described without its secret. The secret is not here and no parameter brings it back. Commune stores
+      a digest of it and shows the plaintext once, to the person who minted it; after that only `key_prefix` survives. Use this object to recognise
+      a key, see whether anything is still calling with it, and turn it off. **A key belongs to a person, not to a newsletter.** It carr
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/ApiKey
+  - term: SearchResultType
+    definition: 'What a search result points at. There is no post or comment kind: a discussion result is a `thread` or a `message`.'
+    tags:
+    - Enumeration
+    source: openapi/usecommune-openapi.yml#/components/schemas/SearchResultType
+  - term: SearchResult
+    definition: One hit. It always carries enough to render a row without a second request, and points at the full resource through `resource`.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/SearchResult
+  - term: Highlight
+    definition: A passage of an article a reader marked. Highlights are the anchor for an inline comment, which is why one can carry a link to
+      the message it started.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/Highlight
+  - term: Tag
+    definition: 'A segment of a newsletter''s audience. A tag is what makes an article audience scoped: sending to a tag stamps the article, and
+      from then on only holders of that tag and the newsletter''s team can read it.'
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/Tag
+  - term: TagName
+    definition: What the creator calls the segment. Leading and trailing spaces are trimmed, and what is left has to be between 1 and 60 characters
+      and unique among the newsletter's live tags.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/TagName
+  - term: TagCreateRequest
+    definition: A new, empty segment of the newsletter's audience.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/TagCreateRequest
+  - term: TagUpdateRequest
+    definition: 'A tag''s new name. The only thing about a tag that can be changed: who holds it is moved by applying it to subscribers and taking
+      it off them, and whether it is retired is decided by deleting it.'
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/TagUpdateRequest
+  - term: TagDeletion
+    definition: 'What became of a tag that was deleted, which is one of two things. Not a tag: a tag that was removed outright no longer exists,
+      and one that was retired instead is still live enough to decide who may read the articles it was addressed to. A single shape that could
+      mean either would let a caller read a retirement as an ending, which it is not.'
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/TagDeletion
+  - term: TagAssignmentRequest
+    definition: The subscribers to put in a segment. The segment is the tag in the path.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/TagAssignmentRequest
+  - term: TagAssignment
+    definition: What applying a tag to a list of subscribers did, subscriber by subscriber. `tagged`, `already_tagged` and `not_found` are disjoint,
+      and together they hold every id the request named, once each, in the order the request named them. Only `tagged` changed anything.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/TagAssignment
+  - term: MemberRole
+    definition: 'What someone may do on behalf of a newsletter. `owner` is not a stored membership: it is the account the newsletter belongs to,
+      surfaced here as a role so the team reads as one list.'
+    tags:
+    - Enumeration
+    source: openapi/usecommune-openapi.yml#/components/schemas/MemberRole
+  - term: Member
+    definition: A person's place on a newsletter's team.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/Member
+  - term: SubscriberStatus
+    definition: Where a subscription stands. Source of truth for a `commune` newsletter. For a newsletter connected to an outside provider it
+      reflects what Commune last saw of the provider's state.
+    tags:
+    - Enumeration
+    source: openapi/usecommune-openapi.yml#/components/schemas/SubscriberStatus
+  - term: Subscriber
+    definition: One person's membership of one newsletter. The same person subscribing to two newsletters is two subscribers, and one creator
+      never sees the other's row. A subscriber may or may not have a Commune account. Someone who joined by email, or who arrived in an import
+      from the newsletter's provider, has an `email` and no `user`. Someone who joined through Commune has both.
+    tags:
+    - Object
+    source: openapi/usecommune-openapi.yml#/components/schemas/Subscriber
+  - term: ThreadVisibility
+    definition: Where a thread is placed. `public` puts it on the global Commune feed and makes it readable by anyone. `subscribers` keeps it
+      inside the newsletter. `paid` narrows it further to the paying part of the audience. Set and changed by the newsletter's team.
+    tags:
+    - Enumeration
+    source: openapi/usecommune-openapi.yml#/components/schemas/ThreadVisibility

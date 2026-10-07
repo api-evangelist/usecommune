@@ -1,0 +1,25 @@
+generated: '2026-10-07'
+method: derived
+generator: derive-conformance.py
+source: openapi/ (1 document(s), 19 mutating operations)
+standards:
+- id: openapi-3.1
+  conforms: true
+  evidence: the document declares 3.1.0
+- id: oauth2
+  conforms: true
+  evidence: 'securitySchemes: apiKey (http), oauth2 (oauth2)'
+- id: rfc9457
+  conforms: false
+  evidence: no response declares application/problem+json
+- id: idempotency
+  conforms: true
+  evidence: Idempotency-Key declared on 18 of 19 mutating operations (full)
+- id: pagination
+  conforms: true
+  evidence: list operations take cursor, limit
+- id: ratelimit-headers
+  conforms: true
+  evidence: responses declare Retry-After
+note: 'Derived from the provider''s own OpenAPI only: what the contract declares. Claims the contract cannot carry (PCI DSS, SOC 2, FAPI, ISO
+  20022) come from the documentation reader and are merged below when found.'

@@ -1,0 +1,82 @@
+generated: '2026-10-07'
+method: searched
+source: openapi/usecommune-openapi.yml; https://usecommune.dev/use-cases/build-an-integration; https://usecommune.dev/guides/getting-started;
+  https://api.usecommune.com/.well-known/oauth-protected-resource; https://usecommune.com/.well-known/oauth-authorization-server
+summary:
+  types:
+  - http
+  - oauth2
+  oauth2_flows:
+  - authorizationCode
+schemes:
+- name: oauth2
+  type: oauth2
+  flows:
+  - flow: authorizationCode
+    authorizationUrl: https://usecommune.com/api/oauth/authorize
+    tokenUrl: https://usecommune.com/api/oauth/token
+    scopes: 13
+  description: 'An OAuth access token, sent as `Authorization: Bearer <token>`. The
+
+    walkthrough of the whole flow is at
+
+    [usecommune.dev/use-cases/build-an-integration](https://usecommune.dev/use-cases/build-an-integration):
+
+    discovery, registration, PKCE, the consent screen, the exchange, refresh
+
+    and revocation.
+
+
+    Ask for a family scope and the person picks which newsletter
+
+    the token reaches; ask for `account:read`'
+  sources:
+  - openapi/usecommune-openapi.yml
+- name: apiKey
+  type: http
+  scheme: bearer
+  bearerFormat: Commune API key
+  description: 'A Commune API key, sent as `Authorization: Bearer <key>`. A key is
+
+    granted one or more newsletters and carries six permission families on
+
+    each, every one of them `none`, `read` or `write`. An operation names
+
+    the family and the level it needs.
+
+
+    A key is minted by a creator in Commune''s settings: no flow, no consent
+
+    screen, no expiry. That is the whole difference from `oauth2`. An
+
+    operation that dec'
+  sources:
+  - openapi/usecommune-openapi.yml
+docs: https://usecommune.dev/use-cases/build-an-integration
+discovery:
+  rfc9728_protected_resource: https://api.usecommune.com/.well-known/oauth-protected-resource (200)
+  rfc8414_authorization_server: https://usecommune.com/.well-known/oauth-authorization-server (200)
+  www_authenticate_on_401: Bearer realm="Commune API", resource_metadata="https://api.usecommune.com/.well-known/oauth-protected-resource"
+  dynamic_client_registration: https://usecommune.com/api/oauth/register (RFC 7591, token_endpoint_auth_method none
+    supported)
+  pkce: S256 required for public clients
+  refresh: refresh_token grant; offline_access scope
+api_keys:
+  prefix: cmn_sk_
+  minted_at: https://usecommune.com/settings/api-keys
+  expiry: none; revocable via DELETE /api-keys/{key} or in settings
+  grant: per newsletter, six families each none/read/write, plus optional account:read
+permission_model:
+  families:
+  - content
+  - audience
+  - sending
+  - insights
+  - settings
+  - webhooks
+  levels:
+  - none
+  - read
+  - write
+  separate_axis: account:read
+  enforcement: 403 forbidden / insufficient_scope naming what was needed and what the credential holds

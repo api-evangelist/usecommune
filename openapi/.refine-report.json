@@ -1,0 +1,57 @@
+{
+  "provider": "usecommune",
+  "sources": [
+    "_original/usecommune-openapi.json",
+    "usecommune-openapi.yml"
+  ],
+  "outputs": [
+    "usecommune-articles-api-openapi.yml",
+    "usecommune-engagement-api-openapi.yml",
+    "usecommune-event-delivery-api-openapi.yml",
+    "usecommune-highlights-api-openapi.yml",
+    "usecommune-messages-api-openapi.yml",
+    "usecommune-metrics-api-openapi.yml",
+    "usecommune-newsletters-api-openapi.yml",
+    "usecommune-platform-api-openapi.yml",
+    "usecommune-search-api-openapi.yml",
+    "usecommune-senders-api-openapi.yml",
+    "usecommune-sends-api-openapi.yml",
+    "usecommune-subscriber-tags-api-openapi.yml",
+    "usecommune-subscribers-api-openapi.yml",
+    "usecommune-team-api-openapi.yml",
+    "usecommune-threads-api-openapi.yml",
+    "usecommune-users-api-openapi.yml",
+    "usecommune-webhooks-api-openapi.yml",
+    "usecommune-website-domains-api-openapi.yml"
+  ],
+  "archived": [
+    "archived openapi/usecommune-openapi.yml"
+  ],
+  "errors": [],
+  "warnings": [],
+  "notes": [
+    "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "usecommune-openapi.json: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
+    "usecommune-openapi.yml: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
+    "tag 'Articles' spans 2 source specs (usecommune-openapi.json, usecommune-openapi.yml): per-path servers applied",
+    "tag 'Engagement' spans 2 source specs (usecommune-openapi.json, usecommune-openapi.yml): per-path servers applied",
+    "tag 'Event delivery' spans 2 source specs (usecommune-openapi.json, usecommune-openapi.yml): per-path servers applied",
+    "tag 'Highlights' spans 2 source specs (usecommune-openapi.json, usecommune-openapi.yml): per-path servers applied",
+    "tag 'Messages' spans 2 source specs (usecommune-openapi.json, usecommune-openapi.yml): per-path servers applied",
+    "tag 'Metrics' spans 2 source specs (usecommune-openapi.json, usecommune-openapi.yml): per-path servers applied",
+    "tag 'Newsletters' spans 2 source specs (usecommune-openapi.json, usecommune-openapi.yml): per-path servers applied",
+    "tag 'Platform' spans 2 source specs (usecommune-openapi.json, usecommune-openapi.yml): per-path servers applied",
+    "tag 'Search' spans 2 source specs (usecommune-openapi.json, usecommune-openapi.yml): per-path servers applied",
+    "tag 'Senders' spans 2 source specs (usecommune-openapi.json, usecommune-openapi.yml): per-path servers applied",
+    "tag 'Sends' spans 2 source specs (usecommune-openapi.json, usecommune-openapi.yml): per-path servers applied",
+    "tag 'Subscriber tags' spans 2 source specs (usecommune-openapi.json, usecommune-openapi.yml): per-path servers applied",
+    "tag 'Subscribers' spans 2 source specs (usecommune-openapi.json, usecommune-openapi.yml): per-path servers applied",
+    "tag 'Team' spans 2 source specs (usecommune-openapi.json, usecommune-openapi.yml): per-path servers applied",
+    "tag 'Threads' spans 2 source specs (usecommune-openapi.json, usecommune-openapi.yml): per-path servers applied",
+    "tag 'Users' spans 2 source specs (usecommune-openapi.json, usecommune-openapi.yml): per-path servers applied",
+    "tag 'Webhooks' spans 2 source specs (usecommune-openapi.json, usecommune-openapi.yml): per-path servers applied",
+    "tag 'Website domains' spans 2 source specs (usecommune-openapi.json, usecommune-openapi.yml): per-path servers applied",
+    "apis.yml register: written (+18 apis, 18 total)"
+  ],
+  "skipped": []
+}

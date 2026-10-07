@@ -1,0 +1,1067 @@
+{
+  "@context": {
+    "@vocab": "https://usecommune.com/schema#",
+    "schema": "https://schema.org/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "usecommune": "https://usecommune.com/schema#",
+    "Pagination": "usecommune:Pagination",
+    "has_more": {
+      "@id": "usecommune:has_more",
+      "@type": "xsd:boolean"
+    },
+    "next_cursor": {
+      "@id": "usecommune:next_cursor",
+      "@type": "xsd:string"
+    },
+    "ListEnvelope": "usecommune:ListEnvelope",
+    "object": {
+      "@id": "usecommune:object",
+      "@type": "xsd:string"
+    },
+    "pagination": {
+      "@id": "usecommune:pagination",
+      "@type": "@id"
+    },
+    "Ref": "usecommune:Ref",
+    "id": {
+      "@id": "usecommune:id",
+      "@type": "xsd:string"
+    },
+    "Error": "usecommune:Error",
+    "error": {
+      "@id": "usecommune:error"
+    },
+    "ErrorCode": "usecommune:ErrorCode",
+    "DependencyState": "usecommune:DependencyState",
+    "Dependency": "usecommune:Dependency",
+    "name": {
+      "@id": "usecommune:name",
+      "@type": "xsd:string"
+    },
+    "state": {
+      "@id": "usecommune:state",
+      "@type": "@id"
+    },
+    "required": {
+      "@id": "usecommune:required",
+      "@type": "xsd:boolean"
+    },
+    "checked_at": {
+      "@id": "usecommune:checked_at",
+      "@type": "xsd:dateTime"
+    },
+    "RateLimitPolicy": "usecommune:RateLimitPolicy",
+    "limit": {
+      "@id": "usecommune:limit",
+      "@type": "xsd:integer"
+    },
+    "used": {
+      "@id": "usecommune:used",
+      "@type": "xsd:integer"
+    },
+    "remaining": {
+      "@id": "usecommune:remaining",
+      "@type": "xsd:integer"
+    },
+    "window_seconds": {
+      "@id": "usecommune:window_seconds",
+      "@type": "xsd:integer"
+    },
+    "reset_at": {
+      "@id": "usecommune:reset_at",
+      "@type": "xsd:dateTime"
+    },
+    "description": {
+      "@id": "usecommune:description",
+      "@type": "xsd:string"
+    },
+    "RateLimit": "usecommune:RateLimit",
+    "policies": {
+      "@id": "usecommune:policies",
+      "@container": "@list"
+    },
+    "ServiceStatus": "usecommune:ServiceStatus",
+    "status": {
+      "@id": "usecommune:status",
+      "@type": "xsd:string"
+    },
+    "version": {
+      "@id": "usecommune:version",
+      "@type": "xsd:string"
+    },
+    "dependencies": {
+      "@id": "usecommune:dependencies",
+      "@container": "@list"
+    },
+    "Esp": "usecommune:Esp",
+    "SocialLinks": "usecommune:SocialLinks",
+    "twitter": {
+      "@id": "usecommune:twitter",
+      "@type": "@id"
+    },
+    "bluesky": {
+      "@id": "usecommune:bluesky",
+      "@type": "@id"
+    },
+    "linkedin": {
+      "@id": "usecommune:linkedin",
+      "@type": "@id"
+    },
+    "mastodon": {
+      "@id": "usecommune:mastodon",
+      "@type": "@id"
+    },
+    "youtube": {
+      "@id": "usecommune:youtube",
+      "@type": "@id"
+    },
+    "instagram": {
+      "@id": "usecommune:instagram",
+      "@type": "@id"
+    },
+    "threads": {
+      "@id": "usecommune:threads",
+      "@type": "@id"
+    },
+    "github": {
+      "@id": "usecommune:github",
+      "@type": "@id"
+    },
+    "Newsletter": "usecommune:Newsletter",
+    "handle": {
+      "@id": "usecommune:handle",
+      "@type": "xsd:string"
+    },
+    "esp": {
+      "@id": "usecommune:esp",
+      "@type": "@id"
+    },
+    "image_url": {
+      "@id": "usecommune:image_url",
+      "@type": "@id"
+    },
+    "website_url": {
+      "@id": "usecommune:website_url",
+      "@type": "@id"
+    },
+    "social_links": {
+      "@id": "usecommune:social_links",
+      "@type": "@id"
+    },
+    "language": {
+      "@id": "usecommune:language",
+      "@type": "xsd:string"
+    },
+    "chat_create_permission": {
+      "@id": "usecommune:chat_create_permission",
+      "@type": "xsd:string"
+    },
+    "allow_non_subscriber_chat": {
+      "@id": "usecommune:allow_non_subscriber_chat",
+      "@type": "xsd:boolean"
+    },
+    "owner": {
+      "@id": "usecommune:owner"
+    },
+    "featured_article": {
+      "@id": "usecommune:featured_article"
+    },
+    "created_at": {
+      "@id": "usecommune:created_at",
+      "@type": "xsd:dateTime"
+    },
+    "updated_at": {
+      "@id": "usecommune:updated_at",
+      "@type": "xsd:dateTime"
+    },
+    "ArticleStatus": "usecommune:ArticleStatus",
+    "ArticleStats": "usecommune:ArticleStats",
+    "likes": {
+      "@id": "usecommune:likes",
+      "@type": "xsd:integer"
+    },
+    "comments": {
+      "@id": "usecommune:comments",
+      "@type": "xsd:integer"
+    },
+    "highlights": {
+      "@id": "usecommune:highlights",
+      "@type": "xsd:integer"
+    },
+    "Article": "usecommune:Article",
+    "short_id": {
+      "@id": "usecommune:short_id",
+      "@type": "xsd:string"
+    },
+    "slug": {
+      "@id": "usecommune:slug",
+      "@type": "xsd:string"
+    },
+    "newsletter": {
+      "@id": "usecommune:newsletter"
+    },
+    "title": {
+      "@id": "usecommune:title",
+      "@type": "xsd:string"
+    },
+    "preview_text": {
+      "@id": "usecommune:preview_text",
+      "@type": "xsd:string"
+    },
+    "external_url": {
+      "@id": "usecommune:external_url",
+      "@type": "@id"
+    },
+    "is_imported": {
+      "@id": "usecommune:is_imported",
+      "@type": "xsd:boolean"
+    },
+    "posted_at": {
+      "@id": "usecommune:posted_at",
+      "@type": "xsd:dateTime"
+    },
+    "scheduled_for": {
+      "@id": "usecommune:scheduled_for",
+      "@type": "xsd:dateTime"
+    },
+    "authors": {
+      "@id": "usecommune:authors",
+      "@container": "@list"
+    },
+    "thread": {
+      "@id": "usecommune:thread"
+    },
+    "stats": {
+      "@id": "usecommune:stats",
+      "@type": "@id"
+    },
+    "ThreadCreateRequest": "usecommune:ThreadCreateRequest",
+    "content": {
+      "@id": "usecommune:content",
+      "@type": "xsd:string"
+    },
+    "visibility": {
+      "@id": "usecommune:visibility",
+      "@type": "xsd:string"
+    },
+    "media": {
+      "@id": "usecommune:media",
+      "@container": "@list"
+    },
+    "MessageCreateRequest": "usecommune:MessageCreateRequest",
+    "parent": {
+      "@id": "usecommune:parent",
+      "@type": "xsd:string"
+    },
+    "quoted": {
+      "@id": "usecommune:quoted",
+      "@type": "xsd:string"
+    },
+    "MediaCreateRequest": "usecommune:MediaCreateRequest",
+    "url": {
+      "@id": "usecommune:url",
+      "@type": "@id"
+    },
+    "type": {
+      "@id": "usecommune:type",
+      "@type": "xsd:string"
+    },
+    "alt": {
+      "@id": "usecommune:alt",
+      "@type": "xsd:string"
+    },
+    "ArticleCreateRequest": "usecommune:ArticleCreateRequest",
+    "content_markdown": {
+      "@id": "usecommune:content_markdown",
+      "@type": "@id"
+    },
+    "ArticleUpdateRequest": "usecommune:ArticleUpdateRequest",
+    "ArticleImageRequest": "usecommune:ArticleImageRequest",
+    "source_url": {
+      "@id": "usecommune:source_url",
+      "@type": "@id"
+    },
+    "content_type": {
+      "@id": "usecommune:content_type",
+      "@type": "xsd:string"
+    },
+    "ArticleImage": "usecommune:ArticleImage",
+    "size_bytes": {
+      "@id": "usecommune:size_bytes",
+      "@type": "xsd:integer"
+    },
+    "upload": {
+      "@id": "usecommune:upload"
+    },
+    "ArticleImageUpload": "usecommune:ArticleImageUpload",
+    "method": {
+      "@id": "usecommune:method",
+      "@type": "xsd:string"
+    },
+    "headers": {
+      "@id": "usecommune:headers"
+    },
+    "max_bytes": {
+      "@id": "usecommune:max_bytes",
+      "@type": "xsd:integer"
+    },
+    "expires_at": {
+      "@id": "usecommune:expires_at",
+      "@type": "xsd:dateTime"
+    },
+    "TestSendRequest": "usecommune:TestSendRequest",
+    "to": {
+      "@id": "usecommune:to",
+      "@container": "@list"
+    },
+    "TestSend": "usecommune:TestSend",
+    "article": {
+      "@id": "usecommune:article",
+      "@type": "@id"
+    },
+    "recipients": {
+      "@id": "usecommune:recipients",
+      "@container": "@list"
+    },
+    "sent_to_owner": {
+      "@id": "usecommune:sent_to_owner",
+      "@type": "xsd:boolean"
+    },
+    "sent": {
+      "@id": "usecommune:sent",
+      "@type": "xsd:integer"
+    },
+    "failed": {
+      "@id": "usecommune:failed",
+      "@type": "xsd:integer"
+    },
+    "ScheduleRequest": "usecommune:ScheduleRequest",
+    "acknowledge_broken_images": {
+      "@id": "usecommune:acknowledge_broken_images",
+      "@type": "xsd:boolean"
+    },
+    "SendRequest": "usecommune:SendRequest",
+    "DnsRecord": "usecommune:DnsRecord",
+    "value": {
+      "@id": "usecommune:value",
+      "@type": "xsd:string"
+    },
+    "priority": {
+      "@id": "usecommune:priority",
+      "@type": "xsd:integer"
+    },
+    "SenderKind": "usecommune:SenderKind",
+    "SenderVerificationStatus": "usecommune:SenderVerificationStatus",
+    "Sender": "usecommune:Sender",
+    "kind": {
+      "@id": "usecommune:kind",
+      "@type": "@id"
+    },
+    "from_email": {
+      "@id": "usecommune:from_email",
+      "@type": "xsd:string"
+    },
+    "from_name": {
+      "@id": "usecommune:from_name",
+      "@type": "xsd:string"
+    },
+    "reply_to_email": {
+      "@id": "usecommune:reply_to_email",
+      "@type": "xsd:string"
+    },
+    "domain": {
+      "@id": "usecommune:domain",
+      "@type": "xsd:string"
+    },
+    "local_part": {
+      "@id": "usecommune:local_part",
+      "@type": "xsd:string"
+    },
+    "verification_status": {
+      "@id": "usecommune:verification_status",
+      "@type": "@id"
+    },
+    "verification_records": {
+      "@id": "usecommune:verification_records",
+      "@container": "@list"
+    },
+    "verification_error": {
+      "@id": "usecommune:verification_error",
+      "@type": "xsd:string"
+    },
+    "is_default": {
+      "@id": "usecommune:is_default",
+      "@type": "xsd:boolean"
+    },
+    "verified_at": {
+      "@id": "usecommune:verified_at",
+      "@type": "xsd:dateTime"
+    },
+    "last_checked_at": {
+      "@id": "usecommune:last_checked_at",
+      "@type": "xsd:dateTime"
+    },
+    "DomainVerificationStatus": "usecommune:DomainVerificationStatus",
+    "Domain": "usecommune:Domain",
+    "ssl_status": {
+      "@id": "usecommune:ssl_status",
+      "@type": "xsd:string"
+    },
+    "dns_target": {
+      "@id": "usecommune:dns_target",
+      "@type": "xsd:string"
+    },
+    "routing_ok": {
+      "@id": "usecommune:routing_ok",
+      "@type": "xsd:boolean"
+    },
+    "routing_checked_at": {
+      "@id": "usecommune:routing_checked_at",
+      "@type": "xsd:dateTime"
+    },
+    "Destination": "usecommune:Destination",
+    "target": {
+      "@id": "usecommune:target",
+      "@type": "xsd:string"
+    },
+    "topics": {
+      "@id": "usecommune:topics",
+      "@container": "@list"
+    },
+    "enabled": {
+      "@id": "usecommune:enabled",
+      "@type": "xsd:boolean"
+    },
+    "disabled_at": {
+      "@id": "usecommune:disabled_at",
+      "@type": "xsd:dateTime"
+    },
+    "DeliveryAttemptStatus": "usecommune:DeliveryAttemptStatus",
+    "DeliveryAttempt": "usecommune:DeliveryAttempt",
+    "destination": {
+      "@id": "usecommune:destination"
+    },
+    "destination_type": {
+      "@id": "usecommune:destination_type",
+      "@type": "xsd:string"
+    },
+    "event_id": {
+      "@id": "usecommune:event_id",
+      "@type": "xsd:string"
+    },
+    "event_type": {
+      "@id": "usecommune:event_type",
+      "@type": "xsd:string"
+    },
+    "response_status": {
+      "@id": "usecommune:response_status",
+      "@type": "xsd:integer"
+    },
+    "failure": {
+      "@id": "usecommune:failure",
+      "@type": "xsd:string"
+    },
+    "attempt": {
+      "@id": "usecommune:attempt",
+      "@type": "xsd:integer"
+    },
+    "manual": {
+      "@id": "usecommune:manual",
+      "@type": "xsd:boolean"
+    },
+    "DeliveryReplay": "usecommune:DeliveryReplay",
+    "PortalSession": "usecommune:PortalSession",
+    "MeteredFeature": "usecommune:MeteredFeature",
+    "Entitlement": "usecommune:Entitlement",
+    "feature": {
+      "@id": "usecommune:feature",
+      "@type": "@id"
+    },
+    "granted": {
+      "@id": "usecommune:granted",
+      "@type": "xsd:boolean"
+    },
+    "included": {
+      "@id": "usecommune:included",
+      "@type": "xsd:boolean"
+    },
+    "metered": {
+      "@id": "usecommune:metered",
+      "@type": "xsd:boolean"
+    },
+    "plans": {
+      "@id": "usecommune:plans",
+      "@container": "@list"
+    },
+    "reason": {
+      "@id": "usecommune:reason",
+      "@type": "xsd:string"
+    },
+    "Entitlements": "usecommune:Entitlements",
+    "plan": {
+      "@id": "usecommune:plan",
+      "@type": "xsd:string"
+    },
+    "api_access": {
+      "@id": "usecommune:api_access",
+      "@container": "@list"
+    },
+    "PermissionLevel": "usecommune:PermissionLevel",
+    "NewsletterPermissions": "usecommune:NewsletterPermissions",
+    "audience": {
+      "@id": "usecommune:audience"
+    },
+    "sending": {
+      "@id": "usecommune:sending"
+    },
+    "insights": {
+      "@id": "usecommune:insights"
+    },
+    "settings": {
+      "@id": "usecommune:settings"
+    },
+    "webhooks": {
+      "@id": "usecommune:webhooks"
+    },
+    "ApiKey": "usecommune:ApiKey",
+    "key_prefix": {
+      "@id": "usecommune:key_prefix",
+      "@type": "xsd:string"
+    },
+    "permissions": {
+      "@id": "usecommune:permissions"
+    },
+    "pinned_version": {
+      "@id": "usecommune:pinned_version",
+      "@type": "xsd:date"
+    },
+    "live": {
+      "@id": "usecommune:live",
+      "@type": "xsd:boolean"
+    },
+    "revoked": {
+      "@id": "usecommune:revoked",
+      "@type": "xsd:boolean"
+    },
+    "revoked_at": {
+      "@id": "usecommune:revoked_at",
+      "@type": "xsd:dateTime"
+    },
+    "last_used_at": {
+      "@id": "usecommune:last_used_at",
+      "@type": "xsd:dateTime"
+    },
+    "self": {
+      "@id": "usecommune:self",
+      "@type": "xsd:boolean"
+    },
+    "created_by": {
+      "@id": "usecommune:created_by"
+    },
+    "SearchResultType": "usecommune:SearchResultType",
+    "SearchResult": "usecommune:SearchResult",
+    "snippet": {
+      "@id": "usecommune:snippet",
+      "@type": "xsd:string"
+    },
+    "score": {
+      "@id": "usecommune:score",
+      "@type": "xsd:decimal"
+    },
+    "resource": {
+      "@id": "usecommune:resource"
+    },
+    "Highlight": "usecommune:Highlight",
+    "quote": {
+      "@id": "usecommune:quote",
+      "@type": "xsd:string"
+    },
+    "prefix": {
+      "@id": "usecommune:prefix",
+      "@type": "xsd:string"
+    },
+    "suffix": {
+      "@id": "usecommune:suffix",
+      "@type": "xsd:string"
+    },
+    "start_offset": {
+      "@id": "usecommune:start_offset",
+      "@type": "xsd:integer"
+    },
+    "end_offset": {
+      "@id": "usecommune:end_offset",
+      "@type": "xsd:integer"
+    },
+    "owner_key": {
+      "@id": "usecommune:owner_key",
+      "@type": "xsd:string"
+    },
+    "message": {
+      "@id": "usecommune:message"
+    },
+    "Tag": "usecommune:Tag",
+    "known_subscriber_count": {
+      "@id": "usecommune:known_subscriber_count",
+      "@type": "xsd:integer"
+    },
+    "retired": {
+      "@id": "usecommune:retired",
+      "@type": "xsd:boolean"
+    },
+    "retired_at": {
+      "@id": "usecommune:retired_at",
+      "@type": "xsd:dateTime"
+    },
+    "TagCreateRequest": "usecommune:TagCreateRequest",
+    "TagUpdateRequest": "usecommune:TagUpdateRequest",
+    "TagDeletion": "usecommune:TagDeletion",
+    "outcome": {
+      "@id": "usecommune:outcome",
+      "@type": "xsd:string"
+    },
+    "tag": {
+      "@id": "usecommune:tag"
+    },
+    "TagAssignmentRequest": "usecommune:TagAssignmentRequest",
+    "subscribers": {
+      "@id": "usecommune:subscribers",
+      "@container": "@list"
+    },
+    "TagAssignment": "usecommune:TagAssignment",
+    "tagged": {
+      "@id": "usecommune:tagged",
+      "@container": "@list"
+    },
+    "already_tagged": {
+      "@id": "usecommune:already_tagged",
+      "@container": "@list"
+    },
+    "not_found": {
+      "@id": "usecommune:not_found",
+      "@container": "@list"
+    },
+    "MemberRole": "usecommune:MemberRole",
+    "Member": "usecommune:Member",
+    "user": {
+      "@id": "usecommune:user"
+    },
+    "role": {
+      "@id": "usecommune:role",
+      "@type": "@id"
+    },
+    "SubscriberStatus": "usecommune:SubscriberStatus",
+    "Subscriber": "usecommune:Subscriber",
+    "email": {
+      "@id": "usecommune:email",
+      "@type": "xsd:string"
+    },
+    "source": {
+      "@id": "usecommune:source",
+      "@type": "xsd:string"
+    },
+    "tags": {
+      "@id": "usecommune:tags",
+      "@container": "@list"
+    },
+    "synced_at": {
+      "@id": "usecommune:synced_at",
+      "@type": "xsd:dateTime"
+    },
+    "ThreadVisibility": "usecommune:ThreadVisibility",
+    "Media": "usecommune:Media",
+    "thumbnail": {
+      "@id": "usecommune:thumbnail",
+      "@type": "@id"
+    },
+    "Thread": "usecommune:Thread",
+    "author": {
+      "@id": "usecommune:author"
+    },
+    "is_article_thread": {
+      "@id": "usecommune:is_article_thread",
+      "@type": "xsd:boolean"
+    },
+    "reply_count": {
+      "@id": "usecommune:reply_count",
+      "@type": "xsd:integer"
+    },
+    "view_count": {
+      "@id": "usecommune:view_count",
+      "@type": "xsd:integer"
+    },
+    "edited_at": {
+      "@id": "usecommune:edited_at",
+      "@type": "xsd:dateTime"
+    },
+    "last_activity_at": {
+      "@id": "usecommune:last_activity_at",
+      "@type": "xsd:dateTime"
+    },
+    "Message": "usecommune:Message",
+    "depth": {
+      "@id": "usecommune:depth",
+      "@type": "xsd:integer"
+    },
+    "highlight": {
+      "@id": "usecommune:highlight"
+    },
+    "reactions": {
+      "@id": "usecommune:reactions",
+      "@container": "@list"
+    },
+    "Reaction": "usecommune:Reaction",
+    "emoji": {
+      "@id": "usecommune:emoji",
+      "@type": "xsd:string"
+    },
+    "count": {
+      "@id": "usecommune:count",
+      "@type": "xsd:integer"
+    },
+    "users": {
+      "@id": "usecommune:users",
+      "@container": "@list"
+    },
+    "User": "usecommune:User",
+    "username": {
+      "@id": "usecommune:username",
+      "@type": "xsd:string"
+    },
+    "display_name": {
+      "@id": "usecommune:display_name",
+      "@type": "xsd:string"
+    },
+    "avatar": {
+      "@id": "usecommune:avatar",
+      "@type": "@id"
+    },
+    "Me": "usecommune:Me",
+    "email_verified": {
+      "@id": "usecommune:email_verified",
+      "@type": "xsd:boolean"
+    },
+    "Membership": "usecommune:Membership",
+    "Subscription": "usecommune:Subscription",
+    "SavedArticle": "usecommune:SavedArticle",
+    "LikedArticle": "usecommune:LikedArticle",
+    "NewsletterSummary": "usecommune:NewsletterSummary",
+    "ArticleSummary": "usecommune:ArticleSummary",
+    "InsightVelocity": "usecommune:InsightVelocity",
+    "InsightStatus": "usecommune:InsightStatus",
+    "SubscriberInsight": "usecommune:SubscriberInsight",
+    "subscriber": {
+      "@id": "usecommune:subscriber"
+    },
+    "total_score": {
+      "@id": "usecommune:total_score",
+      "@type": "xsd:integer"
+    },
+    "community_score": {
+      "@id": "usecommune:community_score",
+      "@type": "xsd:integer"
+    },
+    "esp_score": {
+      "@id": "usecommune:esp_score",
+      "@type": "xsd:integer"
+    },
+    "t1_score": {
+      "@id": "usecommune:t1_score",
+      "@type": "xsd:integer"
+    },
+    "t2_score": {
+      "@id": "usecommune:t2_score",
+      "@type": "xsd:integer"
+    },
+    "velocity": {
+      "@id": "usecommune:velocity",
+      "@type": "@id"
+    },
+    "share_points": {
+      "@id": "usecommune:share_points",
+      "@type": "xsd:integer"
+    },
+    "last_action_at": {
+      "@id": "usecommune:last_action_at",
+      "@type": "xsd:dateTime"
+    },
+    "synced_to_esp_at": {
+      "@id": "usecommune:synced_to_esp_at",
+      "@type": "xsd:dateTime"
+    },
+    "EngagementEventType": "usecommune:EngagementEventType",
+    "EngagementEventSource": "usecommune:EngagementEventSource",
+    "EngagementEvent": "usecommune:EngagementEvent",
+    "points": {
+      "@id": "usecommune:points",
+      "@type": "xsd:integer"
+    },
+    "metadata": {
+      "@id": "usecommune:metadata"
+    },
+    "NewsletterStats": "usecommune:NewsletterStats",
+    "period_start": {
+      "@id": "usecommune:period_start",
+      "@type": "xsd:dateTime"
+    },
+    "period_end": {
+      "@id": "usecommune:period_end",
+      "@type": "xsd:dateTime"
+    },
+    "publishing": {
+      "@id": "usecommune:publishing"
+    },
+    "community": {
+      "@id": "usecommune:community"
+    },
+    "delivery": {
+      "@id": "usecommune:delivery"
+    },
+    "NewsletterGrowth": "usecommune:NewsletterGrowth",
+    "by_source": {
+      "@id": "usecommune:by_source",
+      "@container": "@list"
+    },
+    "TimeseriesMetric": "usecommune:TimeseriesMetric",
+    "TimeseriesInterval": "usecommune:TimeseriesInterval",
+    "Timeseries": "usecommune:Timeseries",
+    "metric": {
+      "@id": "usecommune:metric",
+      "@type": "@id"
+    },
+    "interval": {
+      "@id": "usecommune:interval",
+      "@type": "@id"
+    },
+    "buckets": {
+      "@id": "usecommune:buckets",
+      "@container": "@list"
+    },
+    "ArticlePerformance": "usecommune:ArticlePerformance",
+    "Actor": "usecommune:Actor",
+    "label": {
+      "@id": "usecommune:label",
+      "@type": "xsd:string"
+    },
+    "ArticleLikedData": "usecommune:ArticleLikedData",
+    "article_id": {
+      "@id": "usecommune:article_id",
+      "@type": "xsd:string"
+    },
+    "reader": {
+      "@id": "usecommune:reader",
+      "@type": "@id"
+    },
+    "direction": {
+      "@id": "usecommune:direction",
+      "@type": "xsd:string"
+    },
+    "like_count": {
+      "@id": "usecommune:like_count",
+      "@type": "xsd:integer"
+    },
+    "changed_at": {
+      "@id": "usecommune:changed_at",
+      "@type": "xsd:dateTime"
+    },
+    "ArticlePublishedData": "usecommune:ArticlePublishedData",
+    "published_at": {
+      "@id": "usecommune:published_at",
+      "@type": "xsd:dateTime"
+    },
+    "audience_scoped": {
+      "@id": "usecommune:audience_scoped",
+      "@type": "xsd:boolean"
+    },
+    "ArticleReadData": "usecommune:ArticleReadData",
+    "read_at": {
+      "@id": "usecommune:read_at",
+      "@type": "xsd:dateTime"
+    },
+    "ArticleScheduledData": "usecommune:ArticleScheduledData",
+    "BillingSubscriptionUpdatedData": "usecommune:BillingSubscriptionUpdatedData",
+    "subscription_id": {
+      "@id": "usecommune:subscription_id",
+      "@type": "xsd:string"
+    },
+    "previous_status": {
+      "@id": "usecommune:previous_status",
+      "@type": "xsd:string"
+    },
+    "trial_ends_at": {
+      "@id": "usecommune:trial_ends_at",
+      "@type": "xsd:dateTime"
+    },
+    "current_period_start": {
+      "@id": "usecommune:current_period_start",
+      "@type": "xsd:dateTime"
+    },
+    "current_period_end": {
+      "@id": "usecommune:current_period_end",
+      "@type": "xsd:dateTime"
+    },
+    "cancel_at_period_end": {
+      "@id": "usecommune:cancel_at_period_end",
+      "@type": "xsd:boolean"
+    },
+    "CommunityMember": "usecommune:CommunityMember",
+    "DeliveryEventData": "usecommune:DeliveryEventData",
+    "delivery_id": {
+      "@id": "usecommune:delivery_id",
+      "@type": "xsd:string"
+    },
+    "send_id": {
+      "@id": "usecommune:send_id",
+      "@type": "xsd:string"
+    },
+    "subscriber_id": {
+      "@id": "usecommune:subscriber_id",
+      "@type": "xsd:string"
+    },
+    "provider_message_id": {
+      "@id": "usecommune:provider_message_id",
+      "@type": "xsd:string"
+    },
+    "DomainVerifiedData": "usecommune:DomainVerifiedData",
+    "domain_id": {
+      "@id": "usecommune:domain_id",
+      "@type": "xsd:string"
+    },
+    "EventEnvelope": "usecommune:EventEnvelope",
+    "api_version": {
+      "@id": "usecommune:api_version",
+      "@type": "xsd:string"
+    },
+    "occurred_at": {
+      "@id": "usecommune:occurred_at",
+      "@type": "xsd:dateTime"
+    },
+    "newsletter_id": {
+      "@id": "usecommune:newsletter_id",
+      "@type": "xsd:string"
+    },
+    "actor": {
+      "@id": "usecommune:actor",
+      "@type": "@id"
+    },
+    "idempotency_key": {
+      "@id": "usecommune:idempotency_key",
+      "@type": "xsd:string"
+    },
+    "data": {
+      "@id": "usecommune:data"
+    },
+    "HighlightCreatedData": "usecommune:HighlightCreatedData",
+    "highlight_id": {
+      "@id": "usecommune:highlight_id",
+      "@type": "xsd:string"
+    },
+    "message_id": {
+      "@id": "usecommune:message_id",
+      "@type": "xsd:string"
+    },
+    "ImportCompletedData": "usecommune:ImportCompletedData",
+    "imported_count": {
+      "@id": "usecommune:imported_count",
+      "@type": "xsd:integer"
+    },
+    "started_at": {
+      "@id": "usecommune:started_at",
+      "@type": "xsd:dateTime"
+    },
+    "completed_at": {
+      "@id": "usecommune:completed_at",
+      "@type": "xsd:dateTime"
+    },
+    "MessageCreatedData": "usecommune:MessageCreatedData",
+    "thread_id": {
+      "@id": "usecommune:thread_id",
+      "@type": "xsd:string"
+    },
+    "parent_id": {
+      "@id": "usecommune:parent_id",
+      "@type": "xsd:string"
+    },
+    "thread_level": {
+      "@id": "usecommune:thread_level",
+      "@type": "xsd:integer"
+    },
+    "Send": "usecommune:Send",
+    "recipient_count": {
+      "@id": "usecommune:recipient_count",
+      "@type": "xsd:integer"
+    },
+    "sent_count": {
+      "@id": "usecommune:sent_count",
+      "@type": "xsd:integer"
+    },
+    "failed_count": {
+      "@id": "usecommune:failed_count",
+      "@type": "xsd:integer"
+    },
+    "SendCompletedData": "usecommune:SendCompletedData",
+    "SendFailedData": "usecommune:SendFailedData",
+    "failure_reason": {
+      "@id": "usecommune:failure_reason",
+      "@type": "xsd:string"
+    },
+    "SenderVerifiedData": "usecommune:SenderVerifiedData",
+    "sender_id": {
+      "@id": "usecommune:sender_id",
+      "@type": "xsd:string"
+    },
+    "SubscriberCreatedData": "usecommune:SubscriberCreatedData",
+    "user_id": {
+      "@id": "usecommune:user_id",
+      "@type": "xsd:string"
+    },
+    "acquisition_source": {
+      "@id": "usecommune:acquisition_source",
+      "@type": "xsd:string"
+    },
+    "resubscribed": {
+      "@id": "usecommune:resubscribed",
+      "@type": "xsd:boolean"
+    },
+    "SubscriberStatusChangedData": "usecommune:SubscriberStatusChangedData",
+    "SubscriberTaggedData": "usecommune:SubscriberTaggedData",
+    "tag_id": {
+      "@id": "usecommune:tag_id",
+      "@type": "xsd:string"
+    },
+    "tag_name": {
+      "@id": "usecommune:tag_name",
+      "@type": "xsd:string"
+    },
+    "SubscriberUnsubscribedData": "usecommune:SubscriberUnsubscribedData",
+    "unsubscribed_at": {
+      "@id": "usecommune:unsubscribed_at",
+      "@type": "xsd:dateTime"
+    },
+    "article_send_id": {
+      "@id": "usecommune:article_send_id",
+      "@type": "xsd:string"
+    },
+    "ThreadCreatedData": "usecommune:ThreadCreatedData",
+    "ThreadPublishedData": "usecommune:ThreadPublishedData",
+    "previous_visibility": {
+      "@id": "usecommune:previous_visibility",
+      "@type": "xsd:string"
+    },
+    "published_by": {
+      "@id": "usecommune:published_by"
+    },
+    "UserRef": "usecommune:UserRef",
+    "avatar_url": {
+      "@id": "usecommune:avatar_url",
+      "@type": "@id"
+    }
+  },
+  "@type": "schema:Dataset",
+  "schema:name": "Commune API JSON-LD context",
+  "schema:description": "A JSON-LD @context for the objects Commune's own API contract declares: one class per component schema, one property per declared field, typed from the contract. Derived by script (derive-json-ld.py, 2026-10-07) from openapi/usecommune-openapi.yml.",
+  "dcterms:created": "2026-10-07",
+  "dcterms:source": [
+    "openapi/usecommune-openapi.yml"
+  ]
+}

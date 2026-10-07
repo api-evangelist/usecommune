@@ -1,0 +1,7 @@
+generated: '2026-10-07'
+method: none
+packages: []
+source: registry.npmjs.org search "usecommune" (0 results), pypi.org/pypi/usecommune (404), api.github.com/orgs/usecommune
+  (404), usecommune.dev/llms-full.txt (no SDK or install command mentioned)
+note: Commune publishes no first-party client library; the docs point at generating a client from https://api.usecommune.com/openapi.yaml
+  and at the hosted MCP server.

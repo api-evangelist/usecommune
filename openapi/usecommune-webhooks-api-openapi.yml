@@ -1,0 +1,3870 @@
+openapi: 3.2.0
+info:
+  title: Usecommune Webhooks API
+  version: '2026-08-26'
+  contact:
+    name: Commune
+    url: https://usecommune.com
+    email: support@usecommune.com
+  description: 'Operations tagged Webhooks across 2 of this provider''s published API definitions: usecommune-openapi.json, usecommune-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://api.usecommune.com
+  description: 'Production. There is no separate sandbox host.
+
+    '
+security:
+- apiKey: []
+tags:
+- name: Webhooks
+  description: 'The events Commune pushes to a consumer, rather than the resources a
+
+    consumer pulls.'
+paths: {}
+webhooks:
+  article.liked:
+    post:
+      operationId: onArticleLiked
+      summary: Article like added or removed
+      description: 'A reader liked an article, or took the like back. `data.direction` says
+
+        which: `added` when the like was given, `removed` when it was withdrawn.
+
+
+        One topic carries both directions, so subscribing once is enough to
+
+        mirror the whole association. A consumer that heard a named person liked
+
+        an article and never heard them take it back would keep acting on a
+
+        claim the person withdrew.
+
+
+        **`data.reader` names the person.** The same actions are readable as
+
+        engagement records at
+
+        `GET /newsletters/{newsletter}/events?event_type=like`. A reader with no
+
+        Commune account cannot like an article, so unlike `article.read` this
+
+        field is null only for a deleted account.
+
+
+        `data.like_count` is the whole tally after the change, counted in the
+
+        same transaction that made it, and is the number
+
+        `GET /articles/{article}` reports on `stats.likes`. It is on the removal
+
+        as well as the addition, so a consumer that stores it never has to add
+
+        anything up and a consumer that missed a message is corrected by the
+
+        next one.
+
+
+        **Fires on a real row change only.** Liking an article this person
+
+        already liked is silent, and so is unliking one they had not liked.
+
+        Liking, unliking and liking again fires three times.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleLikedEvent'
+            examples:
+              likeAdded:
+                summary: The eighteenth like on an article.
+                value:
+                  id: 018f2a93-1010-7000-8000-000000000041
+                  type: article.liked
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T20:02:14Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    article_id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                    title: What newsletters get wrong about community
+                    url: https://example.com/p/what-newsletters-get-wrong-about-community
+                    reader:
+                      user_id: 9f8e7d6c-5b4a-4392-8180-7f6e5d4c3b2a
+                      username: mara
+                      display_name: Mara Iversen
+                      avatar_url: https://example.com/avatars/mara.png
+                    direction: added
+                    like_count: 18
+                    changed_at: '2026-08-26T20:02:14Z'
+              likeRemoved:
+                summary: The same reader takes it back, and the tally says so. A consumer that stored the first message has to act on this one.
+                value:
+                  id: 018f2a93-2020-7000-8000-000000000042
+                  type: article.liked
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T20:41:55Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    article_id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                    title: What newsletters get wrong about community
+                    url: https://example.com/p/what-newsletters-get-wrong-about-community
+                    reader:
+                      user_id: 9f8e7d6c-5b4a-4392-8180-7f6e5d4c3b2a
+                      username: mara
+                      display_name: Mara Iversen
+                      avatar_url: https://example.com/avatars/mara.png
+                    direction: removed
+                    like_count: 17
+                    changed_at: '2026-08-26T20:41:55Z'
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  article.published:
+    post:
+      operationId: onArticlePublished
+      summary: Article published
+      description: 'An article became publicly readable on Commune. Two paths reach this
+
+        state and both publish here, distinguished by `data.source`.
+
+
+        `commune_send`: an article written in Commune finished sending. Its
+
+        status moved from `sending` to `sent` and `posted_at` was stamped, which is what
+
+        surfaces it in the feed.
+
+
+        `import`: a post arrived from a connected ESP or an RSS feed. Feeds are
+
+        polled on a schedule, so this fires without a creator having done
+
+        anything at that moment.
+
+
+        An article with a future `posted_at` is scheduled, not published, and
+
+        does not fire this topic until it is actually live.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticlePublishedEvent'
+            examples:
+              communeArticleSent:
+                summary: An article written in Commune finished sending and went live.
+                value:
+                  id: 018f2a8b-6c4b-7d2e-9f11-6a1c3d5e7b90
+                  type: article.published
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T09:32:11Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    article_id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                    title: What newsletters get wrong about community
+                    slug: what-newsletters-get-wrong-about-community
+                    url: https://example.com/p/what-newsletters-get-wrong-about-community
+                    published_at: '2026-08-26T09:32:11Z'
+                    source: commune_send
+                    audience_scoped: false
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  article.read:
+    post:
+      operationId: onArticleRead
+      summary: Article read
+      description: 'A reader stayed with an article long enough to have read it. Commune
+
+        records this when someone has had the article open for ten seconds, or has
+
+        scrolled through it, whichever comes first.
+
+
+        **Fires once per reader per article, ever.** It reports the one moment
+
+        the pair crosses from unread to read, so a reader who comes back a year
+
+        later produces nothing. It is a first-time signal, not a visit counter,
+
+        and cannot be summed into one.
+
+
+        **`data.reader` names the person.** The same actions are readable as
+
+        engagement records at
+
+        `GET /newsletters/{newsletter}/events?event_type=view`.
+
+
+        **Three things this topic does not report, each of which will make a
+
+        count built from it wrong.**
+
+
+        * **A reader who is not signed in produces nothing**, so counting these
+
+        messages counts signed-in readers and nothing else. Real readership is
+
+        higher by however much logged-out traffic the newsletter gets, and
+
+        Commune records nothing durable for an anonymous read, so there is no
+
+        figure to correct the total by afterwards. On a newsletter with a
+
+        public archive that can be most of the readership. Treat any number
+
+        derived from this topic as a floor, label it as signed-in readers, and
+
+        do not call it an open rate or a view count.
+
+        * **Marking articles read in bulk produces nothing.** A reader clearing
+
+        a backlog with "mark all as read" is declaring they are not going to
+
+        read those articles. Only reading reaches this topic.
+
+        * **A reader who opened an article and left produces nothing.** That is
+
+        a different fact, it has no topic, and its absence is why this is not
+
+        an open rate.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleReadEvent'
+            examples:
+              read:
+                summary: A signed-in reader finishes an article, once and only once.
+                value:
+                  id: 018f2a93-5050-7000-8000-000000000045
+                  type: article.read
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T19:58:31Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    article_id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                    title: What newsletters get wrong about community
+                    url: https://example.com/p/what-newsletters-get-wrong-about-community
+                    reader:
+                      user_id: 9f8e7d6c-5b4a-4392-8180-7f6e5d4c3b2a
+                      username: mara
+                      display_name: Mara Iversen
+                      avatar_url: https://example.com/avatars/mara.png
+                    read_at: '2026-08-26T19:58:31Z'
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  article.scheduled:
+    post:
+      operationId: onArticleScheduled
+      summary: Article scheduled
+      description: 'An article written in Commune was queued for a future send. Its status
+
+        became `scheduled` and its `scheduled_for` is in the future.
+
+
+        **Cancelling a schedule has no topic.** A consumer that needs to know a
+
+        schedule went away should reconcile against `GET /articles/{article}`.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleScheduledEvent'
+            examples:
+              scheduledForTomorrow:
+                value:
+                  id: 018f2a90-1111-7000-8000-000000000001
+                  type: article.scheduled
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T10:04:00Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    article_id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                    title: The week we stopped chasing opens
+                    scheduled_for: '2026-08-27T08:00:00Z'
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  billing.subscription.updated:
+    post:
+      operationId: onBillingSubscriptionUpdated
+      summary: Billing subscription state changed
+      description: 'The newsletter''s own Commune subscription moved between billing states:
+
+        trialing, active, past_due, canceled or trial_expired.
+
+
+        Two things move it. Activity at the payment provider: a checkout
+
+        completing, the subscription being created, updated or deleted, an
+
+        invoice being paid or failing. And a daily pass that expires trials
+
+        which have run out, which is why a `trial_expired` event can arrive with
+
+        no creator action behind it.
+
+
+        Named `billing.subscription.*` because in Commune a "subscriber" is a
+
+        reader of a newsletter. This topic is about the creator paying Commune.
+
+
+        **A state here gates publishing.** Past due beyond the grace window,
+
+        canceled, and an expired trial each refuse a send with `402`. A
+
+        newsletter that is trialing or past due is also capped on how many
+
+        emails it may send in a day, and exceeding that refuses with `429`
+
+        rather than `402`, so a consumer watching for payment problems should
+
+        treat both codes as billing refusals.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BillingSubscriptionUpdatedEvent'
+            examples:
+              trialConvertedToActive:
+                value:
+                  id: 018f2a92-1111-7000-8000-000000000011
+                  type: billing.subscription.updated
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T17:05:00Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    subscription_id: f5061728-394a-4b5c-96d7-e8f90a1b2c3d
+                    plan: creator
+                    status: active
+                    previous_status: trialing
+                    trial_ends_at: '2026-08-26T00:00:00Z'
+                    current_period_start: '2026-08-26T17:05:00Z'
+                    current_period_end: '2026-09-26T17:05:00Z'
+                    cancel_at_period_end: false
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  delivery.bounced:
+    post:
+      operationId: onDeliveryBounced
+      summary: Delivery bounced
+      description: 'The message could not be delivered, as reported by the sending
+
+        provider.
+
+
+        This has a side effect on the subscriber: they are moved to `bounced`
+
+        so later sends skip them, which also emits `subscriber.unsubscribed`
+
+        with `reason: bounced`. Expect both events for one bounce.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliveryBouncedEvent'
+            examples:
+              bounced:
+                summary: Arrives together with subscriber.unsubscribed carrying reason bounced.
+                value:
+                  id: 018f2a90-7777-7000-8000-000000000007
+                  type: delivery.bounced
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T09:34:02Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    delivery_id: 1f2e3d4c-5b6a-4978-8695-a4b3c2d1e0f9
+                    article_id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                    send_id: 9a8b7c6d-5e4f-4a3b-2c1d-0e9f8a7b6c5d
+                    subscriber_id: 33445566-7788-4990-a1b2-c3d4e5f60718
+                    email: gone@example.com
+                    provider_message_id: 4ef9f2b1-0c33-4c1b-8f9a-77c2e5d1a3b4
+                    status: bounced
+                    reason: The recipient address does not exist.
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  delivery.clicked:
+    post:
+      operationId: onDeliveryClicked
+      summary: Delivery link clicked
+      description: 'The recipient clicked a tracked link, as reported by the sending
+
+        provider.
+
+
+        **Which link was clicked is not in the payload.** Commune records only
+
+        that a click happened and when the first one did, so there is no
+
+        link-level detail to serve.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliveryClickedEvent'
+            examples:
+              clicked:
+                value:
+                  id: 018f2a90-6666-7000-8000-000000000006
+                  type: delivery.clicked
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T10:12:30Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    delivery_id: 1f2e3d4c-5b6a-4978-8695-a4b3c2d1e0f9
+                    article_id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                    send_id: 9a8b7c6d-5e4f-4a3b-2c1d-0e9f8a7b6c5d
+                    subscriber_id: 33445566-7788-4990-a1b2-c3d4e5f60718
+                    email: reader@example.com
+                    provider_message_id: 4ef9f2b1-0c33-4c1b-8f9a-77c2e5d1a3b4
+                    status: clicked
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  delivery.complained:
+    post:
+      operationId: onDeliveryComplained
+      summary: Delivery marked as spam
+      description: 'The recipient reported the message as spam, as reported by the sending
+
+        provider.
+
+
+        Treated as more severe than a bounce and never overridden: the
+
+        subscriber is moved to `complained` and must not be mailed again,
+
+        which also emits `subscriber.unsubscribed` with `reason: complained`.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliveryComplainedEvent'
+            examples:
+              complained:
+                value:
+                  id: 018f2a90-8888-7000-8000-000000000008
+                  type: delivery.complained
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T11:02:19Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    delivery_id: 1f2e3d4c-5b6a-4978-8695-a4b3c2d1e0f9
+                    article_id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                    send_id: 9a8b7c6d-5e4f-4a3b-2c1d-0e9f8a7b6c5d
+                    subscriber_id: 33445566-7788-4990-a1b2-c3d4e5f60718
+                    email: annoyed@example.com
+                    provider_message_id: 4ef9f2b1-0c33-4c1b-8f9a-77c2e5d1a3b4
+                    status: complained
+                    reason: Spam complaint
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  delivery.delivered:
+    post:
+      operationId: onDeliveryDelivered
+      summary: Delivery accepted by the recipient server
+      description: 'The sending provider confirmed the message reached the recipient''s mail
+
+        server.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliveryDeliveredEvent'
+            examples:
+              delivered:
+                value:
+                  id: 018f2a90-4444-7000-8000-000000000004
+                  type: delivery.delivered
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T09:32:48Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    delivery_id: 1f2e3d4c-5b6a-4978-8695-a4b3c2d1e0f9
+                    article_id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                    send_id: 9a8b7c6d-5e4f-4a3b-2c1d-0e9f8a7b6c5d
+                    subscriber_id: 33445566-7788-4990-a1b2-c3d4e5f60718
+                    email: reader@example.com
+                    provider_message_id: 4ef9f2b1-0c33-4c1b-8f9a-77c2e5d1a3b4
+                    status: delivered
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  delivery.opened:
+    post:
+      operationId: onDeliveryOpened
+      summary: Delivery opened
+      description: 'The recipient opened the message, as reported by the sending provider.
+
+
+        **Fires on every reported open.** The `opened_at` a delivery carries is
+
+        the first one only, so the two answer different questions. Open tracking
+
+        is a pixel and is
+
+        unreliable by nature: privacy proxies inflate it and image-blocking
+
+        clients suppress it.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliveryOpenedEvent'
+            examples:
+              opened:
+                value:
+                  id: 018f2a90-5555-7000-8000-000000000005
+                  type: delivery.opened
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T10:11:04Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    delivery_id: 1f2e3d4c-5b6a-4978-8695-a4b3c2d1e0f9
+                    article_id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                    send_id: 9a8b7c6d-5e4f-4a3b-2c1d-0e9f8a7b6c5d
+                    subscriber_id: 33445566-7788-4990-a1b2-c3d4e5f60718
+                    email: reader@example.com
+                    provider_message_id: 4ef9f2b1-0c33-4c1b-8f9a-77c2e5d1a3b4
+                    status: opened
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  domain.verified:
+    post:
+      operationId: onDomainVerified
+      summary: Custom website domain verified
+      description: 'A creator''s custom website domain went live: its `verification_status`
+
+        became `active`. That state means ownership was validated, the
+
+        certificate was issued, and the hostname was confirmed to actually reach
+
+        Commune. All three, so this is the point at which the domain serves the
+
+        site rather than merely resolving.
+
+
+        This is the rendering domain (a creator''s own hostname serving their
+
+        Commune site), not the email sending domain. That one is
+
+        `sender.verified`.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DomainVerifiedEvent'
+            examples:
+              siteDomainActive:
+                value:
+                  id: 018f2a92-1010-7000-8000-000000000010
+                  type: domain.verified
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T16:44:30Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    domain_id: e4f50617-2839-4a4b-b5c6-d7e8f90a1b2c
+                    domain: blog.example.com
+                    ssl_status: active
+                    verified_at: '2026-08-26T16:44:30Z'
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  highlight.created:
+    post:
+      operationId: onHighlightCreated
+      summary: Highlight created
+      description: 'A reader marked a passage of an article.
+
+
+        **No `user_id`.** A highlight is never attributed to a named reader
+
+        anywhere in Commune, so this payload carries the same opaque `owner_key`
+
+        `GET /highlights/{highlight}` does. It is the one topic whose payload
+
+        cannot be resolved back to a person.
+
+
+        **Fires on a new highlight only.** Re-marking the same span of the same
+
+        article is silent. So is attaching a chat message to a highlight that
+
+        already exists, which is how a passage becomes a discussion; that fires
+
+        `message.created` for the message instead.
+
+
+        A highlight created together with its discussion carries
+
+        `data.message_id` from the start. One created on its own carries null
+
+        and never gains a value on this topic.
+
+
+        A passage of a tag-scoped article can only be marked by someone in its
+
+        audience.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HighlightCreatedEvent'
+            examples:
+              silentHighlight:
+                summary: A personal mark with no discussion attached.
+                value:
+                  id: 018f2a92-3232-7000-8000-000000000032
+                  type: highlight.created
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T19:11:27Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    highlight_id: d4e5f607-1829-4a31-b2c3-d4e5f6071829
+                    article_id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                    quote: The moderation load is the product, not a tax on it.
+                    start_offset: 4218
+                    end_offset: 4271
+                    owner_key: 4f2a9c1e7b3d6a05
+                    message_id: null
+                    created_at: '2026-08-26T19:11:27Z'
+              highlightWithDiscussion:
+                summary: A passage quoted into the article's chat thread, so the highlight carries the message it started.
+                value:
+                  id: 018f2a92-3333-7000-8000-000000000033
+                  type: highlight.created
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T19:14:50Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    highlight_id: e5f60718-2930-4b42-c3d4-e5f607182930
+                    article_id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                    quote: Community is a distribution channel that answers back.
+                    start_offset: 812
+                    end_offset: 860
+                    owner_key: 9b1d0e6a3c4f27b8
+                    message_id: c2d3e4f5-0617-4829-93a4-b5c6d7e8f90a
+                    created_at: '2026-08-26T19:14:50Z'
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  import.completed:
+    post:
+      operationId: onImportCompleted
+      summary: Import finished
+      description: 'A bulk ingest run finished. `data.kind` says which of the three it was.
+
+
+        `articles`: an import a creator started against their connected provider
+
+        finished the batch they picked. `imported_count` is the number that
+
+        actually landed.
+
+
+        `subscribers`: a pull of every active contact from the connected
+
+        provider finished. An uploaded CSV ends the same way, with `source:
+
+        csv`.
+
+
+        `migration`: the newsletter''s `esp` became `commune`. That is the
+
+        destructive step of the move off a provider, and after it Commune sends
+
+        the newsletter itself.
+
+
+        **This topic is an invalidation signal.** An import writes many records
+
+        at once and fans out into no per-record events: it does not emit one
+
+        `article.published` or one `subscriber.created` for each. This is the
+
+        single message that says a newsletter changed underneath you, so refetch
+
+        on it.
+
+
+        **Only a run that reached its end publishes here.** A partial run still
+
+        finishes and still fires, with a lower `imported_count` and no count of
+
+        what it dropped. A run whose connection died mid-stream produces
+
+        nothing, and there is no `import.failed` to pair with this.
+
+
+        There is no run identifier on this payload and no operation to look one
+
+        up in. A run is identified by the newsletter, the kind and the source,
+
+        and the thing to do with one is refetch.
+
+
+        Imports are idempotent and safe to re-run, so expect to see the same
+
+        kind more than once for one newsletter.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportCompletedEvent'
+            examples:
+              subscribersPulledFromEsp:
+                summary: A provider pull that finished. `imported_count` is what landed, which is smaller than the upstream list wherever a row was already there.
+                value:
+                  id: 018f2a92-3434-7000-8000-000000000034
+                  type: import.completed
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T20:03:41Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    kind: subscribers
+                    source: kit
+                    imported_count: 4820
+                    started_at: '2026-08-26T19:58:12Z'
+                    completed_at: '2026-08-26T20:03:41Z'
+              articlesImported:
+                summary: A batch of older articles pulled in from the provider.
+                value:
+                  id: 018f2a92-3535-7000-8000-000000000035
+                  type: import.completed
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T20:21:09Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    kind: articles
+                    source: kit
+                    imported_count: 63
+                    started_at: '2026-08-26T20:19:44Z'
+                    completed_at: '2026-08-26T20:21:09Z'
+              migrationFinalized:
+                summary: The newsletter is now `commune`. Nothing was ingested, so `imported_count` is null.
+                value:
+                  id: 018f2a92-3636-7000-8000-000000000036
+                  type: import.completed
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T20:30:00Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    kind: migration
+                    source: null
+                    imported_count: null
+                    started_at: null
+                    completed_at: '2026-08-26T20:30:00Z'
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  message.created:
+    post:
+      operationId: onMessageCreated
+      summary: Message created
+      description: 'A reply was posted inside a thread (`thread_level` 1 or 2). Replies
+
+        inherit the placement of their thread and carry no visibility of their
+
+        own.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageCreatedEvent'
+            examples:
+              reply:
+                value:
+                  id: 018f2a91-eeee-7000-8000-00000000000e
+                  type: message.created
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T15:14:02Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    message_id: c2d3e4f5-0617-4829-93a4-b5c6d7e8f90a
+                    short_id: p7w2rd
+                    url: https://example.com/t/k3n8qz#p7w2rd
+                    thread_id: b1c2d3e4-f506-4718-8293-a4b5c6d7e8f9
+                    parent_id: b1c2d3e4-f506-4718-8293-a4b5c6d7e8f9
+                    thread_level: 1
+                    author:
+                      user_id: usr_9Lp3Zr7tYb
+                      username: dan
+                      display_name: Dan Whitlock
+                      avatar_url: null
+                    content: Same here. We ended up capping thread depth for that reason.
+                    created_at: '2026-08-26T15:14:02Z'
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  send.completed:
+    post:
+      operationId: onSendCompleted
+      summary: Send completed
+      description: 'A send run finished handing every recipient to the email provider, and
+
+        the run was stamped with the `completed_at` this payload carries.
+
+
+        This is the dispatch milestone, not the delivery milestone. It says the
+
+        provider accepted the messages; whether they landed in inboxes is what
+
+        the `delivery.*` topics report, and those arrive later and one per
+
+        recipient.
+
+
+        Named for the send rather than the article: one article can have
+
+        several runs across retries, each with its own id at `/sends/{send}`.
+
+        `data.article_id` is there for anyone routing by article.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendCompletedEvent'
+            examples:
+              sendFinished:
+                value:
+                  id: 018f2a90-2222-7000-8000-000000000002
+                  type: send.completed
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T09:32:11Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    article_id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                    send_id: 9a8b7c6d-5e4f-4a3b-2c1d-0e9f8a7b6c5d
+                    started_at: '2026-08-26T09:28:40Z'
+                    completed_at: '2026-08-26T09:32:11Z'
+                    recipient_count: 540
+                    sent_count: 538
+                    failed_count: 2
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  send.failed:
+    post:
+      operationId: onSendFailed
+      summary: Send failed
+      description: 'A send run could not complete and the article was parked in `failed`,
+
+        alongside the human-readable `failure_reason` this payload carries.
+
+
+        Refusals that happen before dispatch starts, such as an unverified
+
+        sender or a billing gate, are rejected synchronously when the send is
+
+        requested and never reach this topic. What lands here is a run that
+
+        began and then broke, most commonly every delivery failing at the
+
+        provider.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendFailedEvent'
+            examples:
+              everyDeliveryFailed:
+                value:
+                  id: 018f2a90-3333-7000-8000-000000000003
+                  type: send.failed
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T09:33:02Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    article_id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                    send_id: 9a8b7c6d-5e4f-4a3b-2c1d-0e9f8a7b6c5d
+                    failure_reason: Every delivery failed.
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  sender.verified:
+    post:
+      operationId: onSenderVerified
+      summary: Sender verified
+      description: 'A sending identity passed verification and the newsletter can send from
+
+        it: its `verification_status` became `verified`. Two things reach that
+
+        state, a newly provisioned sender the provider already considered
+
+        verified, and a check on an existing sender coming back clean.
+
+
+        Load-bearing rather than cosmetic: sending from an unverified sender is
+
+        refused with `sender_not_verified`, so this event is the signal that
+
+        sending is unblocked.
+
+
+        Commune re-checks sending identities in the background as well as when a
+
+        creator asks it to, so treat a repeat of this event for one sender as
+
+        normal rather than as a second, different verification. Failing
+
+        verification is a real state too, but is not among the topics Commune
+
+        publishes.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SenderVerifiedEvent'
+            examples:
+              customDomainVerified:
+                value:
+                  id: 018f2a91-ffff-7000-8000-00000000000f
+                  type: sender.verified
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T16:00:12Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    sender_id: d3e4f506-1728-4939-a4b5-c6d7e8f90a1b
+                    from_email: hello@mail.example.com
+                    from_name: The Example Letter
+                    reply_to_email: null
+                    domain: mail.example.com
+                    kind: custom
+                    is_default: true
+                    verified_at: '2026-08-26T16:00:12Z'
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  subscriber.created:
+    post:
+      operationId: onSubscriberCreated
+      summary: Subscriber created
+      description: 'Someone became a subscriber of the newsletter. Four paths land here:
+
+        subscribing from inside the Commune app, finishing signup, accepting an
+
+        invitation, and a CSV or ESP import.
+
+
+        Only the import path records where they came from.
+
+        `data.acquisition_source` carries the provider there and is null on the
+
+        other three, so null is the normal case for anybody who arrived through
+
+        Commune itself rather than a sign that the origin was lost.
+
+
+        **Reactivation counts.** Unsubscribing does not delete a subscriber, so
+
+        a returning reader comes back to `subscribed` rather than being recorded
+
+        again. That still fires this topic, with `data.resubscribed: true`.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriberCreatedEvent'
+            examples:
+              subscribedOnCommune:
+                value:
+                  id: 018f2a90-9999-7000-8000-000000000009
+                  type: subscriber.created
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T12:20:05Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    subscriber_id: 33445566-7788-4990-a1b2-c3d4e5f60718
+                    email: reader@example.com
+                    status: subscribed
+                    user_id: usr_2Nf8Kq1pWc
+                    acquisition_source: null
+                    resubscribed: false
+                    created_at: '2026-08-26T12:20:05Z'
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  subscriber.status_changed:
+    post:
+      operationId: onSubscriberStatusChanged
+      summary: Subscriber insight status changed
+      description: 'A reader crossed a boundary in the newsletter''s engagement ladder:
+
+        `reader` to `superfan`, or `engaged` to `dormant`. This is the moment a
+
+        CRM or a re-engagement automation has something to do; the scores
+
+        themselves are on `GET /newsletters/{newsletter}/insights`.
+
+
+        Fired by a scheduled scoring pass, once per reader whose `status`
+
+        actually differs from the one already stored, so a pass that changes
+
+        only the scores is silent.
+
+
+        **`occurred_at` is when the crossing was computed, not when the reader
+
+        acted.** `data.last_action_at` is the reader''s own clock and sits
+
+        earlier by up to a full scoring interval. Read that field to react while
+
+        the moment is still warm.
+
+
+        **Status is a rank inside this newsletter, not an absolute score**, so a
+
+        reader who did nothing can be demoted because the audience around them
+
+        got busier. Two events that look like opposite movements can arrive from
+
+        one pass without either reader having changed their behaviour.
+
+
+        Only readers with a Commune account are scored, so a subscriber the
+
+        newsletter knows only as an address never produces this event.
+
+
+        **Not the same as `subscriber.unsubscribed`**, which reports the
+
+        subscription ending. `dormant` is a reader who went quiet, not one who
+
+        left.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriberStatusChangedEvent'
+            examples:
+              promotedToSuperfan:
+                value:
+                  id: 018f2a91-dddd-7000-8000-00000000000d
+                  type: subscriber.status_changed
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-27T03:15:00Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    subscriber_id: 33445566-7788-4990-a1b2-c3d4e5f60718
+                    user_id: usr_2Nf8Kq1pWc
+                    email: reader@example.com
+                    previous_status: reader
+                    status: superfan
+                    direction: promoted
+                    total_score: 412
+                    velocity: rising
+                    last_action_at: '2026-08-26T21:04:11Z'
+              wentDormant:
+                value:
+                  id: 018f2a91-eeee-7000-8000-00000000000e
+                  type: subscriber.status_changed
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-27T03:15:00Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    subscriber_id: 44556677-8899-4aa1-b2c3-d4e5f6071829
+                    user_id: usr_7Zx3Lm9qRt
+                    email: quiet@example.com
+                    previous_status: engaged
+                    status: dormant
+                    direction: demoted
+                    total_score: 88
+                    velocity: cooling
+                    last_action_at: '2026-07-02T09:12:40Z'
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  subscriber.tagged:
+    post:
+      operationId: onSubscriberTagged
+      summary: Subscriber tag added or removed
+      description: 'A tag was added to or taken off a subscriber. `data.direction` says
+
+        which: `assigned` when the tag was put on, `removed` when it was taken
+
+        off.
+
+
+        One topic carries both directions, so subscribing once is enough to
+
+        mirror a segment''s membership.
+
+
+        Applying a tag is idempotent, so re-applying one the subscriber already
+
+        holds produces no second event. **A tag is not a label**: it scopes who
+
+        an article is sent to and who may read it, so treat these as access
+
+        changes.
+
+
+        **Retiring the tag itself has no topic.** It retires the tag for
+
+        everyone at once rather than removing one assignment, so it does not fan
+
+        out into one event per subscriber here.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriberTaggedEvent'
+            examples:
+              tagAssigned:
+                value:
+                  id: 018f2a91-bbbb-7000-8000-00000000000b
+                  type: subscriber.tagged
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T14:00:00Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    subscriber_id: 33445566-7788-4990-a1b2-c3d4e5f60718
+                    email: reader@example.com
+                    tag_id: aa11bb22-cc33-4d44-8e55-ff6677889900
+                    tag_name: Founding member
+                    direction: assigned
+              tagRemoved:
+                value:
+                  id: 018f2a91-cccc-7000-8000-00000000000c
+                  type: subscriber.tagged
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T14:05:00Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    subscriber_id: 33445566-7788-4990-a1b2-c3d4e5f60718
+                    email: reader@example.com
+                    tag_id: aa11bb22-cc33-4d44-8e55-ff6677889900
+                    tag_name: Founding member
+                    direction: removed
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  subscriber.unsubscribed:
+    post:
+      operationId: onSubscriberUnsubscribed
+      summary: Subscriber unsubscribed
+      description: 'A subscriber stopped being mailable. `data.reason` says why.
+
+
+        `self_service`: the reader opted out themselves, either through the
+
+        unsubscribe link in an email or the RFC 8058 one-click header, or from
+
+        inside the Commune app.
+
+
+        `bounced` and `complained`: forced by delivery telemetry rather than
+
+        chosen by the reader, so they arrive alongside `delivery.bounced` or
+
+        `delivery.complained`.
+
+
+        The subscriber record survives with its status changed, so bounce and
+
+        complaint history is kept and a later resubscribe reuses it.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriberUnsubscribedEvent'
+            examples:
+              oneClickUnsubscribe:
+                value:
+                  id: 018f2a91-aaaa-7000-8000-00000000000a
+                  type: subscriber.unsubscribed
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T13:41:52Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    subscriber_id: 33445566-7788-4990-a1b2-c3d4e5f60718
+                    email: reader@example.com
+                    reason: self_service
+                    unsubscribed_at: '2026-08-26T13:41:52Z'
+                    article_send_id: 9a8b7c6d-5e4f-4a3b-2c1d-0e9f8a7b6c5d
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  thread.created:
+    post:
+      operationId: onThreadCreated
+      summary: Thread created
+      description: 'A new top-level thread was started in a newsletter''s space
+
+        (`thread_level = 0`).
+
+
+        `data.visibility` decides where it appears: `public` puts it on the
+
+        global feed and only team members may set it, `subscribers` keeps it
+
+        inside the newsletter''s own space. `paid` exists in the enum and is not
+
+        in use yet.
+
+
+        A thread created public fires `thread.published` from the same write, so
+
+        a consumer that only cares about the feed can subscribe to that topic
+
+        alone and ignore this one.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThreadCreatedEvent'
+            examples:
+              articleDiscussion:
+                summary: A thread bound to an article, which is where comments live now.
+                value:
+                  id: 018f2a91-dddd-7000-8000-00000000000d
+                  type: thread.created
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T15:10:44Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    thread_id: b1c2d3e4-f506-4718-8293-a4b5c6d7e8f9
+                    short_id: k3n8qz
+                    url: https://example.com/t/k3n8qz
+                    author:
+                      user_id: usr_2Nf8Kq1pWc
+                      username: mira
+                      display_name: Mira Okafor
+                      avatar_url: https://cdn.example.com/avatars/mira.png
+                    content: The bit about moderation load matched my experience exactly.
+                    visibility: subscribers
+                    article_id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                    created_at: '2026-08-26T15:10:44Z'
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  thread.published:
+    post:
+      operationId: onThreadPublished
+      summary: Thread published to the feed
+      description: 'A thread''s `visibility` became `public`, which is what puts it on
+
+        Commune''s global feed. This is the only way community content leaves one
+
+        newsletter''s space and reaches everyone, so it is the topic to watch for
+
+        anything that mirrors, syndicates or moderates the feed.
+
+
+        Two paths reach `public` and both publish here, told apart by
+
+        `data.source`:
+
+
+        * `visibility_changed`: a team member featured a thread that already
+
+        existed. `published_by` and `published_at` say who and when.
+
+        * `created_public`: the thread was born public, which a team member may
+
+        do when starting a top-level thread. That write fires `thread.created`
+
+        and this topic together, and carries no `published_by`.
+
+
+        Only an owner, admin or editor can reach `public`, and only on a
+
+        top-level thread: featuring anything with a non-zero `thread_level` is
+
+        refused, and replies inherit their thread''s placement.
+
+
+        **Going back to `subscribers` is a real change and has no topic.** A
+
+        consumer mirroring the feed should reconcile against
+
+        `GET /threads/{thread}` rather than assume a thread it saw here is still
+
+        public.
+
+
+        Delivered as a single HTTPS POST to the consumer''s registered endpoint,
+
+        with the message as the JSON request body. Respond 2xx to acknowledge.
+
+        Anything else, or a timeout, is retried with backoff, so acknowledge
+
+        fast and do the work afterwards.'
+      tags:
+      - Webhooks
+      security: []
+      parameters:
+      - $ref: '#/components/parameters/WebhookVersion'
+      - $ref: '#/components/parameters/WebhookEventId'
+      - $ref: '#/components/parameters/WebhookEventType'
+      - $ref: '#/components/parameters/WebhookSignature'
+      - $ref: '#/components/parameters/WebhookTimestamp'
+      - $ref: '#/components/parameters/WebhookDeliveryAttempt'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThreadPublishedEvent'
+            examples:
+              featuredByTheTeam:
+                summary: An existing subscribers-only thread was featured onto the feed.
+                value:
+                  id: 018f2a92-3030-7000-8000-000000000030
+                  type: thread.published
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T18:02:19Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    thread_id: b1c2d3e4-f506-4718-8293-a4b5c6d7e8f9
+                    short_id: k3n8qz
+                    url: https://example.com/t/k3n8qz
+                    author:
+                      user_id: usr_2Nf8Kq1pWc
+                      username: mira
+                      display_name: Mira Okafor
+                      avatar_url: https://cdn.example.com/avatars/mira.png
+                    visibility: public
+                    previous_visibility: subscribers
+                    source: visibility_changed
+                    published_by:
+                      user_id: usr_5Qw8Hn2vFd
+                      username: sam
+                      display_name: Sam Ortega
+                      avatar_url: null
+                    article_id: 4c9e2f81-0b7a-4d13-8e55-1a2b3c4d5e6f
+                    published_at: '2026-08-26T18:02:19Z'
+              startedPublic:
+                summary: A team member started the thread public, so this arrives alongside thread.created from the same write.
+                value:
+                  id: 018f2a92-3131-7000-8000-000000000031
+                  type: thread.published
+                  api_version: '2026-08-26'
+                  occurred_at: '2026-08-26T18:40:03Z'
+                  newsletter_id: 7d3f1c02-58a1-4a4e-9a0b-2f6d1c9e4411
+                  actor: null
+                  idempotency_key: null
+                  data:
+                    thread_id: c3d4e5f6-0718-4920-a1b2-c3d4e5f60718
+                    short_id: t9m4hx
+                    url: https://example.com/t/t9m4hx
+                    author:
+                      user_id: usr_5Qw8Hn2vFd
+                      username: sam
+                      display_name: Sam Ortega
+                      avatar_url: null
+                    visibility: public
+                    previous_visibility: null
+                    source: created_public
+                    published_by: null
+                    article_id: null
+                    published_at: '2026-08-26T18:40:03Z'
+      responses:
+        '200':
+          description: 'The consumer accepted the delivery. Any 2xx acknowledges the message
+
+            and it is not sent again.
+
+            '
+        4XX:
+          description: 'The consumer rejected the delivery. Handled exactly like a 5xx: the
+
+            message is retried with backoff, because a rejection cannot be told
+
+            apart from a consumer that is briefly misconfigured.
+
+            '
+        5XX:
+          description: 'The consumer failed to handle the delivery. Retried with backoff. A
+
+            timeout is the same case and is retried too.
+
+            '
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+components:
+  schemas:
+    SubscriberTaggedData:
+      type: object
+      title: Subscriber tagged body
+      description: Body of `subscriber.tagged`. Which subscriber, which tag, and which way the membership moved.
+      required:
+      - subscriber_id
+      - tag_id
+      - tag_name
+      - direction
+      properties:
+        subscriber_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        tag_id:
+          type: string
+          format: uuid
+        tag_name:
+          type: string
+          description: The tag's name at the time of the change.
+        direction:
+          type: string
+          enum:
+          - assigned
+          - removed
+          description: 'Whether the subscriber joined the segment or left it. Branch on this: it is the only thing that differs between the two changes this topic carries.'
+    ArticleLikedEvent:
+      title: Article like changed
+      description: A reader liked an article, or took the like back.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: article.liked
+          data:
+            $ref: '#/components/schemas/ArticleLikedData'
+    SubscriberStatusChangedData:
+      type: object
+      description: 'Body of `subscriber.status_changed`. Identifiers plus what describes the crossing, and not the insight itself: read `GET /newsletters/{newsletter}/insights` for the full scored row.'
+      required:
+      - subscriber_id
+      - user_id
+      - email
+      - previous_status
+      - status
+      - direction
+      - total_score
+      - velocity
+      properties:
+        subscriber_id:
+          type: string
+          format: uuid
+          description: The subscriber this score belongs to, the same identifier the other `subscriber.*` topics carry.
+        user_id:
+          type: string
+          description: 'The Commune account the score is attributed to. Insights are keyed on the account rather than on the subscription, because half the signal is community activity that belongs to a person and not to a mailing list entry. Always present: an unscored subscriber cannot cross a boundary.'
+        email:
+          type: string
+          format: email
+          description: Where the newsletter reaches this reader, so a consumer can match the event against its own records without a second call. Resolved from the Commune account when the subscription row itself carries no address.
+        previous_status:
+          oneOf:
+          - $ref: '#/components/schemas/InsightStatus'
+          - type: 'null'
+          description: The status this reader held before the pass. Null the first time a reader is scored, which is a real crossing rather than missing data.
+        status:
+          $ref: '#/components/schemas/InsightStatus'
+        direction:
+          type: string
+          enum:
+          - promoted
+          - demoted
+          description: Which way along the ladder the reader moved, derived from the two statuses so a consumer does not have to hardcode their order. `promoted` the first time a reader is scored, because there is no earlier position they could have fallen from.
+        total_score:
+          type: integer
+          description: The blended score at the moment of the crossing, summed across the community and the newsletter's email provider. It has no unit and no ceiling, and is meaningful only ranked against the other readers of the same newsletter.
+        velocity:
+          type: string
+          enum:
+          - rising
+          - cooling
+          - steady
+          description: 'The last fourteen days of points against the fourteen before them. Read it with `direction`: a demotion while `rising` means the audience around this reader moved faster, not that the reader slowed down.'
+        last_action_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the reader last did anything that earned points. The reader's own clock, not the scoring pass's, so it sits earlier than `occurred_at` by up to a full scoring interval. Null for a reader who has never acted.
+    ThreadPublishedData:
+      type: object
+      title: Thread published body
+      description: Body of `thread.published`. Which thread reached the feed, how it got there, and enough to render a feed row without a second call.
+      required:
+      - thread_id
+      - visibility
+      - previous_visibility
+      - source
+      - published_at
+      properties:
+        thread_id:
+          type: string
+          format: uuid
+          description: The thread. The same id `thread.created` carried, so a consumer that stored that event can match on it directly.
+        short_id:
+          type:
+          - string
+          - 'null'
+          description: Short public identifier used in thread URLs.
+        url:
+          type:
+          - string
+          - 'null'
+          format: uri
+        author:
+          $ref: '#/components/schemas/UserRef'
+        visibility:
+          type: string
+          const: public
+          description: Always `public`. Present so a payload stays self-describing next to `thread.created`, which carries the same field and can carry other values.
+        previous_visibility:
+          type:
+          - string
+          - 'null'
+          enum:
+          - subscribers
+          - paid
+          - null
+          description: What the thread was before. Null when it was created public, which is the case `source` also reports.
+        source:
+          type: string
+          enum:
+          - created_public
+          - visibility_changed
+          description: '`created_public` for a thread a team member started public, which fires `thread.created` from the same write. `visibility_changed` for one that was featured later.'
+        published_by:
+          allOf:
+          - $ref: '#/components/schemas/UserRef'
+          description: 'The team member who put it on the feed. Named `published_by` rather than `actor` because the envelope already has an `actor`, and the two mean different things: this is a person, and that is the credential a change arrived under.
+
+
+            Null in two cases. On the `created_public` path a thread was public from the start and nobody featured it. On a promotion made through this API there is no person to name, because a credential is not one; the envelope''s `actor` carries the credential instead.'
+        article_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Set when the thread is an article's discussion rather than a standalone one.
+        published_at:
+          type: string
+          format: date-time
+          description: '`visibility_changed_at` on the `visibility_changed` path, the thread''s `created_at` on the `created_public` path.'
+    ThreadCreatedData:
+      type: object
+      required:
+      - thread_id
+      - visibility
+      - content
+      - created_at
+      properties:
+        thread_id:
+          type: string
+          format: uuid
+          description: The thread itself, which is the opening message of the conversation rather than a reply within one.
+        short_id:
+          type:
+          - string
+          - 'null'
+          description: Short public identifier used in thread URLs.
+        url:
+          type:
+          - string
+          - 'null'
+          format: uri
+        author:
+          $ref: '#/components/schemas/UserRef'
+        content:
+          type: string
+          maxLength: 5000
+          description: The opening message, capped at 5000 characters on write.
+        visibility:
+          type: string
+          enum:
+          - public
+          - subscribers
+          - paid
+          description: '`public` puts the thread on the global feed and only team members may set it. `subscribers` keeps it in the newsletter''s own space. `paid` is reserved and unused.'
+        article_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Set when the thread is an article's discussion. Comments on an article are messages in this thread; there is no separate comment resource.
+        created_at:
+          type: string
+          format: date-time
+    BillingSubscriptionUpdatedEvent:
+      title: Billing subscription state changed
+      description: The newsletter's own Commune subscription changed state.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: billing.subscription.updated
+          data:
+            $ref: '#/components/schemas/BillingSubscriptionUpdatedData'
+    ArticlePublishedData:
+      type: object
+      required:
+      - article_id
+      - title
+      - published_at
+      - source
+      properties:
+        article_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        slug:
+          type:
+          - string
+          - 'null'
+        url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Canonical public URL. Follows the newsletter's custom website domain when it has an active one, otherwise the Commune-hosted path.
+        published_at:
+          type: string
+          format: date-time
+          description: The article's own `posted_at`. Normally equal to `occurred_at`, but an import can backdate it to the original publication time.
+        source:
+          type: string
+          enum:
+          - commune_send
+          - import
+          description: '`commune_send` for an article Commune emailed itself, `import` for a post pulled in from a connected ESP or RSS feed.'
+        audience_scoped:
+          type: boolean
+          description: True when the article is restricted to specific subscriber tags rather than the whole list. Which tags is not carried here; read `GET /articles/{article}` for that.
+    DeliveryBouncedEvent:
+      title: Delivery bounced
+      description: The message could not be delivered.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: delivery.bounced
+          data:
+            allOf:
+            - $ref: '#/components/schemas/DeliveryEventData'
+            - type: object
+              required:
+              - reason
+              properties:
+                reason:
+                  type:
+                  - string
+                  - 'null'
+                  maxLength: 1000
+                  description: The provider's bounce message or type, whichever it supplied. Free text for display. Hard and soft bounces are not distinguished today because Commune stores only this string.
+    ImportCompletedEvent:
+      title: Import finished
+      description: An article, subscriber or migration run finished.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: import.completed
+          data:
+            $ref: '#/components/schemas/ImportCompletedData'
+    SendFailedEvent:
+      title: Send failed
+      description: A send run broke and the article was parked in failed.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: send.failed
+          data:
+            $ref: '#/components/schemas/SendFailedData'
+    ArticleLikedData:
+      type: object
+      title: Article like changed body
+      description: Body of `article.liked`. Which article, who, which way the like moved, and the tally afterwards.
+      required:
+      - article_id
+      - title
+      - reader
+      - direction
+      - like_count
+      - changed_at
+      properties:
+        article_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Canonical public URL. Follows the newsletter's custom website domain when it has an active one, otherwise the Commune-hosted path.
+        reader:
+          $ref: '#/components/schemas/UserRef'
+          description: The person who gave or withdrew the like. A like requires a Commune account, so this is null only in the case `UserRef` describes, an account that has since been deleted.
+        direction:
+          type: string
+          enum:
+          - added
+          - removed
+          description: '`added` when the like was given, `removed` when it was taken back.'
+        like_count:
+          type: integer
+          minimum: 0
+          description: The article's whole like tally after this change, counted in the same transaction that made it. The same number `Article.stats.likes` reports. Carried on both directions, so a consumer never has to add or subtract to stay correct.
+        changed_at:
+          type: string
+          format: date-time
+          description: When the like was given or withdrawn. Equal to `occurred_at`.
+    SendFailedData:
+      type: object
+      required:
+      - article_id
+      - failure_reason
+      properties:
+        article_id:
+          type: string
+          format: uuid
+        send_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Null when the run broke before it was recorded, which is early enough that there is no run to point at.
+        failure_reason:
+          type: string
+          maxLength: 1000
+          description: Human-readable, truncated at 1000 characters on write. Meant for display, not for branching. Match on the topic, not this string.
+    DeliveryOpenedEvent:
+      title: Delivery opened
+      description: The recipient opened the message.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: delivery.opened
+          data:
+            $ref: '#/components/schemas/DeliveryEventData'
+    SubscriberUnsubscribedData:
+      type: object
+      required:
+      - subscriber_id
+      - email
+      - reason
+      - unsubscribed_at
+      properties:
+        subscriber_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        reason:
+          type: string
+          enum:
+          - self_service
+          - bounced
+          - complained
+          description: '`self_service` is the reader opting out. `bounced` and `complained` are forced by delivery telemetry and arrive with the matching `delivery.*` event.'
+        unsubscribed_at:
+          type: string
+          format: date-time
+        article_send_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: 'The send whose email the reader acted on, when the unsubscribe link carried it. Best-effort attribution: null on an in-app unsubscribe, a link without the marker, or a bounce or complaint.'
+    ArticleReadEvent:
+      title: Article read
+      description: A reader stayed with an article long enough to have read it.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: article.read
+          data:
+            $ref: '#/components/schemas/ArticleReadData'
+    SubscriberTaggedEvent:
+      title: Subscriber tag added or removed
+      description: A subscriber tag was applied or taken off.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: subscriber.tagged
+          data:
+            $ref: '#/components/schemas/SubscriberTaggedData'
+    InsightStatus:
+      type: string
+      title: InsightStatus
+      description: 'Where a reader sits in the newsletter''s engagement ladder, from
+
+        `dormant` at the bottom to `superfan` at the top.
+
+
+        Assigned by rank inside the newsletter rather than against an absolute
+
+        score, so it is a statement about this audience and never comparable
+
+        between two newsletters. It also means a reader can move without doing
+
+        anything, because the people around them moved.
+
+        '
+      enum:
+      - superfan
+      - engaged
+      - reader
+      - dormant
+    SenderVerifiedData:
+      type: object
+      required:
+      - sender_id
+      - from_email
+      - domain
+      - kind
+      - verified_at
+      properties:
+        sender_id:
+          type: string
+          format: uuid
+        from_email:
+          type: string
+          format: email
+          description: Ready-to-use From address.
+        from_name:
+          type: string
+        reply_to_email:
+          type:
+          - string
+          - 'null'
+          format: email
+        domain:
+          type: string
+          description: The sending domain that was verified.
+        kind:
+          type: string
+          enum:
+          - commune
+          - custom
+          description: '`commune` is a Commune-provisioned subdomain, `custom` is a domain the creator owns and pointed at Commune.'
+        is_default:
+          type: boolean
+          description: Whether this is the newsletter's default sender, the one used when an article does not pin a specific one.
+        verified_at:
+          type: string
+          format: date-time
+    DeliveryClickedEvent:
+      title: Delivery link clicked
+      description: The recipient clicked a tracked link.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: delivery.clicked
+          data:
+            $ref: '#/components/schemas/DeliveryEventData'
+    ThreadPublishedEvent:
+      title: Thread published to the feed
+      description: A thread's visibility became public and it hit the global feed.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: thread.published
+          data:
+            $ref: '#/components/schemas/ThreadPublishedData'
+    ArticlePublishedEvent:
+      title: Article published
+      description: An article became publicly readable.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: article.published
+          data:
+            $ref: '#/components/schemas/ArticlePublishedData'
+    ArticleReadData:
+      type: object
+      title: Article read body
+      description: 'Body of `article.read`. Which article, who read it, and when they crossed from unread to read. There is no count here and no way to build one: the topic reports first reads by signed-in people only.'
+      required:
+      - article_id
+      - title
+      - reader
+      - read_at
+      properties:
+        article_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Canonical public URL. Follows the newsletter's custom website domain when it has an active one, otherwise the Commune-hosted path.
+        reader:
+          $ref: '#/components/schemas/UserRef'
+          description: 'The person who read it. Never a stand-in for an anonymous reader: an anonymous read produces no message at all rather than one with this field empty, because Commune records nothing durable for it and a message built from nothing would be a message the reader could fabricate. Null only in the case `UserRef` describes, an account that has since been deleted.'
+        read_at:
+          type: string
+          format: date-time
+          description: When the article became read for this person. Equal to `occurred_at`. It does not move afterwards, because this crossing happens once.
+    ArticleScheduledData:
+      type: object
+      required:
+      - article_id
+      - title
+      - scheduled_for
+      properties:
+        article_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        scheduled_for:
+          type: string
+          format: date-time
+          description: When the send is due. Always in the future at the time of this event, and always on a five-minute boundary.
+    DomainVerifiedData:
+      type: object
+      required:
+      - domain_id
+      - domain
+      - verified_at
+      properties:
+        domain_id:
+          type: string
+          format: uuid
+        domain:
+          type: string
+          description: 'The hostname now serving the newsletter''s site. Always a subdomain: apex domains cannot CNAME and are rejected before they get this far.'
+        ssl_status:
+          type:
+          - string
+          - 'null'
+          description: The certificate authority's sub-status, kept for display. The aggregate `active` state is what Commune actually branches on.
+        verified_at:
+          type: string
+          format: date-time
+    BillingSubscriptionUpdatedData:
+      type: object
+      required:
+      - subscription_id
+      - plan
+      - status
+      properties:
+        subscription_id:
+          type: string
+          format: uuid
+          description: Commune's own identifier for the newsletter's subscription, one per `commune` newsletter. Not a Stripe id; Stripe identifiers are never exposed.
+        plan:
+          type: string
+          enum:
+          - creator
+          - enterprise
+        status:
+          type: string
+          enum:
+          - trialing
+          - active
+          - past_due
+          - canceled
+          - trial_expired
+        previous_status:
+          type:
+          - string
+          - 'null'
+          enum:
+          - trialing
+          - active
+          - past_due
+          - canceled
+          - trial_expired
+          - null
+          description: The state being left. Null when it could not be established, so treat this as a hint and the new `status` as the truth.
+        trial_ends_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        current_period_start:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        current_period_end:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        cancel_at_period_end:
+          type: boolean
+          description: 'The subscription is still active but will not renew. Distinct from `status: canceled`, which means it already stopped.'
+    SenderVerifiedEvent:
+      title: Sender verified
+      description: A sending identity passed verification and can now send.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: sender.verified
+          data:
+            $ref: '#/components/schemas/SenderVerifiedData'
+    MessageCreatedData:
+      type: object
+      required:
+      - message_id
+      - thread_id
+      - thread_level
+      - content
+      - created_at
+      properties:
+        message_id:
+          type: string
+          format: uuid
+        short_id:
+          type:
+          - string
+          - 'null'
+        url:
+          type:
+          - string
+          - 'null'
+          format: uri
+        thread_id:
+          type: string
+          format: uuid
+          description: The top-level thread this reply belongs to.
+        parent_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: The message being replied to. Equal to `thread_id` for a direct reply, a sibling message for a nested one.
+        thread_level:
+          type: integer
+          enum:
+          - 1
+          - 2
+          description: Nesting depth. 1 is a reply to the thread, 2 is a reply to a reply, and nesting stops there.
+        author:
+          $ref: '#/components/schemas/UserRef'
+        content:
+          type: string
+          maxLength: 5000
+        created_at:
+          type: string
+          format: date-time
+    DeliveryDeliveredEvent:
+      title: Delivery accepted
+      description: The provider confirmed the message reached the recipient server.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: delivery.delivered
+          data:
+            $ref: '#/components/schemas/DeliveryEventData'
+    SendCompletedEvent:
+      title: Send completed
+      description: A send run finished handing every recipient to the provider.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: send.completed
+          data:
+            $ref: '#/components/schemas/SendCompletedData'
+    DomainVerifiedEvent:
+      title: Custom website domain verified
+      description: A creator's custom website domain went live.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: domain.verified
+          data:
+            $ref: '#/components/schemas/DomainVerifiedData'
+    HighlightCreatedEvent:
+      title: Highlight created
+      description: A reader marked a passage of an article.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: highlight.created
+          data:
+            $ref: '#/components/schemas/HighlightCreatedData'
+    Actor:
+      type:
+      - object
+      - 'null'
+      description: 'Who caused the change, and `null` when nobody outside Commune did.
+
+
+        Populated on a change made through this API''s write operations, and null on every other change: an edit a creator made in the product, an import arriving from a provider, a scheduled job, a delivery result reported by the sending provider. Null is therefore the common case and stays a legitimate value. Read it as "this change came in through the API under this credential", never as "nothing caused this".
+
+
+        It never names a person, only the credential.
+
+
+        It answers "did this change come in through the API, and under which credential". It is **not** the field to drop the echo of your own write with: use `idempotency_key`, which you chose and therefore already know, whereas `id` here is Commune''s own identifier for your credential and no operation reports it back to you. A creator can read that identifier in Commune, but it changes when the credential is replaced, so matching on it puts the loop back silently after a rotation.'
+      additionalProperties: false
+      required:
+      - type
+      - id
+      properties:
+        type:
+          type: string
+          enum:
+          - user
+          - api_key
+          - system
+          description: '`api_key` for a change made through this API, which is the only value emitted today. `user` is reserved for a change a named person made through an authenticated session and `system` for an unattended job; neither is emitted.
+
+
+            An OAuth access token reports as `api_key` as well. The two credentials are interchangeable everywhere else in this API, and a separate value here would be a distinction a consumer cannot act on.'
+        id:
+          type: string
+          description: Identifier of the actor within its `type`. For `api_key` it is the credential's own id and never its secret, and it is the same value that appears in a creator's list of credentials, so an event can be traced back to the integration that caused it.
+        label:
+          type:
+          - string
+          - 'null'
+          description: Human-readable name for display. Best effort, may be null.
+    ThreadCreatedEvent:
+      title: Thread created
+      description: A new top-level thread was started in a newsletter's space.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: thread.created
+          data:
+            $ref: '#/components/schemas/ThreadCreatedData'
+    DeliveryComplainedEvent:
+      title: Delivery marked as spam
+      description: The recipient reported the message as spam.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: delivery.complained
+          data:
+            allOf:
+            - $ref: '#/components/schemas/DeliveryEventData'
+            - type: object
+              required:
+              - reason
+              properties:
+                reason:
+                  type:
+                  - string
+                  - 'null'
+                  maxLength: 1000
+                  description: Why the provider recorded a complaint. Providers rarely elaborate, so expect a constant string.
+    ImportCompletedData:
+      type: object
+      title: Import completed body
+      description: Body of `import.completed`. Which kind of run finished, where its rows came from, and how much it moved.
+      required:
+      - kind
+      - source
+      - imported_count
+      - completed_at
+      properties:
+        kind:
+          type: string
+          enum:
+          - articles
+          - subscribers
+          - migration
+          description: '`articles` and `subscribers` ingest rows. `migration` is the finalize step that makes a newsletter `commune`, which ingests nothing.'
+        source:
+          type:
+          - string
+          - 'null'
+          description: 'Where the rows came from: an ESP slug such as `kit` or `beehiiv`, `csv` for an uploaded list, or `rss` for a feed. Null when the run has no single source, which is the `migration` case.'
+          examples:
+          - kit
+        imported_count:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          description: 'Subscribers that actually landed. Not the size of what was offered: both import paths skip anybody already on the list and leave their existing status alone. Null for `migration`, which ingests nothing.
+
+
+            Subscribers the run could not take are not reported. One bad entry never ends a run, and nothing counts the ones that failed, so a number here would be a guess.'
+        started_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the run began. Null when it was not recorded, so treat the duration as best effort.
+        completed_at:
+          type: string
+          format: date-time
+          description: When the run ended. Equal to `occurred_at`.
+    HighlightCreatedData:
+      type: object
+      title: Highlight created body
+      description: 'Body of `highlight.created`. The passage, where it sits in the article, and an opaque owner token. No `user_id`: Commune does not attribute a highlight to a named reader.'
+      required:
+      - highlight_id
+      - article_id
+      - quote
+      - start_offset
+      - end_offset
+      - owner_key
+      - message_id
+      - created_at
+      properties:
+        highlight_id:
+          type: string
+          format: uuid
+          description: Commune's identifier for the highlight.
+        article_id:
+          type: string
+          format: uuid
+        quote:
+          type: string
+          maxLength: 5000
+          description: The marked text itself, as plain text, capped at 5000 characters. The surrounding prefix and suffix that let a client re-anchor the range are not here; read `GET /highlights/{highlight}` for those.
+        start_offset:
+          type: integer
+          minimum: 0
+          description: Where the passage starts, as a character offset into the article's normalised plain text. Always less than `end_offset`.
+        end_offset:
+          type: integer
+          minimum: 1
+          description: Where the passage ends, in the same offsets.
+        owner_key:
+          type: string
+          description: An opaque, stable per highlighter value, scoped to this one article. The same value `GET /highlights/{highlight}` returns. Group by it to tell one reader's marks apart from another's. It cannot be resolved to a person and does not correlate across articles.
+          examples:
+          - 4f2a9c1e7b3d6a05
+        message_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: 'The chat message the reader wrote from this passage, when the highlight was created as a discussion. Null for a silent highlight, and it stays null on this topic: attaching a message later updates the row rather than creating one.'
+        created_at:
+          type: string
+          format: date-time
+    SubscriberCreatedEvent:
+      title: Subscriber created
+      description: Someone became a subscriber, or an unsubscribed one came back.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: subscriber.created
+          data:
+            $ref: '#/components/schemas/SubscriberCreatedData'
+    SendCompletedData:
+      type: object
+      required:
+      - article_id
+      - send_id
+      - started_at
+      - completed_at
+      - recipient_count
+      - sent_count
+      - failed_count
+      properties:
+        article_id:
+          type: string
+          format: uuid
+        send_id:
+          type: string
+          format: uuid
+        started_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        recipient_count:
+          type: integer
+          minimum: 0
+          description: Audience size fixed at the moment the run started. The stable denominator for any rate a consumer computes.
+        sent_count:
+          type: integer
+          minimum: 0
+          description: 'Recipients the provider accepted at dispatch. NOT confirmed deliveries: confirmation arrives later as `delivery.delivered`, one event per recipient.'
+        failed_count:
+          type: integer
+          minimum: 0
+          description: Recipients the provider rejected outright at dispatch.
+    SubscriberUnsubscribedEvent:
+      title: Subscriber unsubscribed
+      description: A subscriber stopped being mailable.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: subscriber.unsubscribed
+          data:
+            $ref: '#/components/schemas/SubscriberUnsubscribedData'
+    ArticleScheduledEvent:
+      title: Article scheduled
+      description: An article written in Commune was queued for a future send.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: article.scheduled
+          data:
+            $ref: '#/components/schemas/ArticleScheduledData'
+    MessageCreatedEvent:
+      title: Message created
+      description: A reply was posted inside a thread.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: message.created
+          data:
+            $ref: '#/components/schemas/MessageCreatedData'
+    UserRef:
+      type:
+      - object
+      - 'null'
+      title: User reference
+      description: A pointer to a Commune account, enough to attribute and render something without a second call. Null when there is no account to point at, either because there never was one or because the account was deleted. Content outlives its author, so a null here is expected rather than a sign the reference was lost.
+      required:
+      - user_id
+      properties:
+        user_id:
+          type: string
+        username:
+          type:
+          - string
+          - 'null'
+        display_name:
+          type:
+          - string
+          - 'null'
+        avatar_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+    EventEnvelope:
+      type: object
+      title: Event envelope
+      description: 'The shape every message on every topic shares. The concrete event schemas below narrow `type` and fill in `data`; nothing else varies.
+
+
+        Two fields describe where a change came from rather than what changed: `actor` and `idempotency_key`. Both are filled in on a change made through this API''s write operations and are `null` on every other change, which is most of them. Null is the common case and is not a signal that something went missing.
+
+
+        Deduping: `id` is unique per event and stable across redeliveries of that event, which makes it the correct dedupe key. `idempotency_key` is a second, different tool, and it answers two questions `id` cannot. It collapses the events caused by one retried write, because a retry that really did the work twice produces two ids and one key. And it tells a consumer which events its own writes caused, which is what stops a consumer that reacts by writing from reacting to itself for ever. See `idempotency_key` below.'
+      required:
+      - id
+      - type
+      - api_version
+      - occurred_at
+      - newsletter_id
+      - actor
+      - idempotency_key
+      - data
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique id for this event. Stable across redeliveries, so it is the dedupe key. Assigned when the state change is recorded rather than when the message is dispatched.
+          examples:
+          - 018f2a8b-6c4b-7d2e-9f11-6a1c3d5e7b90
+        type:
+          type: string
+          description: The topic name, identical to the channel address. Route on this.
+          examples:
+          - article.published
+        api_version:
+          type: string
+          description: The `Commune-Version` value this payload conforms to. Present on the message itself, not only on the request header, so an event persisted to a consumer's own store stays self-describing.
+          examples:
+          - '2026-08-26'
+        occurred_at:
+          type: string
+          format: date-time
+          description: RFC 3339 timestamp of the state change, not of the delivery attempt. Use it to order events, since delivery order is not guaranteed.
+        newsletter_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: 'The newsletter the change belongs to. This is the tenant boundary: a consumer only ever receives events for newsletters its credential can read. Null only for events that are genuinely not newsletter-scoped, which none of the topics Commune publishes currently are.'
+        actor:
+          $ref: '#/components/schemas/Actor'
+        idempotency_key:
+          type:
+          - string
+          - 'null'
+          maxLength: 255
+          description: 'The `Idempotency-Key` of the API write that caused this change, so a consumer can tie an event back to its own request and collapse the duplicates a retried write would otherwise produce.
+
+
+            **This is how a consumer that writes recognises its own work.** Keep the keys you send, and skip any event carrying one of them. You chose the value, so you know it before the event arrives. `actor` cannot do this job, because Commune''s id for your credential is not something this API reports to you.
+
+
+            Null for every change that did not come in through this API, which is most of them: an edit made in Commune, an import, a scheduled job and a delivery result all have no originating request to key on.
+
+
+            **It reaches every endpoint registered for the newsletter**, not only the one that made the write, so choose opaque keys such as UUIDs rather than keys carrying your own business identifiers.'
+        data:
+          type: object
+          description: Event-specific body. Narrowed by each concrete event schema below.
+    SubscriberCreatedData:
+      type: object
+      required:
+      - subscriber_id
+      - email
+      - status
+      - resubscribed
+      - created_at
+      properties:
+        subscriber_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        status:
+          type: string
+          enum:
+          - subscribed
+          - unsubscribed
+          - bounced
+          - complained
+          - pending
+        user_id:
+          type:
+          - string
+          - 'null'
+          description: The Commune account behind this subscriber, when there is one. Null for an address imported from an ESP or CSV that never signed up.
+        acquisition_source:
+          type:
+          - string
+          - 'null'
+          description: How a subscriber was imported, fixed when they were first recorded so a later migration between providers cannot relabel it. An ESP import stamps that provider's slug and a CSV upload stamps `csv`. Set only on those two paths, so it is null for a subscriber who subscribed in the Commune app, finished signup, or accepted an invitation. `commune` and `imported` appear on old subscribers labelled before this field existed; nothing writes either today.
+        resubscribed:
+          type: boolean
+          description: True when an existing unsubscribed subscriber came back to `subscribed`, rather than a new subscriber being recorded.
+        created_at:
+          type: string
+          format: date-time
+          description: When the subscriber row was first created. On a resubscribe this is the ORIGINAL creation time, not the reactivation, which is `occurred_at`.
+    DeliveryEventData:
+      type: object
+      title: Delivery event body
+      description: Shared body of the five `delivery.*` topics. One delivery to one recipient, identified by both Commune's ids and the provider's message id, so a consumer can reconcile with its own provider logs.
+      required:
+      - delivery_id
+      - article_id
+      - send_id
+      - subscriber_id
+      - email
+      - status
+      properties:
+        delivery_id:
+          type: string
+          format: uuid
+          description: Commune's identifier for this delivery.
+        article_id:
+          type: string
+          format: uuid
+        send_id:
+          type: string
+          format: uuid
+          description: The send run this delivery belonged to.
+        subscriber_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+          description: The address as it was at send time. Snapshotted onto the delivery row, so it does not follow a later change to the subscriber.
+        provider_message_id:
+          type:
+          - string
+          - 'null'
+          description: The email provider's id for this message, the correlator the inbound webhook matched on. Null only if the row was written without one.
+        status:
+          type: string
+          enum:
+          - queued
+          - sent
+          - delivered
+          - opened
+          - clicked
+          - bounced
+          - complained
+          - failed
+          description: 'The delivery row''s status after this event was applied. Because the state machine is forward-only, it is not always the event''s own name: an open recorded after a click leaves the row on `clicked`.'
+    SubscriberStatusChangedEvent:
+      title: Subscriber insight status changed
+      description: A reader crossed a boundary in the newsletter's engagement ladder.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: subscriber.status_changed
+          data:
+            $ref: '#/components/schemas/SubscriberStatusChangedData'
+  parameters:
+    WebhookDeliveryAttempt:
+      name: Commune-Delivery-Attempt
+      in: header
+      required: false
+      description: '1 on the first attempt, incremented on each retry. **Not sent today**: do not rely on it, and be idempotent regardless. The same number is readable after the fact as `attempt` on a `DeliveryAttempt`, so a consumer that needs to tell a retry from a first delivery can ask instead of being told.'
+      schema:
+        type: integer
+        minimum: 1
+    WebhookVersion:
+      name: Commune-Version
+      in: header
+      required: true
+      description: API version the payload conforms to. Same value as `api_version` in the envelope.
+      schema:
+        type: string
+        examples:
+        - '2026-08-26'
+    WebhookSignature:
+      name: Commune-Signature
+      in: header
+      required: true
+      description: HMAC-SHA256 over `Commune-Timestamp` as Unix seconds, a literal `.`, then the raw request body, keyed by the endpoint's signing secret. Lowercase hex, carried as `v0=` followed by one or more comma separated digests (more than one while a secret is being rotated). The header's timestamp is an RFC 3339 instant, so convert it to Unix seconds before signing. Verify against the raw bytes before parsing the JSON. The webhooks guide has the full procedure.
+      schema:
+        type: string
+        examples:
+        - v0=8501d20988a42e76a6f63c4aaabbca745b9ad6333c254c1665b970a7e3c39541
+    WebhookEventId:
+      name: Commune-Event-Id
+      in: header
+      required: true
+      description: Same value as `id` in the envelope. The dedupe key.
+      schema:
+        type: string
+        format: uuid
+    WebhookTimestamp:
+      name: Commune-Timestamp
+      in: header
+      required: true
+      description: When this delivery attempt was made, as an RFC 3339 instant in UTC. It differs on every retry, and it IS covered by the signature, in Unix seconds, so a stale or altered one can be rejected. Enforce a tolerance window of a few minutes and dedupe on the event id as well, since a retry inside that window is legitimate.
+      schema:
+        type: string
+        format: date-time
+        examples:
+        - '2026-08-26T09:32:14Z'
+    WebhookEventType:
+      name: Commune-Event-Type
+      in: header
+      required: true
+      description: Same value as `type` in the envelope. The topic name.
+      schema:
+        type: string
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      description: 'An OAuth access token, sent as `Authorization: Bearer <token>`. The
+
+        walkthrough of the whole flow is at
+
+        [usecommune.dev/use-cases/build-an-integration](https://usecommune.dev/use-cases/build-an-integration):
+
+        discovery, registration, PKCE, the consent screen, the exchange, refresh
+
+        and revocation.
+
+
+        Ask for a family scope and the person picks which newsletter
+
+        the token reaches; ask for `account:read` alone and it reaches no
+
+        newsletter and reads only the account it belongs to.
+
+
+        Each operation lists the scopes a token must carry to call it. An
+
+        operation that lists none takes any token.
+
+
+        Discover the URLs under `flows` at runtime from
+
+        `GET /.well-known/oauth-authorization-server` rather than hardcoding
+
+        them.
+
+        '
+      flows:
+        authorizationCode:
+          authorizationUrl: https://usecommune.com/api/oauth/authorize
+          tokenUrl: https://usecommune.com/api/oauth/token
+          refreshUrl: https://usecommune.com/api/oauth/token
+          scopes:
+            content:read: Read articles, threads and the rest of what a newsletter publishes.
+            content:write: Create, edit and delete that content.
+            audience:read: Read subscribers, tags and segments, including email addresses.
+            audience:write: Add, tag and remove subscribers.
+            insights:read: Read engagement, delivery and growth figures.
+            insights:write: Write back an insight the newsletter owns.
+            sending:read: Read sends, schedules and delivery outcomes.
+            sending:write: Send an article, schedule one, and cancel a schedule.
+            settings:read: Read a newsletter's configuration, senders and domains.
+            settings:write: Change that configuration.
+            webhooks:read: Read event destinations and their delivery history.
+            webhooks:write: Create and remove event destinations.
+            account:read: Read the person the credential belongs to, and nothing about any newsletter.
+    apiKey:
+      type: http
+      scheme: bearer
+      bearerFormat: Commune API key
+      description: 'A Commune API key, sent as `Authorization: Bearer <key>`. A key is
+
+        granted one or more newsletters and carries six permission families on
+
+        each, every one of them `none`, `read` or `write`. An operation names
+
+        the family and the level it needs.
+
+
+        A key is minted by a creator in Commune''s settings: no flow, no consent
+
+        screen, no expiry. That is the whole difference from `oauth2`. An
+
+        operation that declares both accepts either credential, and what each
+
+        may do is what it was granted.
+
+        '
+x-refined-from:
+- usecommune-openapi.json
+- usecommune-openapi.yml
+x-deferred:
+- resource: user_newsletters
+  scope: partner
+  reason: The newsletters a person owns or is on the team of. Public one profile at a time, but served in bulk it maps the network. A Partner API candidate.
+- resource: user_subscriptions
+  scope: partner
+  reason: The newsletters a person subscribes to. The reader side of the same network graph, so it waits for a Partner API with it.
+- resource: user_activity
+  scope: public
+  reason: The threads, highlights and articles sub resources of a public profile. Each filters a collection that has its own operation.
+- resource: user_settings
+  scope: reader
+  reason: Theme, contrast and the rest of a person's account preferences. Personal, and of no use to an integration.
+- resource: notification_preferences
+  scope: reader
+  reason: Personal account settings.
+- resource: push_subscriptions
+  scope: reader
+  reason: Per device push endpoints. Credential shaped, and personal.
+- resource: newsletter_settings
+  scope: creator
+  reason: Chat permissions, physical address and editor defaults. Split from the core object so the public schema stays frozen, and deferred with the write surface it exists to serve.
+- resource: invitations
+  scope: creator
+  reason: Carries invitee email addresses and single use tokens, and is write shaped. This version of the API is reads only.
+- resource: esp_connections
+  scope: creator
+  reason: Holds provider OAuth tokens and API keys. The connection becomes readable without them; the credentials never do.
+- resource: esp_imports
+  scope: creator
+  reason: Import and migration runs are long running writes against an outside provider. This version of the API is reads only.
+- resource: esp_share_audiences
+  scope: creator
+  reason: The provider side allow list that decides what Commune ingests. Import configuration, not a resource an integration reads.
+- resource: rss_authors
+  scope: creator
+  reason: The feed author to team member mapping. Import configuration, wired to one provider path.
+- resource: newsletter_exports
+  scope: never
+  reason: An admin only operation, not part of the creator catalog.
+- resource: article_drafts
+  scope: creator
+  reason: Commune's editor stores its own document format, and pinning it in a public contract would stop the editor evolving.
+- resource: article_preview
+  scope: creator
+  reason: Renders an article to final email HTML. Worth exposing, and it would pin the merge tag engine and the block system while both are still moving.
+- resource: article_compliance
+  scope: creator
+  reason: The pre send gate as a readable resource, answering "would this send?" without sending. Its blocker vocabulary is still growing, and freezing it now would freeze the gate; the send and schedule operations report the same refusals when they refuse.
+- resource: article_move
+  scope: creator
+  reason: Moving a draft from one newsletter to another. A credential reads one newsletter, so both ends of the move cannot be named by one of them.
+- resource: article_thread
+  scope: public
+  reason: An article's discussion, reachable as a sub resource. It is a thread and has an operation already; a second path to it is navigation.
+- resource: article_comments
+  scope: public
+  reason: Dead table. An article's discussion is its chat thread, so the count is on `article.stats.comments` and the comments themselves are that thread's messages.
+- resource: article_saved_event
+  scope: creator
+  reason: 'A topic for an article being saved or unsaved. Built alongside `article.liked` and `article.read` and then withdrawn before it shipped, on the ground that it is not the same kind of change they are.
+
+
+    Those two ride a disclosure that already exists. A credential holding `insights: read` reads `GET /newsletters/{newsletter}/events` today, which names which subscriber viewed or liked which article, so a topic carrying the same facts tells a creator nothing they could not already fetch. A save has no counterpart anywhere: no entry in `EngagementEventType`, no tally on `Article.stats`, nothing in the product that shows a creator who saved what, and a row only its owner can read. The topic would therefore have been the first thing ever to tell a creator anything about saves, and the thing it told them would be who.
+
+
+    That is a decision about what readers are told is private, not a gap in the catalog, and it is deferred until that decision is made rather than shipped as a side effect of building its two neighbours. `article_saves` itself is untouched: `GET /saved-articles` still returns a person their own list.'
+- resource: article_shared_event
+  scope: creator
+  reason: 'A topic for an article being shared. Refused rather than queued, because Commune does not observe a share and cannot: the product hands the reader to the operating system''s own share sheet, which reports nothing back, so the only shares that could ever be counted are the ones that begin with a button inside Commune, and even those end somewhere Commune cannot see.
+
+
+    Read `share` in `EngagementEventType` as the record of an earlier attempt rather than as a signal that exists. The value is declared, the insight scores weight it, and the collection at `GET /newsletters/{newsletter}/events` will return one if it ever finds one. None of that makes a share observable, and a `share` row is not something any newsletter has.
+
+
+    Publishing a topic for it would put a channel in this catalog that can never carry a message, which is worse than an absence: an absence is visible, and a silent channel reads as a quiet week.'
+- resource: article_read_state
+  scope: reader
+  reason: 'Per reader read and unread state, as a resource a client reads back and writes. Written on every read in the product, so exposing it invites the polling loop `article_views` is deferred for, on the same hot path. The `article.read` topic is not this resource arriving early: it is pushed rather than polled, which is the whole of what the objection was about, it reports one crossing per reader per article rather than a state a client can re-read, and it cannot be written.'
+- resource: article_views
+  scope: creator
+  reason: 'A write on every read in the product. Exposing it as a readable counter invites polling loops against a hot path. Still deferred after `article.read` landed, and not made redundant by it: that topic deliberately reports neither anonymous reads nor repeat visits, so it is not the counter and a consumer cannot build the counter out of it.'
+- resource: thread_demotion
+  scope: creator
+  reason: Taking a thread back off the global feed. Promoting one is an operation; the reverse has no topic and no considered answer to what a consumer already told about it should do.
+- resource: article_schedule_cancelled_event
+  scope: creator
+  reason: A topic for a cancelled schedule. Cancelling is an operation; the event is not, for the reason directly above, and the article's own status is the authority until there is an answer.
+- resource: thread_read_state
+  scope: reader
+  reason: Per user last read timestamps and mutes. A user token could hold it; a row names a thread, and handing one back would let an app walk into a private thread whose other participants consented to nothing.
+- resource: thread_participants
+  scope: public
+  reason: Who spoke in a thread. Derivable from the thread's messages, which have an operation of their own.
+- resource: moderation
+  scope: creator
+  reason: No moderation queue exists yet. An auditable log is worth having before write access rather than after it.
+- resource: posts
+  scope: public
+  reason: Retired. Posts were folded into newsletter scoped chat threads, so the resource is `threads`, and modelling `posts` would put a dead stack into a contract with outside consumers.
+- resource: post_replies
+  scope: public
+  reason: Retired with posts. A reply is a `message` in a thread.
+- resource: reposts
+  scope: public
+  reason: 'Retired with posts, and never wired up: the internal surface returns a hardcoded zero.'
+- resource: community_member
+  scope: public
+  reason: One person's place in a community, addressable on its own. The person has an operation and the place carries nothing but a date, so a second path to it is navigation rather than a resource.
+- resource: suppressions
+  scope: creator
+  reason: Bounces, complaints and unsubscribes as one list. The data is spread across two tables and there is no single surface to freeze yet.
+- resource: audience_count
+  scope: creator
+  reason: Commune's subscriber records are a partial cache of an outside provider's list, so any total derived from them would misstate the audience. Ask the provider.
+- resource: article_deliveries
+  scope: creator
+  reason: Per recipient send results, including bounces. Deferred until the send pipeline's own shape is stable enough to freeze.
+- resource: article_send_stats
+  scope: creator
+  reason: Opens and clicks come from the sending provider on the provider's schedule, so a number read here would be stale in a way the contract could not describe.
+- resource: send_links
+  scope: creator
+  reason: Click breakdown per destination URL. Clicks are recorded as events and never aggregated by destination, so the rollup does not exist.
+- resource: deliverability
+  scope: creator
+  reason: Rolling bounce and complaint health against thresholds. Derivable, and nothing computes it today.
+- resource: delivery_retries
+  scope: never
+  reason: Re-sending a send's failed recipients. Commune retries transient failures itself; what still fails is followed up by its team, because some of it may already have been delivered.
+- resource: network_metrics
+  scope: never
+  reason: Internal analytics, computed on a cron for Commune's own use.
+- resource: feed
+  scope: public
+  reason: Public threads, articles and highlights unioned into one stream. A discriminated union whose member shapes and ranking are still moving.
+- resource: newsletter_feed
+  scope: public
+  reason: The same union scoped to one newsletter. Deferred with `feed`.
+- resource: discover
+  scope: public
+  reason: An editorial surface whose ranking is still being tuned. Freezing its shape now would freeze an experiment.
+- resource: notifications
+  scope: reader
+  reason: A person's notification inbox. A user token is the right credential for it; every item points at a thread, message or article somewhere, and serving those references needs the subject registry to answer what an app may follow them to.
+- resource: notification_stream
+  scope: reader
+  reason: The server sent events channel behind a person's notification inbox. Deferred with `notifications` above, and additionally because a stream is not a Path Item. It was described in a separate AsyncAPI document for a while, on the grounds that a stream is not a Path Item, but it was never built and that document was the only thing that document held which this one could not express. Both are gone. A stream that is worth publishing to API keys brings the second document back with it.
+- resource: reader_digest
+  scope: reader
+  reason: The weekly roundup as data rather than as an email. Personal.
+- resource: creator_digest
+  scope: creator
+  reason: The creator side weekly. Every number in it is readable from the Metrics operations, so it is a rendering rather than a resource.
+- resource: billing
+  scope: creator
+  reason: Plan, usage and payment method. A money surface deserves its own contract and its own review, not a corner of the read catalog.
+- resource: media
+  scope: reader
+  reason: Upload only, and this version of the API is reads only.
+- resource: render_email
+  scope: creator
+  reason: 'Renders arbitrary editor JSON to email safe HTML. Same reason as `article_preview`: it would pin the block system in a public contract.'
+- resource: oembed
+  scope: public
+  reason: oEmbed for articles, threads and highlights. A separately published spec with its own discovery rules, not a resource in this one.
+- resource: api_key_mint
+  scope: never
+  reason: 'Minting a credential, which is refused rather than queued. A key that can mint keys outlives its own revocation: an intruder makes a second one, the creator revokes the first, and nothing they did stopped anything. A key is minted by a signed in person in Commune''s settings, where the secret is shown once. Listing and revoking keys are operations above.'
+- resource: oauth
+  scope: public
+  reason: 'The authorize and token endpoints a third party app uses. Built, and on the authorization server rather than here: they live in the Commune app, because issuing a credential means showing a signed-in person a screen and this service has no sessions. `GET /.well-known/oauth-protected-resource` is how a client finds them, and the flow is walked through in full at `usecommune.dev/use-cases/build-an-integration`. Not to be confused with `oauth_protected_resource` below: that one is this service saying where tokens for *it* come from.'
+- resource: oauth_protected_resource
+  scope: public
+  reason: '`GET /.well-known/oauth-protected-resource`, the RFC 9728 metadata document a client fetches after a `401` to find the authorization server. It is not a Commune resource and it is not versioned by `Commune-Version`: its shape is fixed by the RFC, it is the same bytes for every caller, and it is unauthenticated because discovery is what a caller does when it has no usable credential. The authorization server it names is not this API; it is the Commune app itself, where the creator''s session and the consent screen already are.'
+- resource: spec_documents
+  scope: public
+  reason: This document, served as JSON and as YAML, each with `?version=`, `?profile=` and `?lang=`. Describing itself inside itself is circular.
+- resource: mcp_server
+  scope: creator
+  reason: '`POST /mcp`, the Model Context Protocol endpoint. It is a JSON-RPC envelope over the operations declared above rather than a resource of its own: one tool is one Arazzo workflow, and every step of every workflow is one of these operations, dispatched through the same gateway with the caller''s own key. Declaring the envelope here would publish a second, untyped way to call operations that are already typed, and OpenAPI cannot describe what a `tools/call` body may contain without restating all twenty argument schemas the manifest already carries.'
+- resource: webhooks
+  scope: never
+  reason: 'Inbound endpoints for outside services, authenticated by signature rather than by key. The outbound direction is not this resource: the events a consumer receives are the generated `webhooks` block.'
+- resource: cron
+  scope: never
+  reason: Internal scheduled jobs, guarded by a shared secret.
+- resource: admin
+  scope: never
+  reason: Commune staff surface. Never public.

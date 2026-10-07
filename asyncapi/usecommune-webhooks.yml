@@ -1,0 +1,116 @@
+generated: '2026-10-07'
+method: derived
+generator: derive-webhooks.py
+source:
+- openapi/usecommune-openapi.yml
+description: 'Event surface derived from the provider''s own OpenAPI: webhooks. No AsyncAPI document is published
+  by the provider; this catalog lists the events the contract names.'
+management_operations:
+- addTagSubscribers
+- listNewsletterSubscribers
+- getSubscriber
+- addSubscriberTag
+- removeSubscriberTag
+- listSubscriptions
+events:
+- event: article.liked
+  description: Article like added or removed
+  declared_in: webhooks
+- event: article.published
+  description: Article published
+  declared_in: webhooks
+- event: article.read
+  description: Article read
+  declared_in: webhooks
+- event: article.scheduled
+  description: Article scheduled
+  declared_in: webhooks
+- event: billing.subscription.updated
+  description: Billing subscription state changed
+  declared_in: webhooks
+- event: delivery.bounced
+  description: Delivery bounced
+  declared_in: webhooks
+- event: delivery.clicked
+  description: Delivery link clicked
+  declared_in: webhooks
+- event: delivery.complained
+  description: Delivery marked as spam
+  declared_in: webhooks
+- event: delivery.delivered
+  description: Delivery accepted by the recipient server
+  declared_in: webhooks
+- event: delivery.opened
+  description: Delivery opened
+  declared_in: webhooks
+- event: domain.verified
+  description: Custom website domain verified
+  declared_in: webhooks
+- event: highlight.created
+  description: Highlight created
+  declared_in: webhooks
+- event: import.completed
+  description: Import finished
+  declared_in: webhooks
+- event: message.created
+  description: Message created
+  declared_in: webhooks
+- event: send.completed
+  description: Send completed
+  declared_in: webhooks
+- event: send.failed
+  description: Send failed
+  declared_in: webhooks
+- event: sender.verified
+  description: Sender verified
+  declared_in: webhooks
+- event: subscriber.created
+  description: Subscriber created
+  declared_in: webhooks
+- event: subscriber.status_changed
+  description: Subscriber insight status changed
+  declared_in: webhooks
+- event: subscriber.tagged
+  description: Subscriber tag added or removed
+  declared_in: webhooks
+- event: subscriber.unsubscribed
+  description: Subscriber unsubscribed
+  declared_in: webhooks
+- event: thread.created
+  description: Thread created
+  declared_in: webhooks
+- event: thread.published
+  description: Thread published to the feed
+  declared_in: webhooks
+delivery:
+  source: https://api-reference.usecommune.dev/group/webhook-webhooks; https://usecommune.dev/llms-full.txt (webhooks
+    guide); OpenAPI components.parameters WebhookSignature/WebhookTimestamp
+  transport: one HTTPS POST per event to a destination registered in the delivery portal (HTTPS endpoint, or a queue,
+    stream or object store)
+  registration: in the delivery portal only; POST /newsletters/{newsletter}/portal-session (createPortalSession)
+    mints a one-use link; no CRUD endpoint for destinations
+  envelope: 'shared envelope: id, type, occurred_at, actor, idempotency_key, data; the same id/type arrive as Commune-Event-Id
+    and Commune-Event-Type headers'
+  headers:
+  - Commune-Event-Type
+  - Commune-Event-Id
+  - Commune-Signature
+  - Commune-Timestamp
+  - Commune-Delivery-Attempt
+  - Commune-Version
+  signature:
+    header: Commune-Signature
+    algorithm: HMAC-SHA256
+    key: the endpoint signing secret exactly as issued, whsec_ prefix included
+    payload: Commune-Timestamp converted to Unix seconds, a literal ".", then the raw request body bytes
+    encoding: lowercase hex as v0=<digest>, or two digests comma separated while a secret rotation is in flight
+    timestamp_header: Commune-Timestamp (RFC 3339, UTC; covered by the signature; enforce a tolerance window of
+      a few minutes)
+  semantics: at least once and unordered; dedupe on id; occurred_at is the ordering field
+  retries: 'a non-2xx response or a timeout is retried with backoff: eleven attempts over about eight and a half
+    hours; a wrong signature should answer 401 and is retried like any non-2xx'
+  replay: 'POST /delivery-attempts/{attempt}/replay (replayDeliveryAttempt) re-delivers an event as a new attempt
+    marked manual: true'
+  echo_rule: a write through the API publishes an event carrying the caller as actor and its Idempotency-Key as
+    idempotency_key; a consumer that writes must skip events whose idempotency_key it issued
+  attempt_log: GET /newsletters/{newsletter}/delivery-attempts filterable by event_id; GET /delivery-attempts/{attempt}

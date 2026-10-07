@@ -1,0 +1,918 @@
+openapi: 3.2.0
+info:
+  title: Usecommune Users API
+  version: '2026-08-26'
+  contact:
+    name: Commune
+    url: https://usecommune.com
+    email: support@usecommune.com
+  description: 'Operations tagged Users across 2 of this provider''s published API definitions: usecommune-openapi.json, usecommune-openapi.yml. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://api.usecommune.com
+  description: 'Production. There is no separate sandbox host.
+
+    '
+security:
+- apiKey: []
+tags:
+- name: Users
+  description: 'A person with a Commune account: the readers who join a community and the
+
+    writers who are credited on an article.'
+paths:
+  /me:
+    parameters:
+    - $ref: '#/components/parameters/CommuneVersion'
+    get:
+      operationId: getMe
+      summary: Retrieve the authenticated account
+      description: 'The account this credential belongs to: the public profile
+
+        `GET /users/{user}` returns, plus the email address and verification
+
+        state that profile withholds.
+
+
+        **Any credential this API accepts can call it**, an API key included,
+
+        and no permission is required. `GET /memberships`,
+
+        `GET /subscriptions`, `GET /saved-articles` and `GET /liked-articles`
+
+        are different and do need `account: read`.'
+      tags:
+      - Users
+      security:
+      - apiKey: []
+      - oauth2: []
+      parameters:
+      - $ref: '#/components/parameters/Fields'
+      responses:
+        '200':
+          description: The authenticated account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+  /users/{user}:
+    parameters:
+    - $ref: '#/components/parameters/CommuneVersion'
+    - $ref: '#/components/parameters/UserPath'
+    get:
+      operationId: getUser
+      summary: Retrieve a user
+      description: 'Read one public profile by `id` or by `username`. This is the whole
+
+        public shape of a person in Commune.'
+      tags:
+      - Users
+      security:
+      - apiKey: []
+      - oauth2: []
+      parameters:
+      - $ref: '#/components/parameters/Fields'
+      responses:
+        '200':
+          description: The user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    servers:
+    - url: https://api.usecommune.com
+      description: 'Production. There is no separate sandbox host.
+
+        '
+components:
+  schemas:
+    Error:
+      type: object
+      title: Error
+      description: 'The error envelope. Every non `2xx` response from every operation has
+
+        this shape, so a client can branch on `error.code` without knowing which
+
+        operation produced it.
+
+        '
+      additionalProperties: false
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required:
+          - code
+          - message
+          properties:
+            code:
+              $ref: '#/components/schemas/ErrorCode'
+            message:
+              type: string
+              description: 'A human readable sentence describing what went wrong. Written
+
+                for a developer reading a log, not for an end user. Do not
+
+                branch on it, branch on `code`.
+
+                '
+              examples:
+              - Newsletter not found.
+            param:
+              type: string
+              description: 'The query, path or body parameter the error is attributed to,
+
+                when the error is attributable to exactly one. Absent otherwise.
+
+                '
+              examples:
+              - cursor
+            allowed_values:
+              type: array
+              description: 'Everything `param` would have accepted, when what it accepts is
+
+                a finite set. Absent when it is not: a cursor, an identifier or
+
+                a numeric range has nothing to enumerate, and an empty array
+
+                would read as "nothing is allowed".
+
+
+                It repeats what `message` says in prose, so a caller can correct
+
+                a request from this one response: the array is what a program
+
+                branches on, the sentence is what a person or a model reads.
+
+
+                On an unknown parameter name rather than an unknown value, this
+
+                carries the parameter names the operation does accept, since
+
+                that is the set the caller has to pick from.
+
+
+                On an `insufficient_scope` failure there is usually no
+
+                parameter at fault and `param` is absent, and this carries the
+
+                one permission that was needed, written the way the permission
+
+                table writes it, such as `content: read`. The exception is a
+
+                credential that may call the operation but not with one value
+
+                of a parameter, such as `?expand=subscriber` on
+
+                `listNewsletterInsights` without `audience: read`: then `param`
+
+                names the parameter and this carries the values this credential
+
+                may send instead.
+
+                '
+              items:
+                type: string
+              examples:
+              - - subscribed
+                - unsubscribed
+                - bounced
+                - complained
+                - pending
+            request_id:
+              type: string
+              description: 'Identifier for this request, echoed in the `Commune-Request-Id`
+
+                response header. Quote it in support requests.
+
+                '
+              examples:
+              - req_01j9c8h1q7m3n4p5r6s7t8u9v0
+            docs_url:
+              type: string
+              format: uri
+              description: 'Link to the documentation for this error code: always
+
+                `https://usecommune.dev/errors/` followed by the code, a page
+
+                on what the code means, what usually causes it and how to fix
+
+                it.
+
+                '
+              examples:
+              - https://usecommune.dev/errors/not_found
+    User:
+      type: object
+      title: User
+      description: 'A person''s public profile, and the whole of what this API returns about
+
+        anybody other than the credential''s own owner. Email address, theme,
+
+        notification preferences, push subscriptions, read state and saved
+
+        articles are never carried.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - id
+      properties:
+        object:
+          type: string
+          const: user
+          description: Always `user`.
+        id:
+          type: string
+          description: Stable identifier.
+        username:
+          type:
+          - string
+          - 'null'
+          description: 'The unique handle the profile resolves on at `/@{username}`. Null
+
+            for an account that has not finished signing up.
+
+            '
+        display_name:
+          type:
+          - string
+          - 'null'
+          description: The name shown next to their messages and bylines.
+        avatar:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: 'Profile picture. Commune falls back to a generated avatar when the
+
+            person never set one, so this is rarely null in practice.
+
+            '
+    Me:
+      type: object
+      title: Me
+      description: 'The account behind the credential that asked.
+
+
+        Everything `User` carries, plus the two properties a public profile
+
+        withholds. A separate schema rather than `User` with optional fields, so
+
+        a public profile cannot carry an email address at all. A client routing
+
+        on `object` gets `me` here and `user` there, so an absent email is never
+
+        ambiguous between "not served" and "not set".
+
+
+        The account''s own edges are not properties of it. Which teams it is on,
+
+        what it subscribes to, what it saved and what it liked are four
+
+        collections of their own: `GET /memberships`, `GET /subscriptions`,
+
+        `GET /saved-articles` and `GET /liked-articles`.
+
+
+        Not carried: theme and contrast, notification preferences, push
+
+        subscriptions and read state.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - id
+      properties:
+        object:
+          type: string
+          const: me
+          description: Always `me`.
+        id:
+          type: string
+          description: 'Stable identifier. The same value `User.id` carries, so a client
+
+            can match itself against an author or a message it has already
+
+            read.
+
+            '
+        username:
+          type:
+          - string
+          - 'null'
+          description: 'The unique handle the public profile resolves on at
+
+            `/@{username}`. Null for an account that has not finished signing
+
+            up.
+
+            '
+        display_name:
+          type:
+          - string
+          - 'null'
+          description: 'The name shown next to their messages and bylines. Null when it was
+
+            never set; a blank name is reported as null rather than as an empty
+
+            string.
+
+            '
+        avatar:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: 'Profile picture. Commune falls back to a generated avatar when the
+
+            person never set one, so this is rarely null in practice.
+
+            '
+        email:
+          type:
+          - string
+          - 'null'
+          format: email
+          description: 'The address Commune sends this account''s own mail to. Only ever
+
+            this account''s own, and never returned for anybody else.
+
+            '
+        email_verified:
+          type: boolean
+          description: 'Whether the address above has been confirmed.
+
+            '
+        created_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the account was created.
+    ErrorCode:
+      type: string
+      title: ErrorCode
+      description: 'The stable, machine readable reason a request failed. New codes may be
+
+        added in a minor version, so treat an unrecognised code as a generic
+
+        failure of its HTTP status class.
+
+
+        Two of these share a status with a neighbour and exist because what a
+
+        caller does next is different. `invalid_version` is a `400` that is
+
+        never fixed by changing the request body. `not_commune_newsletter` is a
+
+        `422` that is never fixed by changing the request at all: it says the
+
+        newsletter''s articles are published somewhere else and mirrored into
+
+        Commune afterwards, so Commune cannot write one. Its page at
+
+        `https://usecommune.dev/errors/not_commune_newsletter`, like every
+
+        code''s, is its `docs_url`, and it covers moving a newsletter onto
+
+        Commune''s own publishing, which is the only thing that resolves it.
+
+        '
+      enum:
+      - bad_request
+      - invalid_version
+      - unauthorized
+      - forbidden
+      - insufficient_scope
+      - payment_required
+      - not_found
+      - conflict
+      - unprocessable
+      - not_commune_newsletter
+      - rate_limited
+      - internal_error
+      - service_unavailable
+  responses:
+    Unauthorized:
+      description: 'No credential was presented, or it is malformed, unknown, revoked or
+
+        expired, or it is an access token minted for a different audience.
+
+
+        Every one of these answers identically, down to the wording and the
+
+        headers, so a refusal never confirms that a string was once real.
+
+        '
+      headers:
+        WWW-Authenticate:
+          description: 'The authentication scheme this API accepts, and where to find out
+
+            how to get a credential for it. Always
+
+            `Bearer realm="Commune API", resource_metadata="https://api.usecommune.com/.well-known/oauth-protected-resource"`.
+
+
+            `resource_metadata` is the RFC 9728 pointer to this API''s protected
+
+            resource metadata, which names the authorization server an OAuth
+
+            client should send its user to. A client holding an API key can
+
+            ignore it. The header carries no `error` parameter, not even
+
+            `error="invalid_token"`, because it describes what this API accepts
+
+            rather than what was wrong with the credential sent, and the
+
+            reasons above are deliberately indistinguishable.
+
+
+            There is no second scheme and no query-parameter fallback, because
+
+            a credential that can travel in a URL ends up in access logs and
+
+            referer headers.
+
+            '
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: 'No such resource, or the key is not allowed to know that it exists.
+
+        Commune answers `404` rather than `403` where distinguishing the two
+
+        would leak the existence of private content.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: 'Too many requests. Back off and retry after the interval named by the
+
+        `Retry-After` response header.
+
+
+        One of the budgets in `RateLimit-Policy` ran out, and the
+
+        `RateLimit-*` headers on this response say which and when it resets.
+
+        '
+      headers:
+        Retry-After:
+          description: Seconds to wait before retrying.
+          schema:
+            type: integer
+            minimum: 1
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: 'The credential is valid but is not allowed to do this. Two codes answer
+
+        with this status, and `error.code` says which.
+
+
+        **`insufficient_scope`: it does not hold the permission.** The
+
+        operation needs, say, `audience: read` on the newsletter addressed, and
+
+        this credential holds less than that there. `allowed_values` carries
+
+        the permission that was needed, and the message says what the
+
+        credential does hold on that newsletter, because a credential granted
+
+        the wrong family and a credential belonging to somebody whose standing
+
+        on the team has narrowed look identical without it. The answer can
+
+        differ per newsletter: the same credential may be allowed here and
+
+        refused on the next one it reaches.
+
+
+        The same code answers an operation that needs the **account
+
+        permission** from a credential that does not carry it. That permission
+
+        is about the person a credential belongs to rather than about any
+
+        newsletter, so nothing granted on a newsletter adds up to it. It is
+
+        granted on the credential itself, when a key is minted or when an
+
+        authorization asks for `account:read`.
+
+
+        And it answers a parameter the credential may send, but not with the
+
+        value it sent: a filter a credential holding only `read` permissions
+
+        may not use, or an `expand` path whose rows need a permission the
+
+        operation does not. `param` names the parameter, and `allowed_values`
+
+        carries what this credential may send instead, or is absent when it may
+
+        send nothing there at all.
+
+
+        **`forbidden`: it may not act here at all.** Either the credential does
+
+        not reach the newsletter addressed, because it was never granted it or
+
+        because the person it belongs to can no longer act on it, or it reaches
+
+        no newsletter at all; `param` is `newsletter`, and `GET /newsletters`
+
+        lists the ones it does reach. Or, on `DELETE /api-keys/{key}`, the
+
+        credential named belongs to somebody else. Neither carries
+
+        `allowed_values`, because there is no value to send instead.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalError:
+      description: Something failed inside Commune. The request may be retried.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: "The request was malformed, and the same request will fail the same way\nuntil it is changed. `param` names the parameter or header at fault\nwhen there is exactly one, and `allowed_values` lists what it accepts\nwhen that is a finite set. The code is `bad_request` for every case\nbelow except the last.\n\n* **A query parameter**: one the operation does not have, a value\n  outside its set, range or format (an unparseable cursor, an unknown\n  `expand` path or `fields` name, an identifier that is not a UUID),\n  or a required one left out, such as `q` on a search or `newsletter`\n  when the credential reaches more than one.\n* **The request body**: not JSON, not the shape the operation reads,\n  a property it does not write, or a value of the wrong type, length\n  or format. `param` is absent here, since the body is not a\n  parameter, and the message names the property.\n* **The `Idempotency-Key` header**, on an operation that changes\n  something: missing, or a value this API will not store.\n* **An unrecognised `Commune-Version`**, which answers with its own\n  code, `invalid_version`, because it is never fixed by changing the\n  body.\n"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  parameters:
+    CommuneVersion:
+      name: Commune-Version
+      in: header
+      required: false
+      description: 'The contract version this request is written against. Every version
+
+        published so far is a release date (`YYYY-MM-DD`), which is why the
+
+        examples look like one, but the value is an opaque identifier: match it
+
+        against the versions this API publishes rather than parsing it, because
+
+        a future one may not be only a date. An unknown value answers `400`
+
+        with `invalid_version`.
+
+
+        Omitting the header pins the request to the version that was current
+
+        when the API key was issued, so an integration keeps working when a
+
+        newer version ships.
+
+        '
+      schema:
+        type: string
+        minLength: 1
+        examples:
+        - '2026-08-26'
+    Fields:
+      name: fields
+      in: query
+      required: false
+      description: 'Comma-separated allow-list of top level properties to return on each
+
+        object, so a client can trim a response it does not need in full. `id`
+
+        and `object` are always returned. An unknown property name answers
+
+        `400`. Properties omitted by an operation, such as `content` on any
+
+        article list, cannot be brought back with `fields`.
+
+        '
+      schema:
+        type: string
+      examples:
+        trimmed:
+          summary: Only the fields a link list needs
+          value: title,slug,posted_at
+    UserPath:
+      name: user
+      in: path
+      required: true
+      description: The user's `id` or their `username`, with or without a leading `@`.
+      schema:
+        type: string
+      examples:
+        byUsername:
+          summary: By username
+          value: '@ada'
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      description: 'An OAuth access token, sent as `Authorization: Bearer <token>`. The
+
+        walkthrough of the whole flow is at
+
+        [usecommune.dev/use-cases/build-an-integration](https://usecommune.dev/use-cases/build-an-integration):
+
+        discovery, registration, PKCE, the consent screen, the exchange, refresh
+
+        and revocation.
+
+
+        Ask for a family scope and the person picks which newsletter
+
+        the token reaches; ask for `account:read` alone and it reaches no
+
+        newsletter and reads only the account it belongs to.
+
+
+        Each operation lists the scopes a token must carry to call it. An
+
+        operation that lists none takes any token.
+
+
+        Discover the URLs under `flows` at runtime from
+
+        `GET /.well-known/oauth-authorization-server` rather than hardcoding
+
+        them.
+
+        '
+      flows:
+        authorizationCode:
+          authorizationUrl: https://usecommune.com/api/oauth/authorize
+          tokenUrl: https://usecommune.com/api/oauth/token
+          refreshUrl: https://usecommune.com/api/oauth/token
+          scopes:
+            content:read: Read articles, threads and the rest of what a newsletter publishes.
+            content:write: Create, edit and delete that content.
+            audience:read: Read subscribers, tags and segments, including email addresses.
+            audience:write: Add, tag and remove subscribers.
+            insights:read: Read engagement, delivery and growth figures.
+            insights:write: Write back an insight the newsletter owns.
+            sending:read: Read sends, schedules and delivery outcomes.
+            sending:write: Send an article, schedule one, and cancel a schedule.
+            settings:read: Read a newsletter's configuration, senders and domains.
+            settings:write: Change that configuration.
+            webhooks:read: Read event destinations and their delivery history.
+            webhooks:write: Create and remove event destinations.
+            account:read: Read the person the credential belongs to, and nothing about any newsletter.
+    apiKey:
+      type: http
+      scheme: bearer
+      bearerFormat: Commune API key
+      description: 'A Commune API key, sent as `Authorization: Bearer <key>`. A key is
+
+        granted one or more newsletters and carries six permission families on
+
+        each, every one of them `none`, `read` or `write`. An operation names
+
+        the family and the level it needs.
+
+
+        A key is minted by a creator in Commune''s settings: no flow, no consent
+
+        screen, no expiry. That is the whole difference from `oauth2`. An
+
+        operation that declares both accepts either credential, and what each
+
+        may do is what it was granted.
+
+        '
+x-refined-from:
+- usecommune-openapi.json
+- usecommune-openapi.yml
+x-deferred:
+- resource: user_newsletters
+  scope: partner
+  reason: The newsletters a person owns or is on the team of. Public one profile at a time, but served in bulk it maps the network. A Partner API candidate.
+- resource: user_subscriptions
+  scope: partner
+  reason: The newsletters a person subscribes to. The reader side of the same network graph, so it waits for a Partner API with it.
+- resource: user_activity
+  scope: public
+  reason: The threads, highlights and articles sub resources of a public profile. Each filters a collection that has its own operation.
+- resource: user_settings
+  scope: reader
+  reason: Theme, contrast and the rest of a person's account preferences. Personal, and of no use to an integration.
+- resource: notification_preferences
+  scope: reader
+  reason: Personal account settings.
+- resource: push_subscriptions
+  scope: reader
+  reason: Per device push endpoints. Credential shaped, and personal.
+- resource: newsletter_settings
+  scope: creator
+  reason: Chat permissions, physical address and editor defaults. Split from the core object so the public schema stays frozen, and deferred with the write surface it exists to serve.
+- resource: invitations
+  scope: creator
+  reason: Carries invitee email addresses and single use tokens, and is write shaped. This version of the API is reads only.
+- resource: esp_connections
+  scope: creator
+  reason: Holds provider OAuth tokens and API keys. The connection becomes readable without them; the credentials never do.
+- resource: esp_imports
+  scope: creator
+  reason: Import and migration runs are long running writes against an outside provider. This version of the API is reads only.
+- resource: esp_share_audiences
+  scope: creator
+  reason: The provider side allow list that decides what Commune ingests. Import configuration, not a resource an integration reads.
+- resource: rss_authors
+  scope: creator
+  reason: The feed author to team member mapping. Import configuration, wired to one provider path.
+- resource: newsletter_exports
+  scope: never
+  reason: An admin only operation, not part of the creator catalog.
+- resource: article_drafts
+  scope: creator
+  reason: Commune's editor stores its own document format, and pinning it in a public contract would stop the editor evolving.
+- resource: article_preview
+  scope: creator
+  reason: Renders an article to final email HTML. Worth exposing, and it would pin the merge tag engine and the block system while both are still moving.
+- resource: article_compliance
+  scope: creator
+  reason: The pre send gate as a readable resource, answering "would this send?" without sending. Its blocker vocabulary is still growing, and freezing it now would freeze the gate; the send and schedule operations report the same refusals when they refuse.
+- resource: article_move
+  scope: creator
+  reason: Moving a draft from one newsletter to another. A credential reads one newsletter, so both ends of the move cannot be named by one of them.
+- resource: article_thread
+  scope: public
+  reason: An article's discussion, reachable as a sub resource. It is a thread and has an operation already; a second path to it is navigation.
+- resource: article_comments
+  scope: public
+  reason: Dead table. An article's discussion is its chat thread, so the count is on `article.stats.comments` and the comments themselves are that thread's messages.
+- resource: article_saved_event
+  scope: creator
+  reason: 'A topic for an article being saved or unsaved. Built alongside `article.liked` and `article.read` and then withdrawn before it shipped, on the ground that it is not the same kind of change they are.
+
+
+    Those two ride a disclosure that already exists. A credential holding `insights: read` reads `GET /newsletters/{newsletter}/events` today, which names which subscriber viewed or liked which article, so a topic carrying the same facts tells a creator nothing they could not already fetch. A save has no counterpart anywhere: no entry in `EngagementEventType`, no tally on `Article.stats`, nothing in the product that shows a creator who saved what, and a row only its owner can read. The topic would therefore have been the first thing ever to tell a creator anything about saves, and the thing it told them would be who.
+
+
+    That is a decision about what readers are told is private, not a gap in the catalog, and it is deferred until that decision is made rather than shipped as a side effect of building its two neighbours. `article_saves` itself is untouched: `GET /saved-articles` still returns a person their own list.'
+- resource: article_shared_event
+  scope: creator
+  reason: 'A topic for an article being shared. Refused rather than queued, because Commune does not observe a share and cannot: the product hands the reader to the operating system''s own share sheet, which reports nothing back, so the only shares that could ever be counted are the ones that begin with a button inside Commune, and even those end somewhere Commune cannot see.
+
+
+    Read `share` in `EngagementEventType` as the record of an earlier attempt rather than as a signal that exists. The value is declared, the insight scores weight it, and the collection at `GET /newsletters/{newsletter}/events` will return one if it ever finds one. None of that makes a share observable, and a `share` row is not something any newsletter has.
+
+
+    Publishing a topic for it would put a channel in this catalog that can never carry a message, which is worse than an absence: an absence is visible, and a silent channel reads as a quiet week.'
+- resource: article_read_state
+  scope: reader
+  reason: 'Per reader read and unread state, as a resource a client reads back and writes. Written on every read in the product, so exposing it invites the polling loop `article_views` is deferred for, on the same hot path. The `article.read` topic is not this resource arriving early: it is pushed rather than polled, which is the whole of what the objection was about, it reports one crossing per reader per article rather than a state a client can re-read, and it cannot be written.'
+- resource: article_views
+  scope: creator
+  reason: 'A write on every read in the product. Exposing it as a readable counter invites polling loops against a hot path. Still deferred after `article.read` landed, and not made redundant by it: that topic deliberately reports neither anonymous reads nor repeat visits, so it is not the counter and a consumer cannot build the counter out of it.'
+- resource: thread_demotion
+  scope: creator
+  reason: Taking a thread back off the global feed. Promoting one is an operation; the reverse has no topic and no considered answer to what a consumer already told about it should do.
+- resource: article_schedule_cancelled_event
+  scope: creator
+  reason: A topic for a cancelled schedule. Cancelling is an operation; the event is not, for the reason directly above, and the article's own status is the authority until there is an answer.
+- resource: thread_read_state
+  scope: reader
+  reason: Per user last read timestamps and mutes. A user token could hold it; a row names a thread, and handing one back would let an app walk into a private thread whose other participants consented to nothing.
+- resource: thread_participants
+  scope: public
+  reason: Who spoke in a thread. Derivable from the thread's messages, which have an operation of their own.
+- resource: moderation
+  scope: creator
+  reason: No moderation queue exists yet. An auditable log is worth having before write access rather than after it.
+- resource: posts
+  scope: public
+  reason: Retired. Posts were folded into newsletter scoped chat threads, so the resource is `threads`, and modelling `posts` would put a dead stack into a contract with outside consumers.
+- resource: post_replies
+  scope: public
+  reason: Retired with posts. A reply is a `message` in a thread.
+- resource: reposts
+  scope: public
+  reason: 'Retired with posts, and never wired up: the internal surface returns a hardcoded zero.'
+- resource: community_member
+  scope: public
+  reason: One person's place in a community, addressable on its own. The person has an operation and the place carries nothing but a date, so a second path to it is navigation rather than a resource.
+- resource: suppressions
+  scope: creator
+  reason: Bounces, complaints and unsubscribes as one list. The data is spread across two tables and there is no single surface to freeze yet.
+- resource: audience_count
+  scope: creator
+  reason: Commune's subscriber records are a partial cache of an outside provider's list, so any total derived from them would misstate the audience. Ask the provider.
+- resource: article_deliveries
+  scope: creator
+  reason: Per recipient send results, including bounces. Deferred until the send pipeline's own shape is stable enough to freeze.
+- resource: article_send_stats
+  scope: creator
+  reason: Opens and clicks come from the sending provider on the provider's schedule, so a number read here would be stale in a way the contract could not describe.
+- resource: send_links
+  scope: creator
+  reason: Click breakdown per destination URL. Clicks are recorded as events and never aggregated by destination, so the rollup does not exist.
+- resource: deliverability
+  scope: creator
+  reason: Rolling bounce and complaint health against thresholds. Derivable, and nothing computes it today.
+- resource: delivery_retries
+  scope: never
+  reason: Re-sending a send's failed recipients. Commune retries transient failures itself; what still fails is followed up by its team, because some of it may already have been delivered.
+- resource: network_metrics
+  scope: never
+  reason: Internal analytics, computed on a cron for Commune's own use.
+- resource: feed
+  scope: public
+  reason: Public threads, articles and highlights unioned into one stream. A discriminated union whose member shapes and ranking are still moving.
+- resource: newsletter_feed
+  scope: public
+  reason: The same union scoped to one newsletter. Deferred with `feed`.
+- resource: discover
+  scope: public
+  reason: An editorial surface whose ranking is still being tuned. Freezing its shape now would freeze an experiment.
+- resource: notifications
+  scope: reader
+  reason: A person's notification inbox. A user token is the right credential for it; every item points at a thread, message or article somewhere, and serving those references needs the subject registry to answer what an app may follow them to.
+- resource: notification_stream
+  scope: reader
+  reason: The server sent events channel behind a person's notification inbox. Deferred with `notifications` above, and additionally because a stream is not a Path Item. It was described in a separate AsyncAPI document for a while, on the grounds that a stream is not a Path Item, but it was never built and that document was the only thing that document held which this one could not express. Both are gone. A stream that is worth publishing to API keys brings the second document back with it.
+- resource: reader_digest
+  scope: reader
+  reason: The weekly roundup as data rather than as an email. Personal.
+- resource: creator_digest
+  scope: creator
+  reason: The creator side weekly. Every number in it is readable from the Metrics operations, so it is a rendering rather than a resource.
+- resource: billing
+  scope: creator
+  reason: Plan, usage and payment method. A money surface deserves its own contract and its own review, not a corner of the read catalog.
+- resource: media
+  scope: reader
+  reason: Upload only, and this version of the API is reads only.
+- resource: render_email
+  scope: creator
+  reason: 'Renders arbitrary editor JSON to email safe HTML. Same reason as `article_preview`: it would pin the block system in a public contract.'
+- resource: oembed
+  scope: public
+  reason: oEmbed for articles, threads and highlights. A separately published spec with its own discovery rules, not a resource in this one.
+- resource: api_key_mint
+  scope: never
+  reason: 'Minting a credential, which is refused rather than queued. A key that can mint keys outlives its own revocation: an intruder makes a second one, the creator revokes the first, and nothing they did stopped anything. A key is minted by a signed in person in Commune''s settings, where the secret is shown once. Listing and revoking keys are operations above.'
+- resource: oauth
+  scope: public
+  reason: 'The authorize and token endpoints a third party app uses. Built, and on the authorization server rather than here: they live in the Commune app, because issuing a credential means showing a signed-in person a screen and this service has no sessions. `GET /.well-known/oauth-protected-resource` is how a client finds them, and the flow is walked through in full at `usecommune.dev/use-cases/build-an-integration`. Not to be confused with `oauth_protected_resource` below: that one is this service saying where tokens for *it* come from.'
+- resource: oauth_protected_resource
+  scope: public
+  reason: '`GET /.well-known/oauth-protected-resource`, the RFC 9728 metadata document a client fetches after a `401` to find the authorization server. It is not a Commune resource and it is not versioned by `Commune-Version`: its shape is fixed by the RFC, it is the same bytes for every caller, and it is unauthenticated because discovery is what a caller does when it has no usable credential. The authorization server it names is not this API; it is the Commune app itself, where the creator''s session and the consent screen already are.'
+- resource: spec_documents
+  scope: public
+  reason: This document, served as JSON and as YAML, each with `?version=`, `?profile=` and `?lang=`. Describing itself inside itself is circular.
+- resource: mcp_server
+  scope: creator
+  reason: '`POST /mcp`, the Model Context Protocol endpoint. It is a JSON-RPC envelope over the operations declared above rather than a resource of its own: one tool is one Arazzo workflow, and every step of every workflow is one of these operations, dispatched through the same gateway with the caller''s own key. Declaring the envelope here would publish a second, untyped way to call operations that are already typed, and OpenAPI cannot describe what a `tools/call` body may contain without restating all twenty argument schemas the manifest already carries.'
+- resource: webhooks
+  scope: never
+  reason: 'Inbound endpoints for outside services, authenticated by signature rather than by key. The outbound direction is not this resource: the events a consumer receives are the generated `webhooks` block.'
+- resource: cron
+  scope: never
+  reason: Internal scheduled jobs, guarded by a shared secret.
+- resource: admin
+  scope: never
+  reason: Commune staff surface. Never public.

@@ -1,0 +1,53 @@
+generated: '2026-10-07'
+method: searched
+name: Commune API rate limits
+source: https://usecommune.dev/errors/rate_limited.md
+description: 'Per-credential budgets (never per IP address): general, audience and write, plus two daily send caps
+  that are not RateLimit-Policy budgets.'
+headers:
+- RateLimit-Limit
+- RateLimit-Remaining
+- RateLimit-Reset
+- RateLimit-Policy
+- Retry-After
+exhaustion_status: 429
+error_code: rate_limited
+state_endpoint: GET /rate-limit (getRateLimit)
+limit_count: 5
+limits:
+- name: general
+  limit_text: by default 600 requests per 60 seconds
+  max: 600
+  window: 60 seconds
+  scope: per credential
+  kind: budget
+- name: audience
+  limit_text: by default 60 per 60 seconds
+  max: 60
+  window: 60 seconds
+  scope: per credential
+  kind: budget
+  endpoint: GET /newsletters/{newsletter}/subscribers, GET /subscribers/{subscriber}, GET /newsletters/{newsletter}/insights,
+    GET /newsletters/{newsletter}/events
+- name: write
+  limit_text: by default 60 per 60 seconds
+  max: 60
+  window: 60 seconds
+  scope: per credential
+  kind: budget
+  endpoint: every POST, PATCH and DELETE
+- name: daily sends to a list
+  limit_text: 25 dispatches per newsletter per day
+  max: 25
+  window: 1 day
+  scope: per newsletter, across every credential
+  kind: daily cap
+  endpoint: POST /articles/{article}/send, POST /articles/{article}/schedule
+  note: Retry-After is measured in hours rather than seconds
+- name: daily test sends
+  limit_text: 50 per credential per day
+  max: 50
+  window: 1 day
+  scope: per credential
+  kind: daily cap
+  endpoint: POST /articles/{article}/test-send

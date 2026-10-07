@@ -1,0 +1,104 @@
+generated: '2026-10-07'
+method: derived
+source: the pre-flight dossier, apis.yml pointers, spec servers, well-known, vendors -- nothing fetched here
+generator: derive-hosts.py
+summary:
+  hosts: 7
+  own: 2
+  other_domain: 4
+  platform: 1
+  roles:
+  - api
+  - docs
+  - other
+  - portal
+  - website
+hosts:
+- host: api-reference.usecommune.dev
+  found_by:
+  - pointer
+  - apis[]
+  - probed
+  - docs-index
+  - contract-discovery
+  - well-known
+  - vendor-detect
+  types:
+  - APIReference
+  - ChangeLog
+  serves:
+  - docs
+  - documentation
+  vendor: bump
+  registrable_domain: usecommune.dev
+  role: docs
+  relation: other-domain
+- host: api.usecommune.com
+  found_by:
+  - apis[]
+  - contract-discovery
+  types: []
+  serves:
+  - api
+  registrable_domain: usecommune.com
+  role: api
+  relation: own
+- host: api.usecommune.dev
+  found_by:
+  - contract-discovery
+  types: []
+  serves: []
+  registrable_domain: usecommune.dev
+  role: api
+  relation: other-domain
+- host: bump.sh
+  found_by:
+  - docs-index
+  types: []
+  serves:
+  - docs
+  registrable_domain: bump.sh
+  role: other
+  relation: other-domain
+- host: discord.gg
+  found_by:
+  - pointer
+  types:
+  - Discord
+  serves: []
+  registrable_domain: discord.gg
+  role: other
+  relation: platform
+- host: usecommune.com
+  found_by:
+  - pointer
+  - probed
+  - contract-discovery
+  - well-known
+  - vendor-detect
+  types:
+  - Website
+  - Pricing
+  - SignUp
+  - Login
+  - TermsOfService
+  - PrivacyPolicy
+  serves:
+  - cdn
+  vendor: cloudflare
+  registrable_domain: usecommune.com
+  role: website
+  relation: own
+- host: usecommune.dev
+  found_by:
+  - pointer
+  - docs-index
+  types:
+  - DeveloperPortal
+  - Documentation
+  - GettingStarted
+  serves:
+  - docs
+  registrable_domain: usecommune.dev
+  role: portal
+  relation: other-domain

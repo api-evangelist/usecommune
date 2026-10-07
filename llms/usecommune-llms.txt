@@ -1,0 +1,126 @@
+# Commune
+
+> Commune turns newsletters into communities. Each newsletter has an
+> archive of articles, and every article has a chat thread attached to it, so
+> the discussion lives with the article rather than in a comment box
+> underneath it.
+
+The whole of this corpus, inlined, is at
+https://usecommune.com/llms-full.txt. Fetch that instead of this file if you are
+answering a question rather than deciding what to read.
+
+## Read any page as Markdown
+
+Every public reader page is also served as Markdown. There is no need to
+fetch HTML and strip it.
+
+Add `.md` to the page URL:
+
+- `/n/{handle}.md`: a newsletter, and its recent articles
+- `/n/{handle}/archive.md`: every article, paginated with `?page=N`
+- `/n/{handle}/a/{slug}.md`: one article: the full body AND its discussion
+- `/n/{handle}/a/{slug}/chat.md`: just that article's discussion
+- `/n/{handle}/a/{slug}/chat/{replyId}.md`: one reply under an article's discussion, and its sub-replies
+- `/n/{handle}/chat/{threadId}.md`: a standalone chat thread
+- `/n/{handle}/chat/{threadId}/{replyId}.md`: one reply and its sub-replies
+- `/article/{uuid}.md`: an article by id (the legacy permalink shape)
+
+A newsletter served on its own custom domain uses the same paths without
+the `/n/{handle}` prefix; its landing page is `/index.md`, since the root
+has no last segment to carry the suffix.
+
+Sending `Accept: text/markdown` to the page URL works too, and returns the
+same document without the suffix. Every page that has a twin also
+advertises it in a `Link: <...>; rel="alternate"; type="text/markdown"`
+response header, so a client that already has the page can find the
+Markdown without constructing a URL.
+
+## What a Markdown document contains
+
+YAML front matter, then the content. The front matter carries the title,
+the newsletter, the author, the publication date, the canonical URL and
+the counts, so none of that has to be inferred from prose.
+
+An article document contains the full body followed by its discussion. In
+a discussion, each reply is a heading numbered by its position in the
+reply tree: `### 3` is the third top-level reply and `#### 3.2` is the
+second reply to it. Message text is reproduced verbatim as posted, since
+it is already Markdown.
+
+Long discussions are capped at 500 replies, and a
+document that was capped says so, in the document, with the number of
+replies omitted. Nothing is truncated silently.
+
+## What you will not get
+
+A Markdown document is exactly what the corresponding web page would show
+the same caller. Articles sent to a subscriber segment, and articles scheduled
+for a future date, are not readable without the right session, in Markdown
+or otherwise.
+
+## Content
+
+### Articles
+
+Newsletter articles, either written on Commune or imported from Substack,
+Ghost, beehiiv, Kit, Mailchimp and MailerLite.
+
+- Canonical URL: `/n/{handle}/a/{slug}`
+- Legacy permalink: `/article/{uuid}`
+
+### Newsletters
+
+Each newsletter has a public landing page and a full archive.
+
+- Landing: `/n/{handle}`
+- Archive: `/n/{handle}/archive`
+
+### Chat
+
+Discussion is threaded, and lives per newsletter. An article's discussion is
+a thread attached to that article.
+
+- Newsletter chat: `/n/{handle}/chat`
+- A thread: `/n/{handle}/chat/{threadId}`
+- A reply: `/n/{handle}/chat/{threadId}/{replyId}`
+- An article's discussion: `/n/{handle}/a/{slug}/chat`
+
+### Profiles
+
+Public user profiles.
+
+- URL pattern: `/@{username}`
+
+## The API, on another origin
+
+Commune has a public HTTP API, and its documentation is not on this
+origin. It is on a separate registrable domain, so an agent that only
+crawls this host will not find it.
+
+- [usecommune.dev llms.txt](https://usecommune.dev/llms.txt): the index for
+  the API reference.
+- [usecommune.dev llms-full.txt](https://usecommune.dev/llms-full.txt): every
+  operation, webhook and schema, inlined as one Markdown document. Fetch
+  this one to answer a question about the API.
+- [Developer guides](https://usecommune.dev/guides): how to authenticate, build an
+  integration, and verify a webhook signature.
+- [API reference](https://api-reference.usecommune.dev): the same contract, rendered, on its
+  own host.
+- [openapi.json](https://api.usecommune.com/openapi.json?profile=docs): the published
+  contract, as bytes to generate a client from.
+
+The split is deliberate. Session cookie scope follows the domain and
+ignores what the DNS points at, so a reference served from a
+usecommune.com subdomain would receive a live session token on every
+page load. A different apex cannot.
+
+## Sitemaps
+
+- Index: https://usecommune.com/sitemap.xml
+- Static pages: https://usecommune.com/sitemap/0/sitemap.xml
+- Newsletters: https://usecommune.com/sitemap/1/sitemap.xml
+- Articles: https://usecommune.com/sitemap/2/sitemap.xml and upward
+
+## Website
+
+https://usecommune.com

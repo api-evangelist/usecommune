@@ -1,0 +1,38 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for Commune API
+  version: 1.0.0
+extends: ../openapi/_original/usecommune-openapi.yml
+actions:
+- target: $.info
+  update:
+    x-apievangelist:
+      generated: '2026-10-07'
+      method: generated
+      provider: usecommune
+      artifacts:
+        conventions: conventions/usecommune-conventions.yml
+        rate_limits: rate-limits/usecommune-rate-limits.yml
+        errors: errors/usecommune-problem-types.yml
+        scopes: scopes/usecommune-scopes.yml
+        mcp: mcp/usecommune-mcp.yml
+        lifecycle: lifecycle/usecommune-lifecycle.yml
+      idempotency_coverage: full
+      mcp_endpoint: https://api.usecommune.com/mcp
+      oauth_protected_resource: https://api.usecommune.com/.well-known/oauth-protected-resource
+- target: $.paths['/articles/{article}/send'].post
+  update:
+    x-apievangelist-reversibility:
+      reversible: false
+      reason: Cannot be undone; emails real people
+- target: $.paths['/articles/{article}/schedule'].post
+  update:
+    x-apievangelist-reversibility:
+      reversible: true
+      reversal: unscheduleArticle
+      window: before dispatch
+- target: $.paths['/api-keys/{key}'].delete
+  update:
+    x-apievangelist-reversibility:
+      reversible: false
+      reason: Revocation only goes one way

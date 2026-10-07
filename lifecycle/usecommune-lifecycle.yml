@@ -1,0 +1,27 @@
+generated: '2026-10-07'
+method: searched
+source: https://usecommune.dev/guides/getting-started; https://api.usecommune.com/openapi.json (info.description,
+  Versioning); https://api-reference.usecommune.dev/changes
+versioning:
+  scheme: date-based contract versions
+  mechanism: Commune-Version request header (release date); omitted = pinned to the version current when the API
+    key was issued
+  current: '2026-08-26'
+  response_header: Commune-Version
+  newest_version_discovery: GET /status (unauthenticated) reports version
+  contract_by_version: https://api.usecommune.com/openapi.json?version=<date> (404 for a version never released)
+  docs: https://usecommune.dev/guides/getting-started
+deprecation:
+  policy: null
+  note: No deprecation or sunset policy is published, and no Deprecation/Sunset headers are documented; the contract
+    carries no deprecated operations. invalid_version (400) lists allowed_values when a header names an unserved
+    version.
+  deprecated_operations: []
+status_page: null
+status_endpoint:
+  url: https://api.usecommune.com/status
+  operationId: getStatus
+  probed: '200 on 2026-10-07: {"object":"service_status","status":"ok","version":"2026-08-26","dependencies":[{"name":"database","state":"up"}]}'
+  note: A machine readiness probe, not a human status page; no status page is published.
+sla: null
+changelog: https://api-reference.usecommune.dev/changes

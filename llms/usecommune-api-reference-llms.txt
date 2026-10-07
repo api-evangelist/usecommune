@@ -1,0 +1,428 @@
+# Commune API
+
+OpenAPI file: https://api-reference.usecommune.dev/source.yaml
+
+## Description
+
+This is version `2026-08-26` of this API documentation. Last update on Oct 6, 2026.
+The Commune API exposes a Commune community: newsletters, the articles they
+publish, the chat threads those articles start, and the people who write
+and read them.
+
+Most of it is reading. A small set of operations changes something, and
+those behave differently in three ways described under Writes below.
+
+## Fetching this document
+
+This contract is served by the API itself, in two syntaxes carrying the same
+content: `https://api.usecommune.com/openapi.yaml` and
+`https://api.usecommune.com/openapi.json`. Generate a client from whichever
+your toolchain prefers.
+
+`?version=` selects a contract version, the same way the `Commune-Version`
+header does for a request, and answers `404` for a version that was never
+released. `?profile=docs` returns the variant the published reference is
+rendered from; it differs only in presentation metadata, so the operations,
+webhooks and schemas are identical either way.
+
+## Versioning
+
+The base URL carries no version segment. A request selects a contract
+version with the `Commune-Version` header, whose value is the release date
+of the contract (for example `2026-08-26`). Omitting the header pins the
+request to the version that was current when the API key was issued.
+
+Every response echoes the version it resolved to in a `Commune-Version`
+response header, on success and on failure alike. A client that never sets
+the header can read which contract it has been getting, and compare it
+against `version` in `GET /status` to find out whether a newer one is
+available to move to.
+
+Every response also carries a `Commune-Request-Id`, which is the value that
+appears as `request_id` in an error body. Quote it in support requests.
+
+## Authentication
+
+Every request is authenticated with a credential sent as a bearer token.
+There are two ways to obtain one and one permission model behind both. **An
+API key** is minted by a creator in Commune's settings. **An OAuth access
+token** is issued when a person completes the authorization code flow and
+clicks allow; the walkthrough is at
+[usecommune.dev/use-cases/build-an-integration](https://usecommune.dev/use-cases/build-an-integration).
+
+A credential is granted one or more of the newsletters its holder can act
+on. On each of those it carries six independent permissions, one per family,
+each `none`, `read` or `write`:
+
+| Family | Covers |
+| --- | --- |
+| `content` | articles, the passages readers marked in them, threads, messages |
+| `audience` | subscribers, segments, the community roster |
+| `sending` | sending an article, senders, delivery attempts |
+| `insights` | engagement events and the metrics over them |
+| `settings` | the newsletter's configuration, its website domains, its team, its credentials |
+| `webhooks` | event destinations and the portal that edits them |
+
+Each operation names the family and the level it needs, as an OAuth scope
+such as `content:read`. `write` implies `read` **within its own family and
+nowhere else**: there is no hierarchy across families, so a credential that
+may send your articles has no claim at all on your subscribers. An operation
+a credential does not hold the family for answers `403` naming what it
+needed and what the credential holds on that newsletter.
+
+Permissions are granted per newsletter, so the same credential can hold
+`content: read` on one and `audience: write` on another. They are also
+**bounded by their holder**: what a credential can do is what it was granted
+intersected with what the person it belongs to can do on that newsletter at
+the moment of the request. Remove them from the team and the credential
+reaches nothing there on its very next call; demote them from admin to
+editor and it loses `settings: write`. There is nothing to revoke and no
+delay.
+
+**Unpublished rows follow one extra rule.** A draft, an article whose send
+time has not arrived, and a thread addressed to a segment are not secret,
+they are unpublished, and the credentials that may see them are the ones
+that may change the newsletter: those holding `write` in **any** family on
+it. A credential holding only `read` permissions sees the newsletter as it
+has been published, and this document says so on each operation where it
+makes a difference.
+
+A credential can also carry `account: read`, which reads the account it
+belongs to: the profile behind it, and the teams, lists, saved articles and
+liked articles that belong to the person rather than to a newsletter. It is
+a **separate axis**, not a seventh family. No newsletter grant implies it
+and it implies no newsletter grant, so a credential that reads a
+newsletter's subscribers still cannot read its owner's own reading list. It
+is granted on the credential itself, so either kind can carry it, and one
+issued without it answers `403` at an operation that needs it however many
+newsletters it reaches.
+
+An OAuth authorization that asks only for `account:read` is granted no
+newsletter, so it answers `403` at every operation that addresses one.
+
+## Rate limits
+
+Every request is counted against the credential that made it, never against
+an address. Three budgets apply:
+
+* `general` counts every request.
+* `audience`, which is tighter, counts only the operations that return
+  subscriber or recipient email addresses.
+* `write`, equally tight, counts only the operations that change something.
+
+An operation covered by one of the narrow budgets is charged to it and to
+`general`, and has to pass both.
+
+From the moment a credential resolves, every response carries
+`RateLimit-Limit`, `RateLimit-Remaining` and `RateLimit-Reset` for whichever
+budget is closest to exhaustion, and `RateLimit-Policy` listing every budget
+that applied. `RateLimit-Reset` is in seconds from now. A `429` additionally
+carries `Retry-After`, and its `message` names the budget that refused:
+being refused by the `audience` budget still leaves the rest of the API
+callable.
+
+`GET /rate-limit` reports every budget at once, which is what to read rather
+than inferring the whole picture from the one budget the headers describe.
+
+## Writes
+
+An operation that changes something is a `POST`, a `PATCH` or a `DELETE`,
+needs `write` in its own family, and differs from a read in three ways.
+
+**It requires an `Idempotency-Key` request header.** Choose one value per
+change you intend to make, and send that same value again if you have to
+retry. Commune records the answer your first attempt produced and replays
+it rather than making the change a second time; a replayed response carries
+`Idempotent-Replay: true` and is otherwise identical to the original. A key
+is remembered for 24 hours, per credential.
+
+Reusing a key for a different request answers `409` rather than replaying
+the wrong answer. Two requests count as the same request when the operation,
+the path, the query string, the body and the contract version all match.
+
+**It is counted against the `write` rate limit budget.** See Rate limits
+above.
+
+**It publishes an event**, carrying your credential in the envelope's
+`actor` and your `Idempotency-Key` in `idempotency_key`. That lets a
+consumer tell a change your integration made from one a creator made in
+Commune, and collapse the events one retried write produced. If the same
+integration also consumes events, the event your write publishes is
+delivered back to you: skip the ones whose `idempotency_key` you issued, or
+your integration will answer itself. See Webhooks.
+
+## Pagination
+
+Collections are cursor paginated. A response carries `data` plus a
+`pagination` object holding an opaque `next_cursor`. Pass it back as
+`?cursor=` to fetch the following page. There is no offset, limit-offset or
+page number, and a cursor is not a durable identifier.
+
+## Identifiers
+
+Resources that have a page in Commune carry both a UUID `id` and a short,
+URL friendly `short_id`. Either value is accepted wherever a path parameter
+names that resource.
+
+
+## Servers
+
+- Production. There is no separate sandbox host.
+: https://api.usecommune.com (Production. There is no separate sandbox host.
+)
+
+
+## Topics
+
+### [Authentication](https://api-reference.usecommune.dev/authentication.md)
+
+
+## Newsletters and people
+
+### [Newsletters](https://api-reference.usecommune.dev/group/endpoint-newsletters.md)
+
+- [List newsletters](https://api-reference.usecommune.dev/operation/operation-listnewsletters.md)
+
+- [Retrieve a newsletter](https://api-reference.usecommune.dev/operation/operation-getnewsletter.md)
+
+
+### [Team](https://api-reference.usecommune.dev/group/endpoint-team.md)
+
+- [List a newsletter's team](https://api-reference.usecommune.dev/operation/operation-listnewslettermembers.md)
+
+- [List this account's memberships](https://api-reference.usecommune.dev/operation/operation-listmemberships.md)
+
+
+### [Users](https://api-reference.usecommune.dev/group/endpoint-users.md)
+
+- [Retrieve the authenticated account](https://api-reference.usecommune.dev/operation/operation-getme.md)
+
+- [Retrieve a user](https://api-reference.usecommune.dev/operation/operation-getuser.md)
+
+
+### [Search](https://api-reference.usecommune.dev/group/endpoint-search.md)
+
+- [Search your newsletters](https://api-reference.usecommune.dev/operation/operation-search.md)
+
+
+
+## Publishing
+
+### [Articles](https://api-reference.usecommune.dev/group/endpoint-articles.md)
+
+- [List a newsletter's articles](https://api-reference.usecommune.dev/operation/operation-listnewsletterarticles.md)
+
+- [Create an article](https://api-reference.usecommune.dev/operation/operation-createarticle.md)
+
+- [Retrieve an article](https://api-reference.usecommune.dev/operation/operation-getarticle.md)
+
+- [Edit an article](https://api-reference.usecommune.dev/operation/operation-updatearticle.md)
+
+- [List an article's authors](https://api-reference.usecommune.dev/operation/operation-listarticleauthors.md)
+
+- [Store an image for an article](https://api-reference.usecommune.dev/operation/operation-createarticleimage.md)
+
+- [Send a test copy of an article](https://api-reference.usecommune.dev/operation/operation-sendarticletest.md)
+
+- [Schedule an article](https://api-reference.usecommune.dev/operation/operation-schedulearticle.md)
+
+- [Cancel a scheduled article](https://api-reference.usecommune.dev/operation/operation-unschedulearticle.md)
+
+- [Send an article to the list](https://api-reference.usecommune.dev/operation/operation-sendarticle.md)
+
+- [List the articles this account saved](https://api-reference.usecommune.dev/operation/operation-listsavedarticles.md)
+
+- [List the articles this account liked](https://api-reference.usecommune.dev/operation/operation-listlikedarticles.md)
+
+
+### [Highlights](https://api-reference.usecommune.dev/group/endpoint-highlights.md)
+
+- [List an article's highlights](https://api-reference.usecommune.dev/operation/operation-listarticlehighlights.md)
+
+- [Retrieve a highlight](https://api-reference.usecommune.dev/operation/operation-gethighlight.md)
+
+
+
+## Community
+
+### [Threads](https://api-reference.usecommune.dev/group/endpoint-threads.md)
+
+- [List a newsletter's threads](https://api-reference.usecommune.dev/operation/operation-listnewsletterthreads.md)
+
+- [Start a thread](https://api-reference.usecommune.dev/operation/operation-createthread.md)
+
+- [Retrieve a thread](https://api-reference.usecommune.dev/operation/operation-getthread.md)
+
+- [Put a thread on the global feed](https://api-reference.usecommune.dev/operation/operation-publishthread.md)
+
+- [Reply in a thread](https://api-reference.usecommune.dev/operation/operation-createmessage.md)
+
+
+### [Messages](https://api-reference.usecommune.dev/group/endpoint-messages.md)
+
+- [List a thread's messages](https://api-reference.usecommune.dev/operation/operation-listthreadmessages.md)
+
+- [Retrieve a message](https://api-reference.usecommune.dev/operation/operation-getmessage.md)
+
+
+
+## Audience
+
+### [Subscribers](https://api-reference.usecommune.dev/group/endpoint-subscribers.md)
+
+- [List a newsletter's subscribers](https://api-reference.usecommune.dev/operation/operation-listnewslettersubscribers.md)
+
+- [Retrieve a subscriber](https://api-reference.usecommune.dev/operation/operation-getsubscriber.md)
+
+- [List the newsletters this account subscribes to](https://api-reference.usecommune.dev/operation/operation-listsubscriptions.md)
+
+- [List a newsletter's community](https://api-reference.usecommune.dev/operation/operation-listnewslettercommunity.md)
+
+
+### [Subscriber tags](https://api-reference.usecommune.dev/group/endpoint-subscriber-tags.md)
+
+- [List a newsletter's tags](https://api-reference.usecommune.dev/operation/operation-listnewslettertags.md)
+
+- [Create a tag](https://api-reference.usecommune.dev/operation/operation-createtag.md)
+
+- [Retrieve a tag](https://api-reference.usecommune.dev/operation/operation-gettag.md)
+
+- [Delete a tag](https://api-reference.usecommune.dev/operation/operation-deletetag.md)
+
+- [Rename a tag](https://api-reference.usecommune.dev/operation/operation-updatetag.md)
+
+- [Apply a tag to many subscribers](https://api-reference.usecommune.dev/operation/operation-addtagsubscribers.md)
+
+- [Apply a tag to a subscriber](https://api-reference.usecommune.dev/operation/operation-addsubscribertag.md)
+
+- [Take a tag off a subscriber](https://api-reference.usecommune.dev/operation/operation-removesubscribertag.md)
+
+
+
+## Insights
+
+### [Engagement](https://api-reference.usecommune.dev/group/endpoint-engagement.md)
+
+- [List a newsletter's subscriber insights](https://api-reference.usecommune.dev/operation/operation-listnewsletterinsights.md)
+
+- [List a newsletter's engagement events](https://api-reference.usecommune.dev/operation/operation-listnewsletterevents.md)
+
+
+### [Metrics](https://api-reference.usecommune.dev/group/endpoint-metrics.md)
+
+- [Retrieve a newsletter's headline numbers](https://api-reference.usecommune.dev/operation/operation-getnewsletterstats.md)
+
+- [Retrieve a newsletter's acquisition breakdown](https://api-reference.usecommune.dev/operation/operation-getnewslettergrowth.md)
+
+- [Retrieve one newsletter metric bucketed over time](https://api-reference.usecommune.dev/operation/operation-getnewslettertimeseries.md)
+
+- [Retrieve one article's performance](https://api-reference.usecommune.dev/operation/operation-getarticlestats.md)
+
+
+
+## Sending and domains
+
+### [Sends](https://api-reference.usecommune.dev/group/endpoint-sends.md)
+
+- [List a newsletter's sends](https://api-reference.usecommune.dev/operation/operation-listnewslettersends.md)
+
+- [Retrieve a send](https://api-reference.usecommune.dev/operation/operation-getsend.md)
+
+
+### [Senders](https://api-reference.usecommune.dev/group/endpoint-senders.md)
+
+- [List a newsletter's sending addresses](https://api-reference.usecommune.dev/operation/operation-listnewslettersenders.md)
+
+- [Retrieve a sending address](https://api-reference.usecommune.dev/operation/operation-getsender.md)
+
+
+### [Website domains](https://api-reference.usecommune.dev/group/endpoint-website-domains.md)
+
+- [List a newsletter's website domains](https://api-reference.usecommune.dev/operation/operation-listnewsletterdomains.md)
+
+- [Retrieve a website domain](https://api-reference.usecommune.dev/operation/operation-getdomain.md)
+
+
+
+## Platform
+
+### [Platform](https://api-reference.usecommune.dev/group/endpoint-platform.md)
+
+- [Service status](https://api-reference.usecommune.dev/operation/operation-getstatus.md)
+
+- [Retrieve the calling credential's rate limit state](https://api-reference.usecommune.dev/operation/operation-getratelimit.md)
+
+- [What this credential may call](https://api-reference.usecommune.dev/operation/operation-getnewsletterentitlements.md)
+
+- [List this newsletter's API keys](https://api-reference.usecommune.dev/operation/operation-listnewsletterapikeys.md)
+
+- [Retrieve an API key](https://api-reference.usecommune.dev/operation/operation-getapikey.md)
+
+- [Revoke an API key](https://api-reference.usecommune.dev/operation/operation-revokeapikey.md)
+
+
+### [Event delivery](https://api-reference.usecommune.dev/group/endpoint-event-delivery.md)
+
+- [List where a newsletter's events go](https://api-reference.usecommune.dev/operation/operation-listnewsletterdestinations.md)
+
+- [List what was delivered where, and how it went](https://api-reference.usecommune.dev/operation/operation-listnewsletterdeliveryattempts.md)
+
+- [Retrieve one delivery attempt](https://api-reference.usecommune.dev/operation/operation-getdeliveryattempt.md)
+
+- [Send an event to a destination again](https://api-reference.usecommune.dev/operation/operation-replaydeliveryattempt.md)
+
+- [Open the event delivery portal](https://api-reference.usecommune.dev/operation/operation-createportalsession.md)
+
+
+### [Webhooks](https://api-reference.usecommune.dev/group/webhook-webhooks.md)
+
+- [Article like added or removed](https://api-reference.usecommune.dev/operation/operation-onarticleliked.md)
+
+- [Article published](https://api-reference.usecommune.dev/operation/operation-onarticlepublished.md)
+
+- [Article read](https://api-reference.usecommune.dev/operation/operation-onarticleread.md)
+
+- [Article scheduled](https://api-reference.usecommune.dev/operation/operation-onarticlescheduled.md)
+
+- [Billing subscription state changed](https://api-reference.usecommune.dev/operation/operation-onbillingsubscriptionupdated.md)
+
+- [Delivery bounced](https://api-reference.usecommune.dev/operation/operation-ondeliverybounced.md)
+
+- [Delivery link clicked](https://api-reference.usecommune.dev/operation/operation-ondeliveryclicked.md)
+
+- [Delivery marked as spam](https://api-reference.usecommune.dev/operation/operation-ondeliverycomplained.md)
+
+- [Delivery accepted by the recipient server](https://api-reference.usecommune.dev/operation/operation-ondeliverydelivered.md)
+
+- [Delivery opened](https://api-reference.usecommune.dev/operation/operation-ondeliveryopened.md)
+
+- [Custom website domain verified](https://api-reference.usecommune.dev/operation/operation-ondomainverified.md)
+
+- [Highlight created](https://api-reference.usecommune.dev/operation/operation-onhighlightcreated.md)
+
+- [Import finished](https://api-reference.usecommune.dev/operation/operation-onimportcompleted.md)
+
+- [Message created](https://api-reference.usecommune.dev/operation/operation-onmessagecreated.md)
+
+- [Send completed](https://api-reference.usecommune.dev/operation/operation-onsendcompleted.md)
+
+- [Send failed](https://api-reference.usecommune.dev/operation/operation-onsendfailed.md)
+
+- [Sender verified](https://api-reference.usecommune.dev/operation/operation-onsenderverified.md)
+
+- [Subscriber created](https://api-reference.usecommune.dev/operation/operation-onsubscribercreated.md)
+
+- [Subscriber insight status changed](https://api-reference.usecommune.dev/operation/operation-onsubscriberstatuschanged.md)
+
+- [Subscriber tag added or removed](https://api-reference.usecommune.dev/operation/operation-onsubscribertagged.md)
+
+- [Subscriber unsubscribed](https://api-reference.usecommune.dev/operation/operation-onsubscriberunsubscribed.md)
+
+- [Thread created](https://api-reference.usecommune.dev/operation/operation-onthreadcreated.md)
+
+- [Thread published to the feed](https://api-reference.usecommune.dev/operation/operation-onthreadpublished.md)
+
+
+
+
+[Powered by Bump.sh](https://bump.sh)

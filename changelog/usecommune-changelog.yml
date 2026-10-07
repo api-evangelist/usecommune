@@ -1,0 +1,27 @@
+generated: '2026-10-07'
+method: searched
+source: https://api-reference.usecommune.dev/changes
+scheme: Bump.sh change log over contract version 2026-08-26; entries are structure diffs between published builds
+current_version: '2026-08-26'
+note: Dates read from the Bump.sh portal MCP list_changes tool (created_at) on 2026-10-07; the rendered page shows
+  them as relative times.
+entries:
+- version: '2026-08-26'
+  date: '2026-10-06'
+  breaking: false
+  highlights:
+  - Added POST /newsletters/{newsletter}/threads
+  - Added POST /threads/{thread}/messages
+  url: https://api-reference.usecommune.dev/changes/f376f9ee
+- version: '2026-08-26'
+  date: '2026-10-01'
+  breaking: false
+  highlights:
+  - Added POST /articles/{article}/images
+  url: https://api-reference.usecommune.dev/changes/6f637464
+- version: '2026-08-26'
+  date: '2026-09-10'
+  breaking: false
+  highlights:
+  - API documentation has been created
+  url: https://api-reference.usecommune.dev/changes/e5a86621
