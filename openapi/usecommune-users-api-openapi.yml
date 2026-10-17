@@ -1,12 +1,17 @@
 openapi: 3.2.0
 info:
-  title: Usecommune Users API
+  title: Commune Users API
   version: '2026-08-26'
+  summary: Newsletters, articles, threads and the people around them.
+  description: 'The Commune API exposes a Commune community: newsletters, the articles they
+
+    publish, the chat threads those articles start, and the people who write
+
+    and read them.'
   contact:
     name: Commune
     url: https://usecommune.com
     email: support@usecommune.com
-  description: 'Operations tagged Users across 2 of this provider''s published API definitions: usecommune-openapi.json, usecommune-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://api.usecommune.com
   description: 'Production. There is no separate sandbox host.
@@ -66,11 +71,6 @@ paths:
           $ref: '#/components/responses/RateLimited'
         '500':
           $ref: '#/components/responses/InternalError'
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   /users/{user}:
     parameters:
     - $ref: '#/components/parameters/CommuneVersion'
@@ -105,13 +105,110 @@ paths:
           $ref: '#/components/responses/RateLimited'
         '500':
           $ref: '#/components/responses/InternalError'
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
 components:
   schemas:
+    Me:
+      type: object
+      title: Me
+      description: 'The account behind the credential that asked.
+
+
+        Everything `User` carries, plus the two properties a public profile
+
+        withholds. A separate schema rather than `User` with optional fields, so
+
+        a public profile cannot carry an email address at all. A client routing
+
+        on `object` gets `me` here and `user` there, so an absent email is never
+
+        ambiguous between "not served" and "not set".
+
+
+        The account''s own edges are not properties of it. Which teams it is on,
+
+        what it subscribes to, what it saved and what it liked are four
+
+        collections of their own: `GET /memberships`, `GET /subscriptions`,
+
+        `GET /saved-articles` and `GET /liked-articles`.
+
+
+        Not carried: theme and contrast, notification preferences, push
+
+        subscriptions and read state.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - id
+      properties:
+        object:
+          type: string
+          const: me
+          description: Always `me`.
+        id:
+          type: string
+          description: 'Stable identifier. The same value `User.id` carries, so a client
+
+            can match itself against an author or a message it has already
+
+            read.
+
+            '
+        username:
+          type:
+          - string
+          - 'null'
+          description: 'The unique handle the public profile resolves on at
+
+            `/@{username}`. Null for an account that has not finished signing
+
+            up.
+
+            '
+        display_name:
+          type:
+          - string
+          - 'null'
+          description: 'The name shown next to their messages and bylines. Null when it was
+
+            never set; a blank name is reported as null rather than as an empty
+
+            string.
+
+            '
+        avatar:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: 'Profile picture. Commune falls back to a generated avatar when the
+
+            person never set one, so this is rarely null in practice.
+
+            '
+        email:
+          type:
+          - string
+          - 'null'
+          format: email
+          description: 'The address Commune sends this account''s own mail to. Only ever
+
+            this account''s own, and never returned for anybody else.
+
+            '
+        email_verified:
+          type: boolean
+          description: 'Whether the address above has been confirmed.
+
+            '
+        created_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the account was created.
     Error:
       type: object
       title: Error
@@ -230,6 +327,49 @@ components:
                 '
               examples:
               - https://usecommune.dev/errors/not_found
+    ErrorCode:
+      type: string
+      title: ErrorCode
+      description: 'The stable, machine readable reason a request failed. New codes may be
+
+        added in a minor version, so treat an unrecognised code as a generic
+
+        failure of its HTTP status class.
+
+
+        Two of these share a status with a neighbour and exist because what a
+
+        caller does next is different. `invalid_version` is a `400` that is
+
+        never fixed by changing the request body. `not_commune_newsletter` is a
+
+        `422` that is never fixed by changing the request at all: it says the
+
+        newsletter''s articles are published somewhere else and mirrored into
+
+        Commune afterwards, so Commune cannot write one. Its page at
+
+        `https://usecommune.dev/errors/not_commune_newsletter`, like every
+
+        code''s, is its `docs_url`, and it covers moving a newsletter onto
+
+        Commune''s own publishing, which is the only thing that resolves it.
+
+        '
+      enum:
+      - bad_request
+      - invalid_version
+      - unauthorized
+      - forbidden
+      - insufficient_scope
+      - payment_required
+      - not_found
+      - conflict
+      - unprocessable
+      - not_commune_newsletter
+      - rate_limited
+      - internal_error
+      - service_unavailable
     User:
       type: object
       title: User
@@ -278,212 +418,7 @@ components:
             person never set one, so this is rarely null in practice.
 
             '
-    Me:
-      type: object
-      title: Me
-      description: 'The account behind the credential that asked.
-
-
-        Everything `User` carries, plus the two properties a public profile
-
-        withholds. A separate schema rather than `User` with optional fields, so
-
-        a public profile cannot carry an email address at all. A client routing
-
-        on `object` gets `me` here and `user` there, so an absent email is never
-
-        ambiguous between "not served" and "not set".
-
-
-        The account''s own edges are not properties of it. Which teams it is on,
-
-        what it subscribes to, what it saved and what it liked are four
-
-        collections of their own: `GET /memberships`, `GET /subscriptions`,
-
-        `GET /saved-articles` and `GET /liked-articles`.
-
-
-        Not carried: theme and contrast, notification preferences, push
-
-        subscriptions and read state.
-
-        '
-      additionalProperties: false
-      required:
-      - object
-      - id
-      properties:
-        object:
-          type: string
-          const: me
-          description: Always `me`.
-        id:
-          type: string
-          description: 'Stable identifier. The same value `User.id` carries, so a client
-
-            can match itself against an author or a message it has already
-
-            read.
-
-            '
-        username:
-          type:
-          - string
-          - 'null'
-          description: 'The unique handle the public profile resolves on at
-
-            `/@{username}`. Null for an account that has not finished signing
-
-            up.
-
-            '
-        display_name:
-          type:
-          - string
-          - 'null'
-          description: 'The name shown next to their messages and bylines. Null when it was
-
-            never set; a blank name is reported as null rather than as an empty
-
-            string.
-
-            '
-        avatar:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: 'Profile picture. Commune falls back to a generated avatar when the
-
-            person never set one, so this is rarely null in practice.
-
-            '
-        email:
-          type:
-          - string
-          - 'null'
-          format: email
-          description: 'The address Commune sends this account''s own mail to. Only ever
-
-            this account''s own, and never returned for anybody else.
-
-            '
-        email_verified:
-          type: boolean
-          description: 'Whether the address above has been confirmed.
-
-            '
-        created_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: When the account was created.
-    ErrorCode:
-      type: string
-      title: ErrorCode
-      description: 'The stable, machine readable reason a request failed. New codes may be
-
-        added in a minor version, so treat an unrecognised code as a generic
-
-        failure of its HTTP status class.
-
-
-        Two of these share a status with a neighbour and exist because what a
-
-        caller does next is different. `invalid_version` is a `400` that is
-
-        never fixed by changing the request body. `not_commune_newsletter` is a
-
-        `422` that is never fixed by changing the request at all: it says the
-
-        newsletter''s articles are published somewhere else and mirrored into
-
-        Commune afterwards, so Commune cannot write one. Its page at
-
-        `https://usecommune.dev/errors/not_commune_newsletter`, like every
-
-        code''s, is its `docs_url`, and it covers moving a newsletter onto
-
-        Commune''s own publishing, which is the only thing that resolves it.
-
-        '
-      enum:
-      - bad_request
-      - invalid_version
-      - unauthorized
-      - forbidden
-      - insufficient_scope
-      - payment_required
-      - not_found
-      - conflict
-      - unprocessable
-      - not_commune_newsletter
-      - rate_limited
-      - internal_error
-      - service_unavailable
   responses:
-    Unauthorized:
-      description: 'No credential was presented, or it is malformed, unknown, revoked or
-
-        expired, or it is an access token minted for a different audience.
-
-
-        Every one of these answers identically, down to the wording and the
-
-        headers, so a refusal never confirms that a string was once real.
-
-        '
-      headers:
-        WWW-Authenticate:
-          description: 'The authentication scheme this API accepts, and where to find out
-
-            how to get a credential for it. Always
-
-            `Bearer realm="Commune API", resource_metadata="https://api.usecommune.com/.well-known/oauth-protected-resource"`.
-
-
-            `resource_metadata` is the RFC 9728 pointer to this API''s protected
-
-            resource metadata, which names the authorization server an OAuth
-
-            client should send its user to. A client holding an API key can
-
-            ignore it. The header carries no `error` parameter, not even
-
-            `error="invalid_token"`, because it describes what this API accepts
-
-            rather than what was wrong with the credential sent, and the
-
-            reasons above are deliberately indistinguishable.
-
-
-            There is no second scheme and no query-parameter fallback, because
-
-            a credential that can travel in a URL ends up in access logs and
-
-            referer headers.
-
-            '
-          schema:
-            type: string
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    NotFound:
-      description: 'No such resource, or the key is not allowed to know that it exists.
-
-        Commune answers `404` rather than `403` where distinguishing the two
-
-        would leak the existence of private content.
-
-        '
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
     RateLimited:
       description: 'Too many requests. Back off and retry after the interval named by the
 
@@ -501,6 +436,18 @@ components:
           schema:
             type: integer
             minimum: 1
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: 'No such resource, or the key is not allowed to know that it exists.
+
+        Commune answers `404` rather than `403` where distinguishing the two
+
+        would leak the existence of private content.
+
+        '
       content:
         application/json:
           schema:
@@ -575,19 +522,88 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    InternalError:
-      description: Something failed inside Commune. The request may be retried.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
     BadRequest:
       description: "The request was malformed, and the same request will fail the same way\nuntil it is changed. `param` names the parameter or header at fault\nwhen there is exactly one, and `allowed_values` lists what it accepts\nwhen that is a finite set. The code is `bad_request` for every case\nbelow except the last.\n\n* **A query parameter**: one the operation does not have, a value\n  outside its set, range or format (an unparseable cursor, an unknown\n  `expand` path or `fields` name, an identifier that is not a UUID),\n  or a required one left out, such as `q` on a search or `newsletter`\n  when the credential reaches more than one.\n* **The request body**: not JSON, not the shape the operation reads,\n  a property it does not write, or a value of the wrong type, length\n  or format. `param` is absent here, since the body is not a\n  parameter, and the message names the property.\n* **The `Idempotency-Key` header**, on an operation that changes\n  something: missing, or a value this API will not store.\n* **An unrecognised `Commune-Version`**, which answers with its own\n  code, `invalid_version`, because it is never fixed by changing the\n  body.\n"
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: 'No credential was presented, or it is malformed, unknown, revoked or
+
+        expired, or it is an access token minted for a different audience.
+
+
+        Every one of these answers identically, down to the wording and the
+
+        headers, so a refusal never confirms that a string was once real.
+
+        '
+      headers:
+        WWW-Authenticate:
+          description: 'The authentication scheme this API accepts, and where to find out
+
+            how to get a credential for it. Always
+
+            `Bearer realm="Commune API", resource_metadata="https://api.usecommune.com/.well-known/oauth-protected-resource"`.
+
+
+            `resource_metadata` is the RFC 9728 pointer to this API''s protected
+
+            resource metadata, which names the authorization server an OAuth
+
+            client should send its user to. A client holding an API key can
+
+            ignore it. The header carries no `error` parameter, not even
+
+            `error="invalid_token"`, because it describes what this API accepts
+
+            rather than what was wrong with the credential sent, and the
+
+            reasons above are deliberately indistinguishable.
+
+
+            There is no second scheme and no query-parameter fallback, because
+
+            a credential that can travel in a URL ends up in access logs and
+
+            referer headers.
+
+            '
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalError:
+      description: Something failed inside Commune. The request may be retried.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
   parameters:
+    Fields:
+      name: fields
+      in: query
+      required: false
+      description: 'Comma-separated allow-list of top level properties to return on each
+
+        object, so a client can trim a response it does not need in full. `id`
+
+        and `object` are always returned. An unknown property name answers
+
+        `400`. Properties omitted by an operation, such as `content` on any
+
+        article list, cannot be brought back with `fields`.
+
+        '
+      schema:
+        type: string
+      examples:
+        trimmed:
+          summary: Only the fields a link list needs
+          value: title,slug,posted_at
     CommuneVersion:
       name: Commune-Version
       in: header
@@ -617,27 +633,6 @@ components:
         minLength: 1
         examples:
         - '2026-08-26'
-    Fields:
-      name: fields
-      in: query
-      required: false
-      description: 'Comma-separated allow-list of top level properties to return on each
-
-        object, so a client can trim a response it does not need in full. `id`
-
-        and `object` are always returned. An unknown property name answers
-
-        `400`. Properties omitted by an operation, such as `content` on any
-
-        article list, cannot be brought back with `fields`.
-
-        '
-      schema:
-        type: string
-      examples:
-        trimmed:
-          summary: Only the fields a link list needs
-          value: title,slug,posted_at
     UserPath:
       name: user
       in: path
@@ -723,9 +718,6 @@ components:
         may do is what it was granted.
 
         '
-x-refined-from:
-- usecommune-openapi.json
-- usecommune-openapi.yml
 x-deferred:
 - resource: user_newsletters
   scope: partner

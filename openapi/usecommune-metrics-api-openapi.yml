@@ -1,12 +1,17 @@
 openapi: 3.2.0
 info:
-  title: Usecommune Metrics API
+  title: Commune Metrics API
   version: '2026-08-26'
+  summary: Newsletters, articles, threads and the people around them.
+  description: 'The Commune API exposes a Commune community: newsletters, the articles they
+
+    publish, the chat threads those articles start, and the people who write
+
+    and read them.'
   contact:
     name: Commune
     url: https://usecommune.com
     email: support@usecommune.com
-  description: 'Operations tagged Metrics across 2 of this provider''s published API definitions: usecommune-openapi.json, usecommune-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://api.usecommune.com
   description: 'Production. There is no separate sandbox host.
@@ -120,11 +125,6 @@ paths:
           $ref: '#/components/responses/RateLimited'
         '500':
           $ref: '#/components/responses/InternalError'
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   /newsletters/{newsletter}/growth:
     parameters:
     - $ref: '#/components/parameters/CommuneVersion'
@@ -188,11 +188,6 @@ paths:
           $ref: '#/components/responses/RateLimited'
         '500':
           $ref: '#/components/responses/InternalError'
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   /newsletters/{newsletter}/timeseries:
     parameters:
     - $ref: '#/components/parameters/CommuneVersion'
@@ -288,11 +283,6 @@ paths:
           $ref: '#/components/responses/RateLimited'
         '500':
           $ref: '#/components/responses/InternalError'
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   /articles/{article}/stats:
     parameters:
     - $ref: '#/components/parameters/CommuneVersion'
@@ -375,326 +365,119 @@ paths:
           $ref: '#/components/responses/RateLimited'
         '500':
           $ref: '#/components/responses/InternalError'
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
 components:
   schemas:
-    Error:
+    ArticleStatus:
+      type: string
+      title: ArticleStatus
+      description: 'Where an article is in its life. A credential holding only `read`
+
+        permissions ever sees `sent` and nothing else. An imported article is
+
+        always `sent`, since Commune sees it after the provider delivered it.
+
+        '
+      enum:
+      - draft
+      - scheduled
+      - sending
+      - sent
+      - failed
+      - archived
+    SocialLinks:
       type: object
-      title: Error
-      description: 'The error envelope. Every non `2xx` response from every operation has
+      title: SocialLinks
+      description: 'The creator''s other homes on the internet, stored as canonical profile
 
-        this shape, so a client can branch on `error.code` without knowing which
+        URLs. Every key is optional and a newsletter that set none returns an
 
-        operation produced it.
+        empty object.
+
+        '
+      additionalProperties: false
+      properties:
+        twitter:
+          type: string
+          format: uri
+          description: X or Twitter profile URL.
+        bluesky:
+          type: string
+          format: uri
+          description: Bluesky profile URL.
+        linkedin:
+          type: string
+          format: uri
+          description: LinkedIn profile URL.
+        mastodon:
+          type: string
+          format: uri
+          description: Mastodon profile URL, including the instance host.
+        youtube:
+          type: string
+          format: uri
+          description: YouTube channel URL.
+        instagram:
+          type: string
+          format: uri
+          description: Instagram profile URL.
+        threads:
+          type: string
+          format: uri
+          description: Threads profile URL.
+        github:
+          type: string
+          format: uri
+          description: GitHub profile URL.
+    ArticleStats:
+      type: object
+      title: ArticleStats
+      description: 'Engagement counts for an article, computed at read time. These are
+
+        Commune side counts, not provider side email metrics: opens, clicks and
+
+        deliveries are not here.
 
         '
       additionalProperties: false
       required:
-      - error
+      - likes
+      - comments
+      - highlights
       properties:
-        error:
-          type: object
-          additionalProperties: false
-          required:
-          - code
-          - message
-          properties:
-            code:
-              $ref: '#/components/schemas/ErrorCode'
-            message:
-              type: string
-              description: 'A human readable sentence describing what went wrong. Written
+        likes:
+          type: integer
+          minimum: 0
+          description: How many people liked the article.
+        comments:
+          type: integer
+          minimum: 0
+          description: 'Replies in the article''s chat thread. Commune has no separate
 
-                for a developer reading a log, not for an end user. Do not
+            comments store: an article''s discussion is a thread like any other,
 
-                branch on it, branch on `code`.
+            so this counts the undeleted replies hanging off it. `0` when the
 
-                '
-              examples:
-              - Newsletter not found.
-            param:
-              type: string
-              description: 'The query, path or body parameter the error is attributed to,
-
-                when the error is attributable to exactly one. Absent otherwise.
-
-                '
-              examples:
-              - cursor
-            allowed_values:
-              type: array
-              description: 'Everything `param` would have accepted, when what it accepts is
-
-                a finite set. Absent when it is not: a cursor, an identifier or
-
-                a numeric range has nothing to enumerate, and an empty array
-
-                would read as "nothing is allowed".
-
-
-                It repeats what `message` says in prose, so a caller can correct
-
-                a request from this one response: the array is what a program
-
-                branches on, the sentence is what a person or a model reads.
-
-
-                On an unknown parameter name rather than an unknown value, this
-
-                carries the parameter names the operation does accept, since
-
-                that is the set the caller has to pick from.
-
-
-                On an `insufficient_scope` failure there is usually no
-
-                parameter at fault and `param` is absent, and this carries the
-
-                one permission that was needed, written the way the permission
-
-                table writes it, such as `content: read`. The exception is a
-
-                credential that may call the operation but not with one value
-
-                of a parameter, such as `?expand=subscriber` on
-
-                `listNewsletterInsights` without `audience: read`: then `param`
-
-                names the parameter and this carries the values this credential
-
-                may send instead.
-
-                '
-              items:
-                type: string
-              examples:
-              - - subscribed
-                - unsubscribed
-                - bounced
-                - complained
-                - pending
-            request_id:
-              type: string
-              description: 'Identifier for this request, echoed in the `Commune-Request-Id`
-
-                response header. Quote it in support requests.
-
-                '
-              examples:
-              - req_01j9c8h1q7m3n4p5r6s7t8u9v0
-            docs_url:
-              type: string
-              format: uri
-              description: 'Link to the documentation for this error code: always
-
-                `https://usecommune.dev/errors/` followed by the code, a page
-
-                on what the code means, what usually causes it and how to fix
-
-                it.
-
-                '
-              examples:
-              - https://usecommune.dev/errors/not_found
-    Media:
-      type: object
-      title: Media
-      description: An image or file attached to a thread or a message.
-      additionalProperties: false
-      required:
-      - url
-      properties:
-        url:
-          type: string
-          format: uri
-          description: Where the attachment is served from.
-        type:
-          type:
-          - string
-          - 'null'
-          description: 'The attachment''s media type when Commune recorded one, for example
-
-            `image/png`. Null for an attachment old enough that none was
-
-            recorded.
+            article has no thread.
 
             '
-        thumbnail:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: A smaller rendition, when one was generated.
-    Article:
-      type: object
-      title: Article
-      description: 'One article of a newsletter, without its body. Every collection of
+        highlights:
+          type: integer
+          minimum: 0
+          description: How many passages readers highlighted.
+    TimeseriesInterval:
+      type: string
+      title: TimeseriesInterval
+      description: 'How wide each bucket is. A week starts on Monday and a month on the
 
-        articles returns this shape. `GET /articles/{article}` returns
+        first, both in UTC, so buckets line up across two newsletters in
 
-        `ArticleWithContent`, which is this plus `content`.
+        different time zones.
 
         '
-      required:
-      - object
-      - id
-      - short_id
-      - slug
-      - newsletter
-      - status
-      - is_imported
-      - created_at
-      properties:
-        object:
-          type: string
-          const: article
-          description: Always `article`.
-        id:
-          type: string
-          format: uuid
-          description: Stable identifier.
-        short_id:
-          type: string
-          description: 'Eight character base62 identifier, unique across Commune. Safe in a
-
-            URL and accepted anywhere `{article}` is.
-
-            '
-          examples:
-          - k7Rm2xQp
-        slug:
-          type: string
-          description: 'URL segment under the newsletter, unique within it but not across
-
-            Commune. The permalink is `/n/{handle}/a/{slug}`. Falls back to the
-
-            `short_id` for an untitled article.
-
-            '
-        newsletter:
-          description: 'The newsletter this article belongs to. A `Ref` unless `newsletter` is
-
-            named in `?expand=`.
-
-            '
-          oneOf:
-          - $ref: '#/components/schemas/Ref'
-          - $ref: '#/components/schemas/Newsletter'
-        title:
-          type:
-          - string
-          - 'null'
-          description: Subject line of the article. Null for an untitled draft.
-        preview_text:
-          type:
-          - string
-          - 'null'
-          description: 'The short line email clients show after the subject, and what
-
-            Commune uses as the excerpt on a card.
-
-            '
-        image_url:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: 'Cover image. When the creator set none, Commune stamps the first
-
-            image in the body at send time, so this is usually populated for a
-
-            sent article.
-
-            '
-        external_url:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: 'The article''s canonical URL on the newsletter''s own provider, for an
-
-            imported article. Null for one written in Commune.
-
-            '
-        status:
-          $ref: '#/components/schemas/ArticleStatus'
-        is_imported:
-          type: boolean
-          description: '`true` when the article came in from the newsletter''s provider,
-
-            `false` when it was written and sent in Commune.
-
-            '
-        posted_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: 'When the article went out. An article dated in the future is not
-
-            returned by any read operation until that moment passes, so this is
-
-            never ahead of now in a response.
-
-            '
-        scheduled_for:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: 'When a queued article may go out. Set while `status` is `scheduled`
-
-            and null otherwise.
-
-
-            This is not `posted_at` and the difference matters: a queued article
-
-            has no publication date yet, which is why it stays invisible on
-
-            every reader surface until it really goes out. Commune dispatches
-
-            in passes, so this is the moment from which the article may go rather
-
-            than the moment it will.
-
-            '
-        authors:
-          type: array
-          description: 'The byline, in order. Each entry is a `Ref` unless `authors` is
-
-            named in `?expand=`. Empty when no Commune account is credited.
-
-            '
-          items:
-            anyOf:
-            - $ref: '#/components/schemas/Ref'
-            - $ref: '#/components/schemas/User'
-        thread:
-          description: 'The chat thread this article opened, where its discussion lives.
-
-            `null` when the newsletter does not open a thread per article. A `Ref`
-
-            unless `thread` is named in `?expand=`.
-
-            '
-          oneOf:
-          - type: 'null'
-          - $ref: '#/components/schemas/Ref'
-          - $ref: '#/components/schemas/Thread'
-        stats:
-          $ref: '#/components/schemas/ArticleStats'
-        created_at:
-          type: string
-          format: date-time
-          description: When the row was created in Commune.
-        updated_at:
-          type: string
-          format: date-time
-          description: When the article was last edited.
+      enum:
+      - day
+      - week
+      - month
     User:
       type: object
       title: User
@@ -743,327 +526,66 @@ components:
             person never set one, so this is rarely null in practice.
 
             '
-    Esp:
-      type: string
-      title: Esp
-      description: 'Where a newsletter is published from. `commune` means Commune itself
-
-        sends the email. Every other value is an email service provider whose
-
-        posts Commune imports. `rss` covers any feed that is not one of the
-
-        named providers.
-
-        '
-      enum:
-      - commune
-      - beehiiv
-      - buttondown
-      - ghost
-      - kit
-      - mailchimp
-      - mailerlite
-      - rss
-      - substack
-    Newsletter:
+    Ref:
       type: object
-      title: Newsletter
-      description: 'A newsletter and its public profile. Nothing operational is exposed:
+      title: Ref
+      description: 'An unexpanded relationship. Ask for the relationship in `?expand=` to
 
-        ESP credentials, OAuth tokens, group and audience ids, feed polling
-
-        state and language detection bookkeeping all stay server side.
+        get the full object in its place.
 
         '
       additionalProperties: false
       required:
       - object
       - id
-      - handle
-      - name
-      - esp
-      - created_at
       properties:
         object:
           type: string
-          const: newsletter
-          description: Always `newsletter`.
+          description: The type of the referenced resource.
+          examples:
+          - newsletter
         id:
           type: string
-          format: uuid
-          description: Stable identifier.
-        handle:
-          type: string
-          description: 'The short, unique, URL safe name. Resolves the public profile at
+          description: 'The referenced resource''s `id`, in whatever form that resource''s own
 
-            `/n/{handle}` and is accepted anywhere `{newsletter}` is.
+            schema declares. Most are UUIDs; a `Ref` whose `object` is `user`
 
-            '
-          examples:
-          - the-weekly
-        name:
-          type: string
-          description: Display name, as the creator writes it.
-        description:
-          type:
-          - string
-          - 'null'
-          description: 'The profile blurb. Sanitised HTML, not plain text, because creators
+            carries an account identifier, which is an opaque string and not a
 
-            format it. Treat it as untrusted markup and render it in a
-
-            sandboxed context.
-
-            '
-        esp:
-          $ref: '#/components/schemas/Esp'
-        image_url:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Square avatar for the newsletter.
-        website_url:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: The creator's own site, if they linked one.
-        social_links:
-          $ref: '#/components/schemas/SocialLinks'
-        language:
-          type:
-          - string
-          - 'null'
-          description: 'Best known language of the newsletter''s writing as a BCP 47 tag.
-
-            Detected from recent articles rather than declared, so treat it as a
-
-            hint. Null before enough has been published to tell.
+            UUID. Compare it for equality and pass it back; do not parse it.
 
             '
           examples:
-          - en
-        chat_create_permission:
-          type: string
-          enum:
-          - editors
-          - subscribers
-          - anyone
-          description: 'Who may start a new chat thread in this community.
-
-            '
-        allow_non_subscriber_chat:
-          type: boolean
-          description: 'Whether people who have not subscribed may reply in existing
-
-            threads.
-
-            '
-        owner:
-          description: 'The account that owns the newsletter. A `Ref` unless `owner` is
-
-            named in `?expand=`.
-
-            '
-          anyOf:
-          - $ref: '#/components/schemas/Ref'
-          - $ref: '#/components/schemas/User'
-        featured_article:
-          description: 'The article the creator pinned to the top of the profile, or `null`
-
-            when none is pinned. A `Ref` unless `featured_article` is named in
-
-            `?expand=`.
-
-            '
-          oneOf:
-          - type: 'null'
-          - $ref: '#/components/schemas/Ref'
-          - $ref: '#/components/schemas/Article'
-        created_at:
-          type: string
-          format: date-time
-          description: When the newsletter was connected to or created on Commune.
-        updated_at:
-          type: string
-          format: date-time
-          description: When the profile last changed.
-    ArticlePerformance:
+          - 9a4c1c6e-0f2b-4f47-9d3f-6d1b1a2c3d4e
+    Media:
       type: object
-      title: ArticlePerformance
-      description: 'One article measured on both sides at once: what the email did, and what
-
-        the community did with it afterwards.
-
-
-        Not to be confused with `ArticleStats`, the small public tally that
-
-        hangs off an article itself. This is the `insights` report.
-
-        '
+      title: Media
+      description: An image or file attached to a thread or a message.
       additionalProperties: false
       required:
-      - object
-      - article
-      - email
-      - community
+      - url
       properties:
-        object:
+        url:
           type: string
-          const: article_stats
-          description: Always `article_stats`.
-        article:
-          description: 'The article measured. A `Ref` unless `article` is named in `?expand=`.
-
-            '
-          oneOf:
-          - $ref: '#/components/schemas/Ref'
-          - $ref: '#/components/schemas/Article'
-        email:
+          format: uri
+          description: Where the attachment is served from.
+        type:
           type:
-          - object
+          - string
           - 'null'
-          additionalProperties: false
-          description: 'What happened in the inbox, counted per recipient from Commune''s own
+          description: 'The attachment''s media type when Commune recorded one, for example
 
-            send records.
+            `image/png`. Null for an attachment old enough that none was
 
-
-            `null` for an article Commune did not send: one imported from an
-
-            outside provider, which mailed it without handing Commune the
-
-            outcome, and one that has not been sent yet.
-
-
-            These are counts of recipients, not rates. Divide by `delivered`
-
-            rather than by `recipients` to get the rates a provider quotes.
+            recorded.
 
             '
-          required:
-          - recipients
-          - delivered
-          - opened
-          - clicked
-          - bounced
-          - unsubscribed
-          properties:
-            recipients:
-              type: integer
-              minimum: 0
-              description: 'Addresses the dispatch was aimed at. For a tag scoped article this
-
-                is the size of that segment, not of the whole list.
-
-                '
-            delivered:
-              type: integer
-              minimum: 0
-              description: Recipients the provider accepted and delivered to.
-            opened:
-              type: integer
-              minimum: 0
-              description: 'Recipients who opened at least once, not the number of opens.
-
-                Undercounts readers whose mail client blocks the tracking pixel
-
-                and overcounts the ones whose client prefetches it.
-
-                '
-            clicked:
-              type: integer
-              minimum: 0
-              description: 'Recipients who clicked at least one link, not the number of
-
-                clicks. Which links they clicked is not on this report.
-
-                '
-            bounced:
-              type: integer
-              minimum: 0
-              description: 'Recipients the provider could not deliver to. A hard bounce also
-
-                suppresses that subscriber for later sends.
-
-                '
-            unsubscribed:
-              type: integer
-              minimum: 0
-              description: 'Recipients who opted out from this article, where the opt out
-
-                carried enough to attribute it. Best effort: someone who
-
-                unsubscribed inside the app instead is not counted here.
-
-                '
-        community:
-          type: object
-          additionalProperties: false
-          description: 'What happened on Commune. Computed at read time and still moving, so
-
-            two reads a week apart legitimately disagree.
-
-            '
-          required:
-          - views
-          - likes
-          - saves
-          - highlights
-          - thread_messages
-          - participants
-          properties:
-            views:
-              type: integer
-              minimum: 0
-              description: 'People who opened the article on Commune, counted once each rather
-
-                than once per visit.
-
-                '
-            likes:
-              type: integer
-              minimum: 0
-              description: People who liked the article.
-            saves:
-              type: integer
-              minimum: 0
-              description: 'People who put the article in their own reading list. Who they are
-
-                stays private.
-
-                '
-            highlights:
-              type: integer
-              minimum: 0
-              description: 'Passages readers marked inside the body. The sentences worth
-
-                reading before writing the next article.
-
-                '
-            thread_messages:
-              type: integer
-              minimum: 0
-              description: 'Replies in the article''s discussion. Commune has no separate
-
-                comments store: an article''s discussion is a chat thread like any
-
-                other, so this counts the undeleted replies hanging off it, and
-
-                it is `0` for an article nobody has discussed.
-
-                '
-            participants:
-              type: integer
-              minimum: 0
-              description: 'Distinct people who replied, so a reader who posted six times
-
-                counts once. The number that says whether an article started a
-
-                conversation or an argument between two people.
-
-                '
+        thumbnail:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: A smaller rendition, when one was generated.
     Thread:
       type: object
       title: Thread
@@ -1189,303 +711,6 @@ components:
             never did. This is the sort key for the thread list.
 
             '
-    Ref:
-      type: object
-      title: Ref
-      description: 'An unexpanded relationship. Ask for the relationship in `?expand=` to
-
-        get the full object in its place.
-
-        '
-      additionalProperties: false
-      required:
-      - object
-      - id
-      properties:
-        object:
-          type: string
-          description: The type of the referenced resource.
-          examples:
-          - newsletter
-        id:
-          type: string
-          description: 'The referenced resource''s `id`, in whatever form that resource''s own
-
-            schema declares. Most are UUIDs; a `Ref` whose `object` is `user`
-
-            carries an account identifier, which is an opaque string and not a
-
-            UUID. Compare it for equality and pass it back; do not parse it.
-
-            '
-          examples:
-          - 9a4c1c6e-0f2b-4f47-9d3f-6d1b1a2c3d4e
-    SocialLinks:
-      type: object
-      title: SocialLinks
-      description: 'The creator''s other homes on the internet, stored as canonical profile
-
-        URLs. Every key is optional and a newsletter that set none returns an
-
-        empty object.
-
-        '
-      additionalProperties: false
-      properties:
-        twitter:
-          type: string
-          format: uri
-          description: X or Twitter profile URL.
-        bluesky:
-          type: string
-          format: uri
-          description: Bluesky profile URL.
-        linkedin:
-          type: string
-          format: uri
-          description: LinkedIn profile URL.
-        mastodon:
-          type: string
-          format: uri
-          description: Mastodon profile URL, including the instance host.
-        youtube:
-          type: string
-          format: uri
-          description: YouTube channel URL.
-        instagram:
-          type: string
-          format: uri
-          description: Instagram profile URL.
-        threads:
-          type: string
-          format: uri
-          description: Threads profile URL.
-        github:
-          type: string
-          format: uri
-          description: GitHub profile URL.
-    ArticleStats:
-      type: object
-      title: ArticleStats
-      description: 'Engagement counts for an article, computed at read time. These are
-
-        Commune side counts, not provider side email metrics: opens, clicks and
-
-        deliveries are not here.
-
-        '
-      additionalProperties: false
-      required:
-      - likes
-      - comments
-      - highlights
-      properties:
-        likes:
-          type: integer
-          minimum: 0
-          description: How many people liked the article.
-        comments:
-          type: integer
-          minimum: 0
-          description: 'Replies in the article''s chat thread. Commune has no separate
-
-            comments store: an article''s discussion is a thread like any other,
-
-            so this counts the undeleted replies hanging off it. `0` when the
-
-            article has no thread.
-
-            '
-        highlights:
-          type: integer
-          minimum: 0
-          description: How many passages readers highlighted.
-    TimeseriesMetric:
-      type: string
-      title: TimeseriesMetric
-      description: 'Which quantity a series buckets. Each value is a count of things that
-
-        happened inside a bucket, never a running total, so a client that wants
-
-        a cumulative line adds them up itself.
-
-        '
-      enum:
-      - subscribers
-      - sends
-      - opens
-      - clicks
-      - threads
-      - messages
-    ErrorCode:
-      type: string
-      title: ErrorCode
-      description: 'The stable, machine readable reason a request failed. New codes may be
-
-        added in a minor version, so treat an unrecognised code as a generic
-
-        failure of its HTTP status class.
-
-
-        Two of these share a status with a neighbour and exist because what a
-
-        caller does next is different. `invalid_version` is a `400` that is
-
-        never fixed by changing the request body. `not_commune_newsletter` is a
-
-        `422` that is never fixed by changing the request at all: it says the
-
-        newsletter''s articles are published somewhere else and mirrored into
-
-        Commune afterwards, so Commune cannot write one. Its page at
-
-        `https://usecommune.dev/errors/not_commune_newsletter`, like every
-
-        code''s, is its `docs_url`, and it covers moving a newsletter onto
-
-        Commune''s own publishing, which is the only thing that resolves it.
-
-        '
-      enum:
-      - bad_request
-      - invalid_version
-      - unauthorized
-      - forbidden
-      - insufficient_scope
-      - payment_required
-      - not_found
-      - conflict
-      - unprocessable
-      - not_commune_newsletter
-      - rate_limited
-      - internal_error
-      - service_unavailable
-    TimeseriesInterval:
-      type: string
-      title: TimeseriesInterval
-      description: 'How wide each bucket is. A week starts on Monday and a month on the
-
-        first, both in UTC, so buckets line up across two newsletters in
-
-        different time zones.
-
-        '
-      enum:
-      - day
-      - week
-      - month
-    ThreadVisibility:
-      type: string
-      title: ThreadVisibility
-      description: 'Where a thread is placed. `public` puts it on the global Commune feed
-
-        and makes it readable by anyone. `subscribers` keeps it inside the
-
-        newsletter. `paid` narrows it further to the paying part of the
-
-        audience. Set and changed by the newsletter''s team.
-
-        '
-      enum:
-      - public
-      - subscribers
-      - paid
-    NewsletterGrowth:
-      type: object
-      title: NewsletterGrowth
-      description: 'Where a newsletter''s new subscribers came from inside one window.
-
-        '
-      additionalProperties: false
-      required:
-      - object
-      - newsletter
-      - period_start
-      - period_end
-      - by_source
-      properties:
-        object:
-          type: string
-          const: newsletter_growth
-          description: Always `newsletter_growth`.
-        newsletter:
-          description: 'The newsletter that grew. A `Ref` unless `newsletter` is named in
-
-            `?expand=`.
-
-            '
-          oneOf:
-          - $ref: '#/components/schemas/Ref'
-          - $ref: '#/components/schemas/Newsletter'
-        period_start:
-          type: string
-          format: date-time
-          description: Start of the resolved window, inclusive.
-        period_end:
-          type: string
-          format: date-time
-          description: End of the resolved window, exclusive.
-        by_source:
-          type: array
-          description: 'One entry per acquisition source that produced at least one
-
-            subscriber inside the window, largest first. A source that produced
-
-            none is omitted rather than returned as a zero.
-
-            '
-          items:
-            type: object
-            additionalProperties: false
-            required:
-            - source
-            - known_subscribers
-            properties:
-              source:
-                type:
-                - string
-                - 'null'
-                description: 'Which import brought these people in: the provider''s slug, or
-
-                  `csv` for a file.
-
-
-                  `null` is the ordinary outcome for anyone who subscribed
-
-                  through Commune rather than arriving in an import, because
-
-                  only an import stamps this. It also covers rows written
-
-                  before Commune recorded anything here, which cannot be
-
-                  attributed after the fact. The two are not told apart, so a
-
-                  null bucket is not a count of Commune arrivals; the
-
-                  subscriber''s own `source` is.
-
-
-                  Two further values, `commune` and `imported`, appear only on
-
-                  rows labelled once when the field was introduced and are
-
-                  written by nothing today.
-
-                  '
-                examples:
-                - kit
-              known_subscribers:
-                type: integer
-                minimum: 0
-                description: 'How many subscriptions Commune recorded from this source
-
-                  inside the window. It counts arrivals Commune saw, so for a
-
-                  newsletter connected to an outside provider it misses anyone
-
-                  who joined at the provider between two imports.
-
-                  '
     NewsletterStats:
       type: object
       title: NewsletterStats
@@ -1751,6 +976,338 @@ components:
                 in the window.
 
                 '
+    Error:
+      type: object
+      title: Error
+      description: 'The error envelope. Every non `2xx` response from every operation has
+
+        this shape, so a client can branch on `error.code` without knowing which
+
+        operation produced it.
+
+        '
+      additionalProperties: false
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required:
+          - code
+          - message
+          properties:
+            code:
+              $ref: '#/components/schemas/ErrorCode'
+            message:
+              type: string
+              description: 'A human readable sentence describing what went wrong. Written
+
+                for a developer reading a log, not for an end user. Do not
+
+                branch on it, branch on `code`.
+
+                '
+              examples:
+              - Newsletter not found.
+            param:
+              type: string
+              description: 'The query, path or body parameter the error is attributed to,
+
+                when the error is attributable to exactly one. Absent otherwise.
+
+                '
+              examples:
+              - cursor
+            allowed_values:
+              type: array
+              description: 'Everything `param` would have accepted, when what it accepts is
+
+                a finite set. Absent when it is not: a cursor, an identifier or
+
+                a numeric range has nothing to enumerate, and an empty array
+
+                would read as "nothing is allowed".
+
+
+                It repeats what `message` says in prose, so a caller can correct
+
+                a request from this one response: the array is what a program
+
+                branches on, the sentence is what a person or a model reads.
+
+
+                On an unknown parameter name rather than an unknown value, this
+
+                carries the parameter names the operation does accept, since
+
+                that is the set the caller has to pick from.
+
+
+                On an `insufficient_scope` failure there is usually no
+
+                parameter at fault and `param` is absent, and this carries the
+
+                one permission that was needed, written the way the permission
+
+                table writes it, such as `content: read`. The exception is a
+
+                credential that may call the operation but not with one value
+
+                of a parameter, such as `?expand=subscriber` on
+
+                `listNewsletterInsights` without `audience: read`: then `param`
+
+                names the parameter and this carries the values this credential
+
+                may send instead.
+
+                '
+              items:
+                type: string
+              examples:
+              - - subscribed
+                - unsubscribed
+                - bounced
+                - complained
+                - pending
+            request_id:
+              type: string
+              description: 'Identifier for this request, echoed in the `Commune-Request-Id`
+
+                response header. Quote it in support requests.
+
+                '
+              examples:
+              - req_01j9c8h1q7m3n4p5r6s7t8u9v0
+            docs_url:
+              type: string
+              format: uri
+              description: 'Link to the documentation for this error code: always
+
+                `https://usecommune.dev/errors/` followed by the code, a page
+
+                on what the code means, what usually causes it and how to fix
+
+                it.
+
+                '
+              examples:
+              - https://usecommune.dev/errors/not_found
+    Esp:
+      type: string
+      title: Esp
+      description: 'Where a newsletter is published from. `commune` means Commune itself
+
+        sends the email. Every other value is an email service provider whose
+
+        posts Commune imports. `rss` covers any feed that is not one of the
+
+        named providers.
+
+        '
+      enum:
+      - commune
+      - beehiiv
+      - buttondown
+      - ghost
+      - kit
+      - mailchimp
+      - mailerlite
+      - rss
+      - substack
+    TimeseriesMetric:
+      type: string
+      title: TimeseriesMetric
+      description: 'Which quantity a series buckets. Each value is a count of things that
+
+        happened inside a bucket, never a running total, so a client that wants
+
+        a cumulative line adds them up itself.
+
+        '
+      enum:
+      - subscribers
+      - sends
+      - opens
+      - clicks
+      - threads
+      - messages
+    ArticlePerformance:
+      type: object
+      title: ArticlePerformance
+      description: 'One article measured on both sides at once: what the email did, and what
+
+        the community did with it afterwards.
+
+
+        Not to be confused with `ArticleStats`, the small public tally that
+
+        hangs off an article itself. This is the `insights` report.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - article
+      - email
+      - community
+      properties:
+        object:
+          type: string
+          const: article_stats
+          description: Always `article_stats`.
+        article:
+          description: 'The article measured. A `Ref` unless `article` is named in `?expand=`.
+
+            '
+          oneOf:
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/Article'
+        email:
+          type:
+          - object
+          - 'null'
+          additionalProperties: false
+          description: 'What happened in the inbox, counted per recipient from Commune''s own
+
+            send records.
+
+
+            `null` for an article Commune did not send: one imported from an
+
+            outside provider, which mailed it without handing Commune the
+
+            outcome, and one that has not been sent yet.
+
+
+            These are counts of recipients, not rates. Divide by `delivered`
+
+            rather than by `recipients` to get the rates a provider quotes.
+
+            '
+          required:
+          - recipients
+          - delivered
+          - opened
+          - clicked
+          - bounced
+          - unsubscribed
+          properties:
+            recipients:
+              type: integer
+              minimum: 0
+              description: 'Addresses the dispatch was aimed at. For a tag scoped article this
+
+                is the size of that segment, not of the whole list.
+
+                '
+            delivered:
+              type: integer
+              minimum: 0
+              description: Recipients the provider accepted and delivered to.
+            opened:
+              type: integer
+              minimum: 0
+              description: 'Recipients who opened at least once, not the number of opens.
+
+                Undercounts readers whose mail client blocks the tracking pixel
+
+                and overcounts the ones whose client prefetches it.
+
+                '
+            clicked:
+              type: integer
+              minimum: 0
+              description: 'Recipients who clicked at least one link, not the number of
+
+                clicks. Which links they clicked is not on this report.
+
+                '
+            bounced:
+              type: integer
+              minimum: 0
+              description: 'Recipients the provider could not deliver to. A hard bounce also
+
+                suppresses that subscriber for later sends.
+
+                '
+            unsubscribed:
+              type: integer
+              minimum: 0
+              description: 'Recipients who opted out from this article, where the opt out
+
+                carried enough to attribute it. Best effort: someone who
+
+                unsubscribed inside the app instead is not counted here.
+
+                '
+        community:
+          type: object
+          additionalProperties: false
+          description: 'What happened on Commune. Computed at read time and still moving, so
+
+            two reads a week apart legitimately disagree.
+
+            '
+          required:
+          - views
+          - likes
+          - saves
+          - highlights
+          - thread_messages
+          - participants
+          properties:
+            views:
+              type: integer
+              minimum: 0
+              description: 'People who opened the article on Commune, counted once each rather
+
+                than once per visit.
+
+                '
+            likes:
+              type: integer
+              minimum: 0
+              description: People who liked the article.
+            saves:
+              type: integer
+              minimum: 0
+              description: 'People who put the article in their own reading list. Who they are
+
+                stays private.
+
+                '
+            highlights:
+              type: integer
+              minimum: 0
+              description: 'Passages readers marked inside the body. The sentences worth
+
+                reading before writing the next article.
+
+                '
+            thread_messages:
+              type: integer
+              minimum: 0
+              description: 'Replies in the article''s discussion. Commune has no separate
+
+                comments store: an article''s discussion is a chat thread like any
+
+                other, so this counts the undeleted replies hanging off it, and
+
+                it is `0` for an article nobody has discussed.
+
+                '
+            participants:
+              type: integer
+              minimum: 0
+              description: 'Distinct people who replied, so a reader who posted six times
+
+                counts once. The number that says whether an article started a
+
+                conversation or an argument between two people.
+
+                '
     Timeseries:
       type: object
       title: Timeseries
@@ -1830,41 +1387,497 @@ components:
                   bucket alone, not a running total.
 
                   '
-    ArticleStatus:
+    Newsletter:
+      type: object
+      title: Newsletter
+      description: 'A newsletter and its public profile. Nothing operational is exposed:
+
+        ESP credentials, OAuth tokens, group and audience ids, feed polling
+
+        state and language detection bookkeeping all stay server side.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - id
+      - handle
+      - name
+      - esp
+      - created_at
+      properties:
+        object:
+          type: string
+          const: newsletter
+          description: Always `newsletter`.
+        id:
+          type: string
+          format: uuid
+          description: Stable identifier.
+        handle:
+          type: string
+          description: 'The short, unique, URL safe name. Resolves the public profile at
+
+            `/n/{handle}` and is accepted anywhere `{newsletter}` is.
+
+            '
+          examples:
+          - the-weekly
+        name:
+          type: string
+          description: Display name, as the creator writes it.
+        description:
+          type:
+          - string
+          - 'null'
+          description: 'The profile blurb. Sanitised HTML, not plain text, because creators
+
+            format it. Treat it as untrusted markup and render it in a
+
+            sandboxed context.
+
+            '
+        esp:
+          $ref: '#/components/schemas/Esp'
+        image_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Square avatar for the newsletter.
+        website_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: The creator's own site, if they linked one.
+        social_links:
+          $ref: '#/components/schemas/SocialLinks'
+        language:
+          type:
+          - string
+          - 'null'
+          description: 'Best known language of the newsletter''s writing as a BCP 47 tag.
+
+            Detected from recent articles rather than declared, so treat it as a
+
+            hint. Null before enough has been published to tell.
+
+            '
+          examples:
+          - en
+        chat_create_permission:
+          type: string
+          enum:
+          - editors
+          - subscribers
+          - anyone
+          description: 'Who may start a new chat thread in this community.
+
+            '
+        allow_non_subscriber_chat:
+          type: boolean
+          description: 'Whether people who have not subscribed may reply in existing
+
+            threads.
+
+            '
+        owner:
+          description: 'The account that owns the newsletter. A `Ref` unless `owner` is
+
+            named in `?expand=`.
+
+            '
+          anyOf:
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/User'
+        featured_article:
+          description: 'The article the creator pinned to the top of the profile, or `null`
+
+            when none is pinned. A `Ref` unless `featured_article` is named in
+
+            `?expand=`.
+
+            '
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/Article'
+        created_at:
+          type: string
+          format: date-time
+          description: When the newsletter was connected to or created on Commune.
+        updated_at:
+          type: string
+          format: date-time
+          description: When the profile last changed.
+    Article:
+      type: object
+      title: Article
+      description: 'One article of a newsletter, without its body. Every collection of
+
+        articles returns this shape. `GET /articles/{article}` returns
+
+        `ArticleWithContent`, which is this plus `content`.
+
+        '
+      required:
+      - object
+      - id
+      - short_id
+      - slug
+      - newsletter
+      - status
+      - is_imported
+      - created_at
+      properties:
+        object:
+          type: string
+          const: article
+          description: Always `article`.
+        id:
+          type: string
+          format: uuid
+          description: Stable identifier.
+        short_id:
+          type: string
+          description: 'Eight character base62 identifier, unique across Commune. Safe in a
+
+            URL and accepted anywhere `{article}` is.
+
+            '
+          examples:
+          - k7Rm2xQp
+        slug:
+          type: string
+          description: 'URL segment under the newsletter, unique within it but not across
+
+            Commune. The permalink is `/n/{handle}/a/{slug}`. Falls back to the
+
+            `short_id` for an untitled article.
+
+            '
+        newsletter:
+          description: 'The newsletter this article belongs to. A `Ref` unless `newsletter` is
+
+            named in `?expand=`.
+
+            '
+          oneOf:
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/Newsletter'
+        title:
+          type:
+          - string
+          - 'null'
+          description: Subject line of the article. Null for an untitled draft.
+        preview_text:
+          type:
+          - string
+          - 'null'
+          description: 'The short line email clients show after the subject, and what
+
+            Commune uses as the excerpt on a card.
+
+            '
+        image_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: 'Cover image. When the creator set none, Commune stamps the first
+
+            image in the body at send time, so this is usually populated for a
+
+            sent article.
+
+            '
+        external_url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: 'The article''s canonical URL on the newsletter''s own provider, for an
+
+            imported article. Null for one written in Commune.
+
+            '
+        status:
+          $ref: '#/components/schemas/ArticleStatus'
+        is_imported:
+          type: boolean
+          description: '`true` when the article came in from the newsletter''s provider,
+
+            `false` when it was written and sent in Commune.
+
+            '
+        posted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: 'When the article went out. An article dated in the future is not
+
+            returned by any read operation until that moment passes, so this is
+
+            never ahead of now in a response.
+
+            '
+        scheduled_for:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: 'When a queued article may go out. Set while `status` is `scheduled`
+
+            and null otherwise.
+
+
+            This is not `posted_at` and the difference matters: a queued article
+
+            has no publication date yet, which is why it stays invisible on
+
+            every reader surface until it really goes out. Commune dispatches
+
+            in passes, so this is the moment from which the article may go rather
+
+            than the moment it will.
+
+            '
+        authors:
+          type: array
+          description: 'The byline, in order. Each entry is a `Ref` unless `authors` is
+
+            named in `?expand=`. Empty when no Commune account is credited.
+
+            '
+          items:
+            anyOf:
+            - $ref: '#/components/schemas/Ref'
+            - $ref: '#/components/schemas/User'
+        thread:
+          description: 'The chat thread this article opened, where its discussion lives.
+
+            `null` when the newsletter does not open a thread per article. A `Ref`
+
+            unless `thread` is named in `?expand=`.
+
+            '
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/Thread'
+        stats:
+          $ref: '#/components/schemas/ArticleStats'
+        created_at:
+          type: string
+          format: date-time
+          description: When the row was created in Commune.
+        updated_at:
+          type: string
+          format: date-time
+          description: When the article was last edited.
+    ThreadVisibility:
       type: string
-      title: ArticleStatus
-      description: 'Where an article is in its life. A credential holding only `read`
+      title: ThreadVisibility
+      description: 'Where a thread is placed. `public` puts it on the global Commune feed
 
-        permissions ever sees `sent` and nothing else. An imported article is
+        and makes it readable by anyone. `subscribers` keeps it inside the
 
-        always `sent`, since Commune sees it after the provider delivered it.
+        newsletter. `paid` narrows it further to the paying part of the
+
+        audience. Set and changed by the newsletter''s team.
 
         '
       enum:
-      - draft
-      - scheduled
-      - sending
-      - sent
-      - failed
-      - archived
+      - public
+      - subscribers
+      - paid
+    NewsletterGrowth:
+      type: object
+      title: NewsletterGrowth
+      description: 'Where a newsletter''s new subscribers came from inside one window.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - newsletter
+      - period_start
+      - period_end
+      - by_source
+      properties:
+        object:
+          type: string
+          const: newsletter_growth
+          description: Always `newsletter_growth`.
+        newsletter:
+          description: 'The newsletter that grew. A `Ref` unless `newsletter` is named in
+
+            `?expand=`.
+
+            '
+          oneOf:
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/Newsletter'
+        period_start:
+          type: string
+          format: date-time
+          description: Start of the resolved window, inclusive.
+        period_end:
+          type: string
+          format: date-time
+          description: End of the resolved window, exclusive.
+        by_source:
+          type: array
+          description: 'One entry per acquisition source that produced at least one
+
+            subscriber inside the window, largest first. A source that produced
+
+            none is omitted rather than returned as a zero.
+
+            '
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - source
+            - known_subscribers
+            properties:
+              source:
+                type:
+                - string
+                - 'null'
+                description: 'Which import brought these people in: the provider''s slug, or
+
+                  `csv` for a file.
+
+
+                  `null` is the ordinary outcome for anyone who subscribed
+
+                  through Commune rather than arriving in an import, because
+
+                  only an import stamps this. It also covers rows written
+
+                  before Commune recorded anything here, which cannot be
+
+                  attributed after the fact. The two are not told apart, so a
+
+                  null bucket is not a count of Commune arrivals; the
+
+                  subscriber''s own `source` is.
+
+
+                  Two further values, `commune` and `imported`, appear only on
+
+                  rows labelled once when the field was introduced and are
+
+                  written by nothing today.
+
+                  '
+                examples:
+                - kit
+              known_subscribers:
+                type: integer
+                minimum: 0
+                description: 'How many subscriptions Commune recorded from this source
+
+                  inside the window. It counts arrivals Commune saw, so for a
+
+                  newsletter connected to an outside provider it misses anyone
+
+                  who joined at the provider between two imports.
+
+                  '
+    ErrorCode:
+      type: string
+      title: ErrorCode
+      description: 'The stable, machine readable reason a request failed. New codes may be
+
+        added in a minor version, so treat an unrecognised code as a generic
+
+        failure of its HTTP status class.
+
+
+        Two of these share a status with a neighbour and exist because what a
+
+        caller does next is different. `invalid_version` is a `400` that is
+
+        never fixed by changing the request body. `not_commune_newsletter` is a
+
+        `422` that is never fixed by changing the request at all: it says the
+
+        newsletter''s articles are published somewhere else and mirrored into
+
+        Commune afterwards, so Commune cannot write one. Its page at
+
+        `https://usecommune.dev/errors/not_commune_newsletter`, like every
+
+        code''s, is its `docs_url`, and it covers moving a newsletter onto
+
+        Commune''s own publishing, which is the only thing that resolves it.
+
+        '
+      enum:
+      - bad_request
+      - invalid_version
+      - unauthorized
+      - forbidden
+      - insufficient_scope
+      - payment_required
+      - not_found
+      - conflict
+      - unprocessable
+      - not_commune_newsletter
+      - rate_limited
+      - internal_error
+      - service_unavailable
   parameters:
-    ArticlePath:
-      name: article
-      in: path
-      required: true
-      description: 'The article''s `id` (a UUID) or its `short_id`, an eight character base62
+    StatsSince:
+      name: since
+      in: query
+      required: false
+      description: 'Start of the window, inclusive, as a date or an RFC 3339 timestamp.
 
-        string that is unique across Commune. The `slug` is not accepted here
+        Giving this overrides `period`. A `since` later than `until` answers
 
-        because it is unique only within a newsletter.
+        `400`. Anything that is neither of those two shapes answers `400` as
+
+        well, rather than being guessed at: a lenient parser would read
+
+        `8/1/2026` as a date and give two callers different windows for the same
+
+        string.
+
+        '
+      schema:
+        type: string
+        maxLength: 40
+      examples:
+        asDate:
+          summary: A calendar day
+          value: '2026-08-01'
+    Fields:
+      name: fields
+      in: query
+      required: false
+      description: 'Comma-separated allow-list of top level properties to return on each
+
+        object, so a client can trim a response it does not need in full. `id`
+
+        and `object` are always returned. An unknown property name answers
+
+        `400`. Properties omitted by an operation, such as `content` on any
+
+        article list, cannot be brought back with `fields`.
 
         '
       schema:
         type: string
       examples:
-        byShortId:
-          summary: By short id
-          value: k7Rm2xQp
+        trimmed:
+          summary: Only the fields a link list needs
+          value: title,slug,posted_at
     Expand:
       name: expand
       in: query
@@ -1892,89 +1905,6 @@ components:
         secondRendition:
           summary: Add the Markdown rendition of an article body
           value: content
-    StatsPeriod:
-      name: period
-      in: query
-      required: false
-      description: 'A named window, counted back from today in UTC. Defaults to `30d`.
-
-        Ignored when `since` is given, so a request never has to reconcile two
-
-        conflicting windows.
-
-        '
-      schema:
-        type: string
-        enum:
-        - 7d
-        - 14d
-        - 30d
-        - 90d
-        - 6m
-        - 1y
-        - all
-        default: 30d
-    Fields:
-      name: fields
-      in: query
-      required: false
-      description: 'Comma-separated allow-list of top level properties to return on each
-
-        object, so a client can trim a response it does not need in full. `id`
-
-        and `object` are always returned. An unknown property name answers
-
-        `400`. Properties omitted by an operation, such as `content` on any
-
-        article list, cannot be brought back with `fields`.
-
-        '
-      schema:
-        type: string
-      examples:
-        trimmed:
-          summary: Only the fields a link list needs
-          value: title,slug,posted_at
-    StatsUntil:
-      name: until
-      in: query
-      required: false
-      description: 'End of the window, exclusive, as a date or an RFC 3339 timestamp.
-
-        Defaults to now. Only meaningful alongside `since`.
-
-        '
-      schema:
-        type: string
-        maxLength: 40
-      examples:
-        asDate:
-          summary: A calendar day
-          value: '2026-09-01'
-    StatsSince:
-      name: since
-      in: query
-      required: false
-      description: 'Start of the window, inclusive, as a date or an RFC 3339 timestamp.
-
-        Giving this overrides `period`. A `since` later than `until` answers
-
-        `400`. Anything that is neither of those two shapes answers `400` as
-
-        well, rather than being guessed at: a lenient parser would read
-
-        `8/1/2026` as a date and give two callers different windows for the same
-
-        string.
-
-        '
-      schema:
-        type: string
-        maxLength: 40
-      examples:
-        asDate:
-          summary: A calendar day
-          value: '2026-08-01'
     CommuneVersion:
       name: Commune-Version
       in: header
@@ -2004,6 +1934,22 @@ components:
         minLength: 1
         examples:
         - '2026-08-26'
+    StatsUntil:
+      name: until
+      in: query
+      required: false
+      description: 'End of the window, exclusive, as a date or an RFC 3339 timestamp.
+
+        Defaults to now. Only meaningful alongside `since`.
+
+        '
+      schema:
+        type: string
+        maxLength: 40
+      examples:
+        asDate:
+          summary: A calendar day
+          value: '2026-09-01'
     NewsletterPath:
       name: newsletter
       in: path
@@ -2024,7 +1970,64 @@ components:
         byHandle:
           summary: By handle
           value: the-weekly
+    ArticlePath:
+      name: article
+      in: path
+      required: true
+      description: 'The article''s `id` (a UUID) or its `short_id`, an eight character base62
+
+        string that is unique across Commune. The `slug` is not accepted here
+
+        because it is unique only within a newsletter.
+
+        '
+      schema:
+        type: string
+      examples:
+        byShortId:
+          summary: By short id
+          value: k7Rm2xQp
+    StatsPeriod:
+      name: period
+      in: query
+      required: false
+      description: 'A named window, counted back from today in UTC. Defaults to `30d`.
+
+        Ignored when `since` is given, so a request never has to reconcile two
+
+        conflicting windows.
+
+        '
+      schema:
+        type: string
+        enum:
+        - 7d
+        - 14d
+        - 30d
+        - 90d
+        - 6m
+        - 1y
+        - all
+        default: 30d
   responses:
+    BadRequest:
+      description: "The request was malformed, and the same request will fail the same way\nuntil it is changed. `param` names the parameter or header at fault\nwhen there is exactly one, and `allowed_values` lists what it accepts\nwhen that is a finite set. The code is `bad_request` for every case\nbelow except the last.\n\n* **A query parameter**: one the operation does not have, a value\n  outside its set, range or format (an unparseable cursor, an unknown\n  `expand` path or `fields` name, an identifier that is not a UUID),\n  or a required one left out, such as `q` on a search or `newsletter`\n  when the credential reaches more than one.\n* **The request body**: not JSON, not the shape the operation reads,\n  a property it does not write, or a value of the wrong type, length\n  or format. `param` is absent here, since the body is not a\n  parameter, and the message names the property.\n* **The `Idempotency-Key` header**, on an operation that changes\n  something: missing, or a value this API will not store.\n* **An unrecognised `Commune-Version`**, which answers with its own\n  code, `invalid_version`, because it is never fixed by changing the\n  body.\n"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: 'No such resource, or the key is not allowed to know that it exists.
+
+        Commune answers `404` rather than `403` where distinguishing the two
+
+        would leak the existence of private content.
+
+        '
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
     Unauthorized:
       description: 'No credential was presented, or it is malformed, unknown, revoked or
 
@@ -2069,18 +2072,6 @@ components:
             '
           schema:
             type: string
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    NotFound:
-      description: 'No such resource, or the key is not allowed to know that it exists.
-
-        Commune answers `404` rather than `403` where distinguishing the two
-
-        would leak the existence of private content.
-
-        '
       content:
         application/json:
           schema:
@@ -2182,12 +2173,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    BadRequest:
-      description: "The request was malformed, and the same request will fail the same way\nuntil it is changed. `param` names the parameter or header at fault\nwhen there is exactly one, and `allowed_values` lists what it accepts\nwhen that is a finite set. The code is `bad_request` for every case\nbelow except the last.\n\n* **A query parameter**: one the operation does not have, a value\n  outside its set, range or format (an unparseable cursor, an unknown\n  `expand` path or `fields` name, an identifier that is not a UUID),\n  or a required one left out, such as `q` on a search or `newsletter`\n  when the credential reaches more than one.\n* **The request body**: not JSON, not the shape the operation reads,\n  a property it does not write, or a value of the wrong type, length\n  or format. `param` is absent here, since the body is not a\n  parameter, and the message names the property.\n* **The `Idempotency-Key` header**, on an operation that changes\n  something: missing, or a value this API will not store.\n* **An unrecognised `Commune-Version`**, which answers with its own\n  code, `invalid_version`, because it is never fixed by changing the\n  body.\n"
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
   securitySchemes:
     oauth2:
       type: oauth2
@@ -2262,9 +2247,6 @@ components:
         may do is what it was granted.
 
         '
-x-refined-from:
-- usecommune-openapi.json
-- usecommune-openapi.yml
 x-deferred:
 - resource: user_newsletters
   scope: partner

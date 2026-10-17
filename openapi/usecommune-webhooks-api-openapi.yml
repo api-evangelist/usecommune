@@ -1,12 +1,17 @@
 openapi: 3.2.0
 info:
-  title: Usecommune Webhooks API
+  title: Commune Webhooks API
   version: '2026-08-26'
+  summary: Newsletters, articles, threads and the people around them.
+  description: 'The Commune API exposes a Commune community: newsletters, the articles they
+
+    publish, the chat threads those articles start, and the people who write
+
+    and read them.'
   contact:
     name: Commune
     url: https://usecommune.com
     email: support@usecommune.com
-  description: 'Operations tagged Webhooks across 2 of this provider''s published API definitions: usecommune-openapi.json, usecommune-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://api.usecommune.com
   description: 'Production. There is no separate sandbox host.
@@ -159,11 +164,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   article.published:
     post:
       operationId: onArticlePublished
@@ -255,11 +255,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   article.read:
     post:
       operationId: onArticleRead
@@ -386,11 +381,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   article.scheduled:
     post:
       operationId: onArticleScheduled
@@ -463,11 +453,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   billing.subscription.updated:
     post:
       operationId: onBillingSubscriptionUpdated
@@ -569,11 +554,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   delivery.bounced:
     post:
       operationId: onDeliveryBounced
@@ -654,11 +634,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   delivery.clicked:
     post:
       operationId: onDeliveryClicked
@@ -737,11 +712,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   delivery.complained:
     post:
       operationId: onDeliveryComplained
@@ -821,11 +791,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   delivery.delivered:
     post:
       operationId: onDeliveryDelivered
@@ -897,11 +862,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   delivery.opened:
     post:
       operationId: onDeliveryOpened
@@ -982,11 +942,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   domain.verified:
     post:
       operationId: onDomainVerified
@@ -1068,11 +1023,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   highlight.created:
     post:
       operationId: onHighlightCreated
@@ -1193,11 +1143,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   import.completed:
     post:
       operationId: onImportCompleted
@@ -1351,11 +1296,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   message.created:
     post:
       operationId: onMessageCreated
@@ -1435,11 +1375,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   send.completed:
     post:
       operationId: onSendCompleted
@@ -1527,11 +1462,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   send.failed:
     post:
       operationId: onSendFailed
@@ -1610,11 +1540,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   sender.verified:
     post:
       operationId: onSenderVerified
@@ -1709,11 +1634,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   subscriber.created:
     post:
       operationId: onSubscriberCreated
@@ -1803,11 +1723,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   subscriber.status_changed:
     post:
       operationId: onSubscriberStatusChanged
@@ -1941,11 +1856,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   subscriber.tagged:
     post:
       operationId: onSubscriberTagged
@@ -2053,11 +1963,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   subscriber.unsubscribed:
     post:
       operationId: onSubscriberUnsubscribed
@@ -2144,11 +2049,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   thread.created:
     post:
       operationId: onThreadCreated
@@ -2242,11 +2142,6 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
   thread.published:
     post:
       operationId: onThreadPublished
@@ -2391,22 +2286,143 @@ webhooks:
             timeout is the same case and is retried too.
 
             '
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
 components:
   schemas:
-    SubscriberTaggedData:
+    BillingSubscriptionUpdatedEvent:
+      title: Billing subscription state changed
+      description: The newsletter's own Commune subscription changed state.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: billing.subscription.updated
+          data:
+            $ref: '#/components/schemas/BillingSubscriptionUpdatedData'
+    SubscriberTaggedEvent:
+      title: Subscriber tag added or removed
+      description: A subscriber tag was applied or taken off.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: subscriber.tagged
+          data:
+            $ref: '#/components/schemas/SubscriberTaggedData'
+    ThreadCreatedData:
       type: object
-      title: Subscriber tagged body
-      description: Body of `subscriber.tagged`. Which subscriber, which tag, and which way the membership moved.
+      required:
+      - thread_id
+      - visibility
+      - content
+      - created_at
+      properties:
+        thread_id:
+          type: string
+          format: uuid
+          description: The thread itself, which is the opening message of the conversation rather than a reply within one.
+        short_id:
+          type:
+          - string
+          - 'null'
+          description: Short public identifier used in thread URLs.
+        url:
+          type:
+          - string
+          - 'null'
+          format: uri
+        author:
+          $ref: '#/components/schemas/UserRef'
+        content:
+          type: string
+          maxLength: 5000
+          description: The opening message, capped at 5000 characters on write.
+        visibility:
+          type: string
+          enum:
+          - public
+          - subscribers
+          - paid
+          description: '`public` puts the thread on the global feed and only team members may set it. `subscribers` keeps it in the newsletter''s own space. `paid` is reserved and unused.'
+        article_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Set when the thread is an article's discussion. Comments on an article are messages in this thread; there is no separate comment resource.
+        created_at:
+          type: string
+          format: date-time
+    MessageCreatedData:
+      type: object
+      required:
+      - message_id
+      - thread_id
+      - thread_level
+      - content
+      - created_at
+      properties:
+        message_id:
+          type: string
+          format: uuid
+        short_id:
+          type:
+          - string
+          - 'null'
+        url:
+          type:
+          - string
+          - 'null'
+          format: uri
+        thread_id:
+          type: string
+          format: uuid
+          description: The top-level thread this reply belongs to.
+        parent_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: The message being replied to. Equal to `thread_id` for a direct reply, a sibling message for a nested one.
+        thread_level:
+          type: integer
+          enum:
+          - 1
+          - 2
+          description: Nesting depth. 1 is a reply to the thread, 2 is a reply to a reply, and nesting stops there.
+        author:
+          $ref: '#/components/schemas/UserRef'
+        content:
+          type: string
+          maxLength: 5000
+        created_at:
+          type: string
+          format: date-time
+    ArticleScheduledData:
+      type: object
+      required:
+      - article_id
+      - title
+      - scheduled_for
+      properties:
+        article_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        scheduled_for:
+          type: string
+          format: date-time
+          description: When the send is due. Always in the future at the time of this event, and always on a five-minute boundary.
+    SubscriberCreatedData:
+      type: object
       required:
       - subscriber_id
-      - tag_id
-      - tag_name
-      - direction
+      - email
+      - status
+      - resubscribed
+      - created_at
       properties:
         subscriber_id:
           type: string
@@ -2414,18 +2430,260 @@ components:
         email:
           type: string
           format: email
-        tag_id:
-          type: string
-          format: uuid
-        tag_name:
-          type: string
-          description: The tag's name at the time of the change.
-        direction:
+        status:
           type: string
           enum:
-          - assigned
-          - removed
-          description: 'Whether the subscriber joined the segment or left it. Branch on this: it is the only thing that differs between the two changes this topic carries.'
+          - subscribed
+          - unsubscribed
+          - bounced
+          - complained
+          - pending
+        user_id:
+          type:
+          - string
+          - 'null'
+          description: The Commune account behind this subscriber, when there is one. Null for an address imported from an ESP or CSV that never signed up.
+        acquisition_source:
+          type:
+          - string
+          - 'null'
+          description: How a subscriber was imported, fixed when they were first recorded so a later migration between providers cannot relabel it. An ESP import stamps that provider's slug and a CSV upload stamps `csv`. Set only on those two paths, so it is null for a subscriber who subscribed in the Commune app, finished signup, or accepted an invitation. `commune` and `imported` appear on old subscribers labelled before this field existed; nothing writes either today.
+        resubscribed:
+          type: boolean
+          description: True when an existing unsubscribed subscriber came back to `subscribed`, rather than a new subscriber being recorded.
+        created_at:
+          type: string
+          format: date-time
+          description: When the subscriber row was first created. On a resubscribe this is the ORIGINAL creation time, not the reactivation, which is `occurred_at`.
+    ArticlePublishedEvent:
+      title: Article published
+      description: An article became publicly readable.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: article.published
+          data:
+            $ref: '#/components/schemas/ArticlePublishedData'
+    SubscriberUnsubscribedData:
+      type: object
+      required:
+      - subscriber_id
+      - email
+      - reason
+      - unsubscribed_at
+      properties:
+        subscriber_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        reason:
+          type: string
+          enum:
+          - self_service
+          - bounced
+          - complained
+          description: '`self_service` is the reader opting out. `bounced` and `complained` are forced by delivery telemetry and arrive with the matching `delivery.*` event.'
+        unsubscribed_at:
+          type: string
+          format: date-time
+        article_send_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: 'The send whose email the reader acted on, when the unsubscribe link carried it. Best-effort attribution: null on an in-app unsubscribe, a link without the marker, or a bounce or complaint.'
+    ArticleScheduledEvent:
+      title: Article scheduled
+      description: An article written in Commune was queued for a future send.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: article.scheduled
+          data:
+            $ref: '#/components/schemas/ArticleScheduledData'
+    ThreadCreatedEvent:
+      title: Thread created
+      description: A new top-level thread was started in a newsletter's space.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: thread.created
+          data:
+            $ref: '#/components/schemas/ThreadCreatedData'
+    SendFailedEvent:
+      title: Send failed
+      description: A send run broke and the article was parked in failed.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: send.failed
+          data:
+            $ref: '#/components/schemas/SendFailedData'
+    BillingSubscriptionUpdatedData:
+      type: object
+      required:
+      - subscription_id
+      - plan
+      - status
+      properties:
+        subscription_id:
+          type: string
+          format: uuid
+          description: Commune's own identifier for the newsletter's subscription, one per `commune` newsletter. Not a Stripe id; Stripe identifiers are never exposed.
+        plan:
+          type: string
+          enum:
+          - creator
+          - enterprise
+        status:
+          type: string
+          enum:
+          - trialing
+          - active
+          - past_due
+          - canceled
+          - trial_expired
+        previous_status:
+          type:
+          - string
+          - 'null'
+          enum:
+          - trialing
+          - active
+          - past_due
+          - canceled
+          - trial_expired
+          - null
+          description: The state being left. Null when it could not be established, so treat this as a hint and the new `status` as the truth.
+        trial_ends_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        current_period_start:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        current_period_end:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        cancel_at_period_end:
+          type: boolean
+          description: 'The subscription is still active but will not renew. Distinct from `status: canceled`, which means it already stopped.'
+    InsightStatus:
+      type: string
+      title: InsightStatus
+      description: 'Where a reader sits in the newsletter''s engagement ladder, from
+
+        `dormant` at the bottom to `superfan` at the top.
+
+
+        Assigned by rank inside the newsletter rather than against an absolute
+
+        score, so it is a statement about this audience and never comparable
+
+        between two newsletters. It also means a reader can move without doing
+
+        anything, because the people around them moved.
+
+        '
+      enum:
+      - superfan
+      - engaged
+      - reader
+      - dormant
+    SenderVerifiedEvent:
+      title: Sender verified
+      description: A sending identity passed verification and can now send.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: sender.verified
+          data:
+            $ref: '#/components/schemas/SenderVerifiedData'
+    ThreadPublishedEvent:
+      title: Thread published to the feed
+      description: A thread's visibility became public and it hit the global feed.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: thread.published
+          data:
+            $ref: '#/components/schemas/ThreadPublishedData'
+    SendCompletedData:
+      type: object
+      required:
+      - article_id
+      - send_id
+      - started_at
+      - completed_at
+      - recipient_count
+      - sent_count
+      - failed_count
+      properties:
+        article_id:
+          type: string
+          format: uuid
+        send_id:
+          type: string
+          format: uuid
+        started_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        recipient_count:
+          type: integer
+          minimum: 0
+          description: Audience size fixed at the moment the run started. The stable denominator for any rate a consumer computes.
+        sent_count:
+          type: integer
+          minimum: 0
+          description: 'Recipients the provider accepted at dispatch. NOT confirmed deliveries: confirmation arrives later as `delivery.delivered`, one event per recipient.'
+        failed_count:
+          type: integer
+          minimum: 0
+          description: Recipients the provider rejected outright at dispatch.
+    DeliveryBouncedEvent:
+      title: Delivery bounced
+      description: The message could not be delivered.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: delivery.bounced
+          data:
+            allOf:
+            - $ref: '#/components/schemas/DeliveryEventData'
+            - type: object
+              required:
+              - reason
+              properties:
+                reason:
+                  type:
+                  - string
+                  - 'null'
+                  maxLength: 1000
+                  description: The provider's bounce message or type, whichever it supplied. Free text for display. Hard and soft bounces are not distinguished today because Commune stores only this string.
     ArticleLikedEvent:
       title: Article like changed
       description: A reader liked an article, or took the like back.
@@ -2437,59 +2695,49 @@ components:
             const: article.liked
           data:
             $ref: '#/components/schemas/ArticleLikedData'
-    SubscriberStatusChangedData:
+    ImportCompletedData:
       type: object
-      description: 'Body of `subscriber.status_changed`. Identifiers plus what describes the crossing, and not the insight itself: read `GET /newsletters/{newsletter}/insights` for the full scored row.'
+      title: Import completed body
+      description: Body of `import.completed`. Which kind of run finished, where its rows came from, and how much it moved.
       required:
-      - subscriber_id
-      - user_id
-      - email
-      - previous_status
-      - status
-      - direction
-      - total_score
-      - velocity
+      - kind
+      - source
+      - imported_count
+      - completed_at
       properties:
-        subscriber_id:
-          type: string
-          format: uuid
-          description: The subscriber this score belongs to, the same identifier the other `subscriber.*` topics carry.
-        user_id:
-          type: string
-          description: 'The Commune account the score is attributed to. Insights are keyed on the account rather than on the subscription, because half the signal is community activity that belongs to a person and not to a mailing list entry. Always present: an unscored subscriber cannot cross a boundary.'
-        email:
-          type: string
-          format: email
-          description: Where the newsletter reaches this reader, so a consumer can match the event against its own records without a second call. Resolved from the Commune account when the subscription row itself carries no address.
-        previous_status:
-          oneOf:
-          - $ref: '#/components/schemas/InsightStatus'
-          - type: 'null'
-          description: The status this reader held before the pass. Null the first time a reader is scored, which is a real crossing rather than missing data.
-        status:
-          $ref: '#/components/schemas/InsightStatus'
-        direction:
+        kind:
           type: string
           enum:
-          - promoted
-          - demoted
-          description: Which way along the ladder the reader moved, derived from the two statuses so a consumer does not have to hardcode their order. `promoted` the first time a reader is scored, because there is no earlier position they could have fallen from.
-        total_score:
-          type: integer
-          description: The blended score at the moment of the crossing, summed across the community and the newsletter's email provider. It has no unit and no ceiling, and is meaningful only ranked against the other readers of the same newsletter.
-        velocity:
-          type: string
-          enum:
-          - rising
-          - cooling
-          - steady
-          description: 'The last fourteen days of points against the fourteen before them. Read it with `direction`: a demotion while `rising` means the audience around this reader moved faster, not that the reader slowed down.'
-        last_action_at:
+          - articles
+          - subscribers
+          - migration
+          description: '`articles` and `subscribers` ingest rows. `migration` is the finalize step that makes a newsletter `commune`, which ingests nothing.'
+        source:
+          type:
+          - string
+          - 'null'
+          description: 'Where the rows came from: an ESP slug such as `kit` or `beehiiv`, `csv` for an uploaded list, or `rss` for a feed. Null when the run has no single source, which is the `migration` case.'
+          examples:
+          - kit
+        imported_count:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          description: 'Subscribers that actually landed. Not the size of what was offered: both import paths skip anybody already on the list and leave their existing status alone. Null for `migration`, which ingests nothing.
+
+
+            Subscribers the run could not take are not reported. One bad entry never ends a run, and nothing counts the ones that failed, so a number here would be a guess.'
+        started_at:
           type:
           - string
           - 'null'
           format: date-time
-          description: When the reader last did anything that earned points. The reader's own clock, not the scoring pass's, so it sits earlier than `occurred_at` by up to a full scoring interval. Null for a reader who has never acted.
+          description: When the run began. Null when it was not recorded, so treat the duration as best effort.
+        completed_at:
+          type: string
+          format: date-time
+          description: When the run ended. Equal to `occurred_at`.
     ThreadPublishedData:
       type: object
       title: Thread published body
@@ -2553,218 +2801,15 @@ components:
           type: string
           format: date-time
           description: '`visibility_changed_at` on the `visibility_changed` path, the thread''s `created_at` on the `created_public` path.'
-    ThreadCreatedData:
+    SubscriberTaggedData:
       type: object
-      required:
-      - thread_id
-      - visibility
-      - content
-      - created_at
-      properties:
-        thread_id:
-          type: string
-          format: uuid
-          description: The thread itself, which is the opening message of the conversation rather than a reply within one.
-        short_id:
-          type:
-          - string
-          - 'null'
-          description: Short public identifier used in thread URLs.
-        url:
-          type:
-          - string
-          - 'null'
-          format: uri
-        author:
-          $ref: '#/components/schemas/UserRef'
-        content:
-          type: string
-          maxLength: 5000
-          description: The opening message, capped at 5000 characters on write.
-        visibility:
-          type: string
-          enum:
-          - public
-          - subscribers
-          - paid
-          description: '`public` puts the thread on the global feed and only team members may set it. `subscribers` keeps it in the newsletter''s own space. `paid` is reserved and unused.'
-        article_id:
-          type:
-          - string
-          - 'null'
-          format: uuid
-          description: Set when the thread is an article's discussion. Comments on an article are messages in this thread; there is no separate comment resource.
-        created_at:
-          type: string
-          format: date-time
-    BillingSubscriptionUpdatedEvent:
-      title: Billing subscription state changed
-      description: The newsletter's own Commune subscription changed state.
-      allOf:
-      - $ref: '#/components/schemas/EventEnvelope'
-      - type: object
-        properties:
-          type:
-            const: billing.subscription.updated
-          data:
-            $ref: '#/components/schemas/BillingSubscriptionUpdatedData'
-    ArticlePublishedData:
-      type: object
-      required:
-      - article_id
-      - title
-      - published_at
-      - source
-      properties:
-        article_id:
-          type: string
-          format: uuid
-        title:
-          type: string
-        slug:
-          type:
-          - string
-          - 'null'
-        url:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Canonical public URL. Follows the newsletter's custom website domain when it has an active one, otherwise the Commune-hosted path.
-        published_at:
-          type: string
-          format: date-time
-          description: The article's own `posted_at`. Normally equal to `occurred_at`, but an import can backdate it to the original publication time.
-        source:
-          type: string
-          enum:
-          - commune_send
-          - import
-          description: '`commune_send` for an article Commune emailed itself, `import` for a post pulled in from a connected ESP or RSS feed.'
-        audience_scoped:
-          type: boolean
-          description: True when the article is restricted to specific subscriber tags rather than the whole list. Which tags is not carried here; read `GET /articles/{article}` for that.
-    DeliveryBouncedEvent:
-      title: Delivery bounced
-      description: The message could not be delivered.
-      allOf:
-      - $ref: '#/components/schemas/EventEnvelope'
-      - type: object
-        properties:
-          type:
-            const: delivery.bounced
-          data:
-            allOf:
-            - $ref: '#/components/schemas/DeliveryEventData'
-            - type: object
-              required:
-              - reason
-              properties:
-                reason:
-                  type:
-                  - string
-                  - 'null'
-                  maxLength: 1000
-                  description: The provider's bounce message or type, whichever it supplied. Free text for display. Hard and soft bounces are not distinguished today because Commune stores only this string.
-    ImportCompletedEvent:
-      title: Import finished
-      description: An article, subscriber or migration run finished.
-      allOf:
-      - $ref: '#/components/schemas/EventEnvelope'
-      - type: object
-        properties:
-          type:
-            const: import.completed
-          data:
-            $ref: '#/components/schemas/ImportCompletedData'
-    SendFailedEvent:
-      title: Send failed
-      description: A send run broke and the article was parked in failed.
-      allOf:
-      - $ref: '#/components/schemas/EventEnvelope'
-      - type: object
-        properties:
-          type:
-            const: send.failed
-          data:
-            $ref: '#/components/schemas/SendFailedData'
-    ArticleLikedData:
-      type: object
-      title: Article like changed body
-      description: Body of `article.liked`. Which article, who, which way the like moved, and the tally afterwards.
-      required:
-      - article_id
-      - title
-      - reader
-      - direction
-      - like_count
-      - changed_at
-      properties:
-        article_id:
-          type: string
-          format: uuid
-        title:
-          type: string
-        url:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Canonical public URL. Follows the newsletter's custom website domain when it has an active one, otherwise the Commune-hosted path.
-        reader:
-          $ref: '#/components/schemas/UserRef'
-          description: The person who gave or withdrew the like. A like requires a Commune account, so this is null only in the case `UserRef` describes, an account that has since been deleted.
-        direction:
-          type: string
-          enum:
-          - added
-          - removed
-          description: '`added` when the like was given, `removed` when it was taken back.'
-        like_count:
-          type: integer
-          minimum: 0
-          description: The article's whole like tally after this change, counted in the same transaction that made it. The same number `Article.stats.likes` reports. Carried on both directions, so a consumer never has to add or subtract to stay correct.
-        changed_at:
-          type: string
-          format: date-time
-          description: When the like was given or withdrawn. Equal to `occurred_at`.
-    SendFailedData:
-      type: object
-      required:
-      - article_id
-      - failure_reason
-      properties:
-        article_id:
-          type: string
-          format: uuid
-        send_id:
-          type:
-          - string
-          - 'null'
-          format: uuid
-          description: Null when the run broke before it was recorded, which is early enough that there is no run to point at.
-        failure_reason:
-          type: string
-          maxLength: 1000
-          description: Human-readable, truncated at 1000 characters on write. Meant for display, not for branching. Match on the topic, not this string.
-    DeliveryOpenedEvent:
-      title: Delivery opened
-      description: The recipient opened the message.
-      allOf:
-      - $ref: '#/components/schemas/EventEnvelope'
-      - type: object
-        properties:
-          type:
-            const: delivery.opened
-          data:
-            $ref: '#/components/schemas/DeliveryEventData'
-    SubscriberUnsubscribedData:
-      type: object
+      title: Subscriber tagged body
+      description: Body of `subscriber.tagged`. Which subscriber, which tag, and which way the membership moved.
       required:
       - subscriber_id
-      - email
-      - reason
-      - unsubscribed_at
+      - tag_id
+      - tag_name
+      - direction
       properties:
         subscriber_id:
           type: string
@@ -2772,22 +2817,18 @@ components:
         email:
           type: string
           format: email
-        reason:
+        tag_id:
+          type: string
+          format: uuid
+        tag_name:
+          type: string
+          description: The tag's name at the time of the change.
+        direction:
           type: string
           enum:
-          - self_service
-          - bounced
-          - complained
-          description: '`self_service` is the reader opting out. `bounced` and `complained` are forced by delivery telemetry and arrive with the matching `delivery.*` event.'
-        unsubscribed_at:
-          type: string
-          format: date-time
-        article_send_id:
-          type:
-          - string
-          - 'null'
-          format: uuid
-          description: 'The send whose email the reader acted on, when the unsubscribe link carried it. Best-effort attribution: null on an in-app unsubscribe, a link without the marker, or a bounce or complaint.'
+          - assigned
+          - removed
+          description: 'Whether the subscriber joined the segment or left it. Branch on this: it is the only thing that differs between the two changes this topic carries.'
     ArticleReadEvent:
       title: Article read
       description: A reader stayed with an article long enough to have read it.
@@ -2799,39 +2840,6 @@ components:
             const: article.read
           data:
             $ref: '#/components/schemas/ArticleReadData'
-    SubscriberTaggedEvent:
-      title: Subscriber tag added or removed
-      description: A subscriber tag was applied or taken off.
-      allOf:
-      - $ref: '#/components/schemas/EventEnvelope'
-      - type: object
-        properties:
-          type:
-            const: subscriber.tagged
-          data:
-            $ref: '#/components/schemas/SubscriberTaggedData'
-    InsightStatus:
-      type: string
-      title: InsightStatus
-      description: 'Where a reader sits in the newsletter''s engagement ladder, from
-
-        `dormant` at the bottom to `superfan` at the top.
-
-
-        Assigned by rank inside the newsletter rather than against an absolute
-
-        score, so it is a statement about this audience and never comparable
-
-        between two newsletters. It also means a reader can move without doing
-
-        anything, because the people around them moved.
-
-        '
-      enum:
-      - superfan
-      - engaged
-      - reader
-      - dormant
     SenderVerifiedData:
       type: object
       required:
@@ -2870,39 +2878,47 @@ components:
         verified_at:
           type: string
           format: date-time
-    DeliveryClickedEvent:
-      title: Delivery link clicked
-      description: The recipient clicked a tracked link.
+    DeliveryDeliveredEvent:
+      title: Delivery accepted
+      description: The provider confirmed the message reached the recipient server.
       allOf:
       - $ref: '#/components/schemas/EventEnvelope'
       - type: object
         properties:
           type:
-            const: delivery.clicked
+            const: delivery.delivered
           data:
             $ref: '#/components/schemas/DeliveryEventData'
-    ThreadPublishedEvent:
-      title: Thread published to the feed
-      description: A thread's visibility became public and it hit the global feed.
+    SubscriberStatusChangedEvent:
+      title: Subscriber insight status changed
+      description: A reader crossed a boundary in the newsletter's engagement ladder.
       allOf:
       - $ref: '#/components/schemas/EventEnvelope'
       - type: object
         properties:
           type:
-            const: thread.published
+            const: subscriber.status_changed
           data:
-            $ref: '#/components/schemas/ThreadPublishedData'
-    ArticlePublishedEvent:
-      title: Article published
-      description: An article became publicly readable.
-      allOf:
-      - $ref: '#/components/schemas/EventEnvelope'
-      - type: object
-        properties:
+            $ref: '#/components/schemas/SubscriberStatusChangedData'
+    SendFailedData:
+      type: object
+      required:
+      - article_id
+      - failure_reason
+      properties:
+        article_id:
+          type: string
+          format: uuid
+        send_id:
           type:
-            const: article.published
-          data:
-            $ref: '#/components/schemas/ArticlePublishedData'
+          - string
+          - 'null'
+          format: uuid
+          description: Null when the run broke before it was recorded, which is early enough that there is no run to point at.
+        failure_reason:
+          type: string
+          maxLength: 1000
+          description: Human-readable, truncated at 1000 characters on write. Meant for display, not for branching. Match on the topic, not this string.
     ArticleReadData:
       type: object
       title: Article read body
@@ -2931,197 +2947,6 @@ components:
           type: string
           format: date-time
           description: When the article became read for this person. Equal to `occurred_at`. It does not move afterwards, because this crossing happens once.
-    ArticleScheduledData:
-      type: object
-      required:
-      - article_id
-      - title
-      - scheduled_for
-      properties:
-        article_id:
-          type: string
-          format: uuid
-        title:
-          type: string
-        scheduled_for:
-          type: string
-          format: date-time
-          description: When the send is due. Always in the future at the time of this event, and always on a five-minute boundary.
-    DomainVerifiedData:
-      type: object
-      required:
-      - domain_id
-      - domain
-      - verified_at
-      properties:
-        domain_id:
-          type: string
-          format: uuid
-        domain:
-          type: string
-          description: 'The hostname now serving the newsletter''s site. Always a subdomain: apex domains cannot CNAME and are rejected before they get this far.'
-        ssl_status:
-          type:
-          - string
-          - 'null'
-          description: The certificate authority's sub-status, kept for display. The aggregate `active` state is what Commune actually branches on.
-        verified_at:
-          type: string
-          format: date-time
-    BillingSubscriptionUpdatedData:
-      type: object
-      required:
-      - subscription_id
-      - plan
-      - status
-      properties:
-        subscription_id:
-          type: string
-          format: uuid
-          description: Commune's own identifier for the newsletter's subscription, one per `commune` newsletter. Not a Stripe id; Stripe identifiers are never exposed.
-        plan:
-          type: string
-          enum:
-          - creator
-          - enterprise
-        status:
-          type: string
-          enum:
-          - trialing
-          - active
-          - past_due
-          - canceled
-          - trial_expired
-        previous_status:
-          type:
-          - string
-          - 'null'
-          enum:
-          - trialing
-          - active
-          - past_due
-          - canceled
-          - trial_expired
-          - null
-          description: The state being left. Null when it could not be established, so treat this as a hint and the new `status` as the truth.
-        trial_ends_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        current_period_start:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        current_period_end:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        cancel_at_period_end:
-          type: boolean
-          description: 'The subscription is still active but will not renew. Distinct from `status: canceled`, which means it already stopped.'
-    SenderVerifiedEvent:
-      title: Sender verified
-      description: A sending identity passed verification and can now send.
-      allOf:
-      - $ref: '#/components/schemas/EventEnvelope'
-      - type: object
-        properties:
-          type:
-            const: sender.verified
-          data:
-            $ref: '#/components/schemas/SenderVerifiedData'
-    MessageCreatedData:
-      type: object
-      required:
-      - message_id
-      - thread_id
-      - thread_level
-      - content
-      - created_at
-      properties:
-        message_id:
-          type: string
-          format: uuid
-        short_id:
-          type:
-          - string
-          - 'null'
-        url:
-          type:
-          - string
-          - 'null'
-          format: uri
-        thread_id:
-          type: string
-          format: uuid
-          description: The top-level thread this reply belongs to.
-        parent_id:
-          type:
-          - string
-          - 'null'
-          format: uuid
-          description: The message being replied to. Equal to `thread_id` for a direct reply, a sibling message for a nested one.
-        thread_level:
-          type: integer
-          enum:
-          - 1
-          - 2
-          description: Nesting depth. 1 is a reply to the thread, 2 is a reply to a reply, and nesting stops there.
-        author:
-          $ref: '#/components/schemas/UserRef'
-        content:
-          type: string
-          maxLength: 5000
-        created_at:
-          type: string
-          format: date-time
-    DeliveryDeliveredEvent:
-      title: Delivery accepted
-      description: The provider confirmed the message reached the recipient server.
-      allOf:
-      - $ref: '#/components/schemas/EventEnvelope'
-      - type: object
-        properties:
-          type:
-            const: delivery.delivered
-          data:
-            $ref: '#/components/schemas/DeliveryEventData'
-    SendCompletedEvent:
-      title: Send completed
-      description: A send run finished handing every recipient to the provider.
-      allOf:
-      - $ref: '#/components/schemas/EventEnvelope'
-      - type: object
-        properties:
-          type:
-            const: send.completed
-          data:
-            $ref: '#/components/schemas/SendCompletedData'
-    DomainVerifiedEvent:
-      title: Custom website domain verified
-      description: A creator's custom website domain went live.
-      allOf:
-      - $ref: '#/components/schemas/EventEnvelope'
-      - type: object
-        properties:
-          type:
-            const: domain.verified
-          data:
-            $ref: '#/components/schemas/DomainVerifiedData'
-    HighlightCreatedEvent:
-      title: Highlight created
-      description: A reader marked a passage of an article.
-      allOf:
-      - $ref: '#/components/schemas/EventEnvelope'
-      - type: object
-        properties:
-          type:
-            const: highlight.created
-          data:
-            $ref: '#/components/schemas/HighlightCreatedData'
     Actor:
       type:
       - object
@@ -3159,82 +2984,64 @@ components:
           - string
           - 'null'
           description: Human-readable name for display. Best effort, may be null.
-    ThreadCreatedEvent:
-      title: Thread created
-      description: A new top-level thread was started in a newsletter's space.
+    DomainVerifiedEvent:
+      title: Custom website domain verified
+      description: A creator's custom website domain went live.
       allOf:
       - $ref: '#/components/schemas/EventEnvelope'
       - type: object
         properties:
           type:
-            const: thread.created
+            const: domain.verified
           data:
-            $ref: '#/components/schemas/ThreadCreatedData'
-    DeliveryComplainedEvent:
-      title: Delivery marked as spam
-      description: The recipient reported the message as spam.
-      allOf:
-      - $ref: '#/components/schemas/EventEnvelope'
-      - type: object
-        properties:
-          type:
-            const: delivery.complained
-          data:
-            allOf:
-            - $ref: '#/components/schemas/DeliveryEventData'
-            - type: object
-              required:
-              - reason
-              properties:
-                reason:
-                  type:
-                  - string
-                  - 'null'
-                  maxLength: 1000
-                  description: Why the provider recorded a complaint. Providers rarely elaborate, so expect a constant string.
-    ImportCompletedData:
+            $ref: '#/components/schemas/DomainVerifiedData'
+    ArticlePublishedData:
       type: object
-      title: Import completed body
-      description: Body of `import.completed`. Which kind of run finished, where its rows came from, and how much it moved.
       required:
-      - kind
+      - article_id
+      - title
+      - published_at
       - source
-      - imported_count
-      - completed_at
       properties:
-        kind:
+        article_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        slug:
+          type:
+          - string
+          - 'null'
+        url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Canonical public URL. Follows the newsletter's custom website domain when it has an active one, otherwise the Commune-hosted path.
+        published_at:
+          type: string
+          format: date-time
+          description: The article's own `posted_at`. Normally equal to `occurred_at`, but an import can backdate it to the original publication time.
+        source:
           type: string
           enum:
-          - articles
-          - subscribers
-          - migration
-          description: '`articles` and `subscribers` ingest rows. `migration` is the finalize step that makes a newsletter `commune`, which ingests nothing.'
-        source:
+          - commune_send
+          - import
+          description: '`commune_send` for an article Commune emailed itself, `import` for a post pulled in from a connected ESP or RSS feed.'
+        audience_scoped:
+          type: boolean
+          description: True when the article is restricted to specific subscriber tags rather than the whole list. Which tags is not carried here; read `GET /articles/{article}` for that.
+    MessageCreatedEvent:
+      title: Message created
+      description: A reply was posted inside a thread.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
           type:
-          - string
-          - 'null'
-          description: 'Where the rows came from: an ESP slug such as `kit` or `beehiiv`, `csv` for an uploaded list, or `rss` for a feed. Null when the run has no single source, which is the `migration` case.'
-          examples:
-          - kit
-        imported_count:
-          type:
-          - integer
-          - 'null'
-          minimum: 0
-          description: 'Subscribers that actually landed. Not the size of what was offered: both import paths skip anybody already on the list and leave their existing status alone. Null for `migration`, which ingests nothing.
-
-
-            Subscribers the run could not take are not reported. One bad entry never ends a run, and nothing counts the ones that failed, so a number here would be a guess.'
-        started_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: When the run began. Null when it was not recorded, so treat the duration as best effort.
-        completed_at:
-          type: string
-          format: date-time
-          description: When the run ended. Equal to `occurred_at`.
+            const: message.created
+          data:
+            $ref: '#/components/schemas/MessageCreatedData'
     HighlightCreatedData:
       type: object
       title: Highlight created body
@@ -3282,52 +3089,6 @@ components:
         created_at:
           type: string
           format: date-time
-    SubscriberCreatedEvent:
-      title: Subscriber created
-      description: Someone became a subscriber, or an unsubscribed one came back.
-      allOf:
-      - $ref: '#/components/schemas/EventEnvelope'
-      - type: object
-        properties:
-          type:
-            const: subscriber.created
-          data:
-            $ref: '#/components/schemas/SubscriberCreatedData'
-    SendCompletedData:
-      type: object
-      required:
-      - article_id
-      - send_id
-      - started_at
-      - completed_at
-      - recipient_count
-      - sent_count
-      - failed_count
-      properties:
-        article_id:
-          type: string
-          format: uuid
-        send_id:
-          type: string
-          format: uuid
-        started_at:
-          type: string
-          format: date-time
-        completed_at:
-          type: string
-          format: date-time
-        recipient_count:
-          type: integer
-          minimum: 0
-          description: Audience size fixed at the moment the run started. The stable denominator for any rate a consumer computes.
-        sent_count:
-          type: integer
-          minimum: 0
-          description: 'Recipients the provider accepted at dispatch. NOT confirmed deliveries: confirmation arrives later as `delivery.delivered`, one event per recipient.'
-        failed_count:
-          type: integer
-          minimum: 0
-          description: Recipients the provider rejected outright at dispatch.
     SubscriberUnsubscribedEvent:
       title: Subscriber unsubscribed
       description: A subscriber stopped being mailable.
@@ -3339,28 +3100,119 @@ components:
             const: subscriber.unsubscribed
           data:
             $ref: '#/components/schemas/SubscriberUnsubscribedData'
-    ArticleScheduledEvent:
-      title: Article scheduled
-      description: An article written in Commune was queued for a future send.
+    SubscriberCreatedEvent:
+      title: Subscriber created
+      description: Someone became a subscriber, or an unsubscribed one came back.
       allOf:
       - $ref: '#/components/schemas/EventEnvelope'
       - type: object
         properties:
           type:
-            const: article.scheduled
+            const: subscriber.created
           data:
-            $ref: '#/components/schemas/ArticleScheduledData'
-    MessageCreatedEvent:
-      title: Message created
-      description: A reply was posted inside a thread.
+            $ref: '#/components/schemas/SubscriberCreatedData'
+    DeliveryEventData:
+      type: object
+      title: Delivery event body
+      description: Shared body of the five `delivery.*` topics. One delivery to one recipient, identified by both Commune's ids and the provider's message id, so a consumer can reconcile with its own provider logs.
+      required:
+      - delivery_id
+      - article_id
+      - send_id
+      - subscriber_id
+      - email
+      - status
+      properties:
+        delivery_id:
+          type: string
+          format: uuid
+          description: Commune's identifier for this delivery.
+        article_id:
+          type: string
+          format: uuid
+        send_id:
+          type: string
+          format: uuid
+          description: The send run this delivery belonged to.
+        subscriber_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+          description: The address as it was at send time. Snapshotted onto the delivery row, so it does not follow a later change to the subscriber.
+        provider_message_id:
+          type:
+          - string
+          - 'null'
+          description: The email provider's id for this message, the correlator the inbound webhook matched on. Null only if the row was written without one.
+        status:
+          type: string
+          enum:
+          - queued
+          - sent
+          - delivered
+          - opened
+          - clicked
+          - bounced
+          - complained
+          - failed
+          description: 'The delivery row''s status after this event was applied. Because the state machine is forward-only, it is not always the event''s own name: an open recorded after a click leaves the row on `clicked`.'
+    HighlightCreatedEvent:
+      title: Highlight created
+      description: A reader marked a passage of an article.
       allOf:
       - $ref: '#/components/schemas/EventEnvelope'
       - type: object
         properties:
           type:
-            const: message.created
+            const: highlight.created
           data:
-            $ref: '#/components/schemas/MessageCreatedData'
+            $ref: '#/components/schemas/HighlightCreatedData'
+    DeliveryOpenedEvent:
+      title: Delivery opened
+      description: The recipient opened the message.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: delivery.opened
+          data:
+            $ref: '#/components/schemas/DeliveryEventData'
+    DeliveryComplainedEvent:
+      title: Delivery marked as spam
+      description: The recipient reported the message as spam.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: delivery.complained
+          data:
+            allOf:
+            - $ref: '#/components/schemas/DeliveryEventData'
+            - type: object
+              required:
+              - reason
+              properties:
+                reason:
+                  type:
+                  - string
+                  - 'null'
+                  maxLength: 1000
+                  description: Why the provider recorded a complaint. Providers rarely elaborate, so expect a constant string.
+    DeliveryClickedEvent:
+      title: Delivery link clicked
+      description: The recipient clicked a tracked link.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: delivery.clicked
+          data:
+            $ref: '#/components/schemas/DeliveryEventData'
     UserRef:
       type:
       - object
@@ -3385,6 +3237,142 @@ components:
           - string
           - 'null'
           format: uri
+    ImportCompletedEvent:
+      title: Import finished
+      description: An article, subscriber or migration run finished.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: import.completed
+          data:
+            $ref: '#/components/schemas/ImportCompletedData'
+    ArticleLikedData:
+      type: object
+      title: Article like changed body
+      description: Body of `article.liked`. Which article, who, which way the like moved, and the tally afterwards.
+      required:
+      - article_id
+      - title
+      - reader
+      - direction
+      - like_count
+      - changed_at
+      properties:
+        article_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        url:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Canonical public URL. Follows the newsletter's custom website domain when it has an active one, otherwise the Commune-hosted path.
+        reader:
+          $ref: '#/components/schemas/UserRef'
+          description: The person who gave or withdrew the like. A like requires a Commune account, so this is null only in the case `UserRef` describes, an account that has since been deleted.
+        direction:
+          type: string
+          enum:
+          - added
+          - removed
+          description: '`added` when the like was given, `removed` when it was taken back.'
+        like_count:
+          type: integer
+          minimum: 0
+          description: The article's whole like tally after this change, counted in the same transaction that made it. The same number `Article.stats.likes` reports. Carried on both directions, so a consumer never has to add or subtract to stay correct.
+        changed_at:
+          type: string
+          format: date-time
+          description: When the like was given or withdrawn. Equal to `occurred_at`.
+    SendCompletedEvent:
+      title: Send completed
+      description: A send run finished handing every recipient to the provider.
+      allOf:
+      - $ref: '#/components/schemas/EventEnvelope'
+      - type: object
+        properties:
+          type:
+            const: send.completed
+          data:
+            $ref: '#/components/schemas/SendCompletedData'
+    SubscriberStatusChangedData:
+      type: object
+      description: 'Body of `subscriber.status_changed`. Identifiers plus what describes the crossing, and not the insight itself: read `GET /newsletters/{newsletter}/insights` for the full scored row.'
+      required:
+      - subscriber_id
+      - user_id
+      - email
+      - previous_status
+      - status
+      - direction
+      - total_score
+      - velocity
+      properties:
+        subscriber_id:
+          type: string
+          format: uuid
+          description: The subscriber this score belongs to, the same identifier the other `subscriber.*` topics carry.
+        user_id:
+          type: string
+          description: 'The Commune account the score is attributed to. Insights are keyed on the account rather than on the subscription, because half the signal is community activity that belongs to a person and not to a mailing list entry. Always present: an unscored subscriber cannot cross a boundary.'
+        email:
+          type: string
+          format: email
+          description: Where the newsletter reaches this reader, so a consumer can match the event against its own records without a second call. Resolved from the Commune account when the subscription row itself carries no address.
+        previous_status:
+          oneOf:
+          - $ref: '#/components/schemas/InsightStatus'
+          - type: 'null'
+          description: The status this reader held before the pass. Null the first time a reader is scored, which is a real crossing rather than missing data.
+        status:
+          $ref: '#/components/schemas/InsightStatus'
+        direction:
+          type: string
+          enum:
+          - promoted
+          - demoted
+          description: Which way along the ladder the reader moved, derived from the two statuses so a consumer does not have to hardcode their order. `promoted` the first time a reader is scored, because there is no earlier position they could have fallen from.
+        total_score:
+          type: integer
+          description: The blended score at the moment of the crossing, summed across the community and the newsletter's email provider. It has no unit and no ceiling, and is meaningful only ranked against the other readers of the same newsletter.
+        velocity:
+          type: string
+          enum:
+          - rising
+          - cooling
+          - steady
+          description: 'The last fourteen days of points against the fourteen before them. Read it with `direction`: a demotion while `rising` means the audience around this reader moved faster, not that the reader slowed down.'
+        last_action_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the reader last did anything that earned points. The reader's own clock, not the scoring pass's, so it sits earlier than `occurred_at` by up to a full scoring interval. Null for a reader who has never acted.
+    DomainVerifiedData:
+      type: object
+      required:
+      - domain_id
+      - domain
+      - verified_at
+      properties:
+        domain_id:
+          type: string
+          format: uuid
+        domain:
+          type: string
+          description: 'The hostname now serving the newsletter''s site. Always a subdomain: apex domains cannot CNAME and are rejected before they get this far.'
+        ssl_status:
+          type:
+          - string
+          - 'null'
+          description: The certificate authority's sub-status, kept for display. The aggregate `active` state is what Commune actually branches on.
+        verified_at:
+          type: string
+          format: date-time
     EventEnvelope:
       type: object
       title: Event envelope
@@ -3451,131 +3439,7 @@ components:
         data:
           type: object
           description: Event-specific body. Narrowed by each concrete event schema below.
-    SubscriberCreatedData:
-      type: object
-      required:
-      - subscriber_id
-      - email
-      - status
-      - resubscribed
-      - created_at
-      properties:
-        subscriber_id:
-          type: string
-          format: uuid
-        email:
-          type: string
-          format: email
-        status:
-          type: string
-          enum:
-          - subscribed
-          - unsubscribed
-          - bounced
-          - complained
-          - pending
-        user_id:
-          type:
-          - string
-          - 'null'
-          description: The Commune account behind this subscriber, when there is one. Null for an address imported from an ESP or CSV that never signed up.
-        acquisition_source:
-          type:
-          - string
-          - 'null'
-          description: How a subscriber was imported, fixed when they were first recorded so a later migration between providers cannot relabel it. An ESP import stamps that provider's slug and a CSV upload stamps `csv`. Set only on those two paths, so it is null for a subscriber who subscribed in the Commune app, finished signup, or accepted an invitation. `commune` and `imported` appear on old subscribers labelled before this field existed; nothing writes either today.
-        resubscribed:
-          type: boolean
-          description: True when an existing unsubscribed subscriber came back to `subscribed`, rather than a new subscriber being recorded.
-        created_at:
-          type: string
-          format: date-time
-          description: When the subscriber row was first created. On a resubscribe this is the ORIGINAL creation time, not the reactivation, which is `occurred_at`.
-    DeliveryEventData:
-      type: object
-      title: Delivery event body
-      description: Shared body of the five `delivery.*` topics. One delivery to one recipient, identified by both Commune's ids and the provider's message id, so a consumer can reconcile with its own provider logs.
-      required:
-      - delivery_id
-      - article_id
-      - send_id
-      - subscriber_id
-      - email
-      - status
-      properties:
-        delivery_id:
-          type: string
-          format: uuid
-          description: Commune's identifier for this delivery.
-        article_id:
-          type: string
-          format: uuid
-        send_id:
-          type: string
-          format: uuid
-          description: The send run this delivery belonged to.
-        subscriber_id:
-          type: string
-          format: uuid
-        email:
-          type: string
-          format: email
-          description: The address as it was at send time. Snapshotted onto the delivery row, so it does not follow a later change to the subscriber.
-        provider_message_id:
-          type:
-          - string
-          - 'null'
-          description: The email provider's id for this message, the correlator the inbound webhook matched on. Null only if the row was written without one.
-        status:
-          type: string
-          enum:
-          - queued
-          - sent
-          - delivered
-          - opened
-          - clicked
-          - bounced
-          - complained
-          - failed
-          description: 'The delivery row''s status after this event was applied. Because the state machine is forward-only, it is not always the event''s own name: an open recorded after a click leaves the row on `clicked`.'
-    SubscriberStatusChangedEvent:
-      title: Subscriber insight status changed
-      description: A reader crossed a boundary in the newsletter's engagement ladder.
-      allOf:
-      - $ref: '#/components/schemas/EventEnvelope'
-      - type: object
-        properties:
-          type:
-            const: subscriber.status_changed
-          data:
-            $ref: '#/components/schemas/SubscriberStatusChangedData'
   parameters:
-    WebhookDeliveryAttempt:
-      name: Commune-Delivery-Attempt
-      in: header
-      required: false
-      description: '1 on the first attempt, incremented on each retry. **Not sent today**: do not rely on it, and be idempotent regardless. The same number is readable after the fact as `attempt` on a `DeliveryAttempt`, so a consumer that needs to tell a retry from a first delivery can ask instead of being told.'
-      schema:
-        type: integer
-        minimum: 1
-    WebhookVersion:
-      name: Commune-Version
-      in: header
-      required: true
-      description: API version the payload conforms to. Same value as `api_version` in the envelope.
-      schema:
-        type: string
-        examples:
-        - '2026-08-26'
-    WebhookSignature:
-      name: Commune-Signature
-      in: header
-      required: true
-      description: HMAC-SHA256 over `Commune-Timestamp` as Unix seconds, a literal `.`, then the raw request body, keyed by the endpoint's signing secret. Lowercase hex, carried as `v0=` followed by one or more comma separated digests (more than one while a secret is being rotated). The header's timestamp is an RFC 3339 instant, so convert it to Unix seconds before signing. Verify against the raw bytes before parsing the JSON. The webhooks guide has the full procedure.
-      schema:
-        type: string
-        examples:
-        - v0=8501d20988a42e76a6f63c4aaabbca745b9ad6333c254c1665b970a7e3c39541
     WebhookEventId:
       name: Commune-Event-Id
       in: header
@@ -3584,6 +3448,13 @@ components:
       schema:
         type: string
         format: uuid
+    WebhookEventType:
+      name: Commune-Event-Type
+      in: header
+      required: true
+      description: Same value as `type` in the envelope. The topic name.
+      schema:
+        type: string
     WebhookTimestamp:
       name: Commune-Timestamp
       in: header
@@ -3594,13 +3465,32 @@ components:
         format: date-time
         examples:
         - '2026-08-26T09:32:14Z'
-    WebhookEventType:
-      name: Commune-Event-Type
+    WebhookSignature:
+      name: Commune-Signature
       in: header
       required: true
-      description: Same value as `type` in the envelope. The topic name.
+      description: HMAC-SHA256 over `Commune-Timestamp` as Unix seconds, a literal `.`, then the raw request body, keyed by the endpoint's signing secret. Lowercase hex, carried as `v0=` followed by one or more comma separated digests (more than one while a secret is being rotated). The header's timestamp is an RFC 3339 instant, so convert it to Unix seconds before signing. Verify against the raw bytes before parsing the JSON. The webhooks guide has the full procedure.
       schema:
         type: string
+        examples:
+        - v0=8501d20988a42e76a6f63c4aaabbca745b9ad6333c254c1665b970a7e3c39541
+    WebhookVersion:
+      name: Commune-Version
+      in: header
+      required: true
+      description: API version the payload conforms to. Same value as `api_version` in the envelope.
+      schema:
+        type: string
+        examples:
+        - '2026-08-26'
+    WebhookDeliveryAttempt:
+      name: Commune-Delivery-Attempt
+      in: header
+      required: false
+      description: '1 on the first attempt, incremented on each retry. **Not sent today**: do not rely on it, and be idempotent regardless. The same number is readable after the fact as `attempt` on a `DeliveryAttempt`, so a consumer that needs to tell a retry from a first delivery can ask instead of being told.'
+      schema:
+        type: integer
+        minimum: 1
   securitySchemes:
     oauth2:
       type: oauth2
@@ -3675,9 +3565,6 @@ components:
         may do is what it was granted.
 
         '
-x-refined-from:
-- usecommune-openapi.json
-- usecommune-openapi.yml
 x-deferred:
 - resource: user_newsletters
   scope: partner

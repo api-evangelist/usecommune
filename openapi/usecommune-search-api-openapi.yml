@@ -1,12 +1,17 @@
 openapi: 3.2.0
 info:
-  title: Usecommune Search API
+  title: Commune Search API
   version: '2026-08-26'
+  summary: Newsletters, articles, threads and the people around them.
+  description: 'The Commune API exposes a Commune community: newsletters, the articles they
+
+    publish, the chat threads those articles start, and the people who write
+
+    and read them.'
   contact:
     name: Commune
     url: https://usecommune.com
     email: support@usecommune.com
-  description: 'Operations tagged Search across 2 of this provider''s published API definitions: usecommune-openapi.json, usecommune-openapi.yml. Each path carries the servers of the definition it was published in.'
 servers:
 - url: https://api.usecommune.com
   description: 'Production. There is no separate sandbox host.
@@ -150,160 +155,230 @@ paths:
           $ref: '#/components/responses/RateLimited'
         '500':
           $ref: '#/components/responses/InternalError'
-    servers:
-    - url: https://api.usecommune.com
-      description: 'Production. There is no separate sandbox host.
-
-        '
 components:
   schemas:
-    Error:
+    SearchResultType:
+      type: string
+      title: SearchResultType
+      description: 'What a search result points at. There is no post or comment kind: a
+
+        discussion result is a `thread` or a `message`.
+
+        '
+      enum:
+      - newsletter
+      - article
+      - thread
+      - message
+    ArticleStatus:
+      type: string
+      title: ArticleStatus
+      description: 'Where an article is in its life. A credential holding only `read`
+
+        permissions ever sees `sent` and nothing else. An imported article is
+
+        always `sent`, since Commune sees it after the provider delivered it.
+
+        '
+      enum:
+      - draft
+      - scheduled
+      - sending
+      - sent
+      - failed
+      - archived
+    Pagination:
       type: object
-      title: Error
-      description: 'The error envelope. Every non `2xx` response from every operation has
+      title: Pagination
+      description: 'Cursor pagination state. Commune never exposes an offset or a page
 
-        this shape, so a client can branch on `error.code` without knowing which
+        number: a collection is a moving window, and an offset silently skips or
 
-        operation produced it.
+        repeats items when the window shifts between two requests.
 
         '
       additionalProperties: false
       required:
-      - error
+      - has_more
+      - next_cursor
       properties:
-        error:
-          type: object
-          additionalProperties: false
-          required:
-          - code
-          - message
-          properties:
-            code:
-              $ref: '#/components/schemas/ErrorCode'
-            message:
-              type: string
-              description: 'A human readable sentence describing what went wrong. Written
-
-                for a developer reading a log, not for an end user. Do not
-
-                branch on it, branch on `code`.
-
-                '
-              examples:
-              - Newsletter not found.
-            param:
-              type: string
-              description: 'The query, path or body parameter the error is attributed to,
-
-                when the error is attributable to exactly one. Absent otherwise.
-
-                '
-              examples:
-              - cursor
-            allowed_values:
-              type: array
-              description: 'Everything `param` would have accepted, when what it accepts is
-
-                a finite set. Absent when it is not: a cursor, an identifier or
-
-                a numeric range has nothing to enumerate, and an empty array
-
-                would read as "nothing is allowed".
-
-
-                It repeats what `message` says in prose, so a caller can correct
-
-                a request from this one response: the array is what a program
-
-                branches on, the sentence is what a person or a model reads.
-
-
-                On an unknown parameter name rather than an unknown value, this
-
-                carries the parameter names the operation does accept, since
-
-                that is the set the caller has to pick from.
-
-
-                On an `insufficient_scope` failure there is usually no
-
-                parameter at fault and `param` is absent, and this carries the
-
-                one permission that was needed, written the way the permission
-
-                table writes it, such as `content: read`. The exception is a
-
-                credential that may call the operation but not with one value
-
-                of a parameter, such as `?expand=subscriber` on
-
-                `listNewsletterInsights` without `audience: read`: then `param`
-
-                names the parameter and this carries the values this credential
-
-                may send instead.
-
-                '
-              items:
-                type: string
-              examples:
-              - - subscribed
-                - unsubscribed
-                - bounced
-                - complained
-                - pending
-            request_id:
-              type: string
-              description: 'Identifier for this request, echoed in the `Commune-Request-Id`
-
-                response header. Quote it in support requests.
-
-                '
-              examples:
-              - req_01j9c8h1q7m3n4p5r6s7t8u9v0
-            docs_url:
-              type: string
-              format: uri
-              description: 'Link to the documentation for this error code: always
-
-                `https://usecommune.dev/errors/` followed by the code, a page
-
-                on what the code means, what usually causes it and how to fix
-
-                it.
-
-                '
-              examples:
-              - https://usecommune.dev/errors/not_found
-    Media:
-      type: object
-      title: Media
-      description: An image or file attached to a thread or a message.
-      additionalProperties: false
-      required:
-      - url
-      properties:
-        url:
-          type: string
-          format: uri
-          description: Where the attachment is served from.
-        type:
-          type:
-          - string
-          - 'null'
-          description: 'The attachment''s media type when Commune recorded one, for example
-
-            `image/png`. Null for an attachment old enough that none was
-
-            recorded.
+        has_more:
+          type: boolean
+          description: 'Whether another page exists. When `false`, `next_cursor` is `null`.
 
             '
-        thumbnail:
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: 'Pass this back as `?cursor=` to read the next page. `null` on the
+
+            last page. Opaque, and valid only for the same operation with the
+
+            same filters.
+
+            '
+          examples:
+          - Y3Vyc29yOjE3NTY0MjM2MDAwMDA6MDE5MmM4
+    ArticleStats:
+      type: object
+      title: ArticleStats
+      description: 'Engagement counts for an article, computed at read time. These are
+
+        Commune side counts, not provider side email metrics: opens, clicks and
+
+        deliveries are not here.
+
+        '
+      additionalProperties: false
+      required:
+      - likes
+      - comments
+      - highlights
+      properties:
+        likes:
+          type: integer
+          minimum: 0
+          description: How many people liked the article.
+        comments:
+          type: integer
+          minimum: 0
+          description: 'Replies in the article''s chat thread. Commune has no separate
+
+            comments store: an article''s discussion is a thread like any other,
+
+            so this counts the undeleted replies hanging off it. `0` when the
+
+            article has no thread.
+
+            '
+        highlights:
+          type: integer
+          minimum: 0
+          description: How many passages readers highlighted.
+    SocialLinks:
+      type: object
+      title: SocialLinks
+      description: 'The creator''s other homes on the internet, stored as canonical profile
+
+        URLs. Every key is optional and a newsletter that set none returns an
+
+        empty object.
+
+        '
+      additionalProperties: false
+      properties:
+        twitter:
+          type: string
+          format: uri
+          description: X or Twitter profile URL.
+        bluesky:
+          type: string
+          format: uri
+          description: Bluesky profile URL.
+        linkedin:
+          type: string
+          format: uri
+          description: LinkedIn profile URL.
+        mastodon:
+          type: string
+          format: uri
+          description: Mastodon profile URL, including the instance host.
+        youtube:
+          type: string
+          format: uri
+          description: YouTube channel URL.
+        instagram:
+          type: string
+          format: uri
+          description: Instagram profile URL.
+        threads:
+          type: string
+          format: uri
+          description: Threads profile URL.
+        github:
+          type: string
+          format: uri
+          description: GitHub profile URL.
+    User:
+      type: object
+      title: User
+      description: 'A person''s public profile, and the whole of what this API returns about
+
+        anybody other than the credential''s own owner. Email address, theme,
+
+        notification preferences, push subscriptions, read state and saved
+
+        articles are never carried.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - id
+      properties:
+        object:
+          type: string
+          const: user
+          description: Always `user`.
+        id:
+          type: string
+          description: Stable identifier.
+        username:
+          type:
+          - string
+          - 'null'
+          description: 'The unique handle the profile resolves on at `/@{username}`. Null
+
+            for an account that has not finished signing up.
+
+            '
+        display_name:
+          type:
+          - string
+          - 'null'
+          description: The name shown next to their messages and bylines.
+        avatar:
           type:
           - string
           - 'null'
           format: uri
-          description: A smaller rendition, when one was generated.
+          description: 'Profile picture. Commune falls back to a generated avatar when the
+
+            person never set one, so this is rarely null in practice.
+
+            '
+    Ref:
+      type: object
+      title: Ref
+      description: 'An unexpanded relationship. Ask for the relationship in `?expand=` to
+
+        get the full object in its place.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - id
+      properties:
+        object:
+          type: string
+          description: The type of the referenced resource.
+          examples:
+          - newsletter
+        id:
+          type: string
+          description: 'The referenced resource''s `id`, in whatever form that resource''s own
+
+            schema declares. Most are UUIDs; a `Ref` whose `object` is `user`
+
+            carries an account identifier, which is an opaque string and not a
+
+            UUID. Compare it for equality and pass it back; do not parse it.
+
+            '
+          examples:
+          - 9a4c1c6e-0f2b-4f47-9d3f-6d1b1a2c3d4e
     Message:
       type: object
       title: Message
@@ -454,6 +529,463 @@ components:
             '
           items:
             $ref: '#/components/schemas/Reaction'
+    Media:
+      type: object
+      title: Media
+      description: An image or file attached to a thread or a message.
+      additionalProperties: false
+      required:
+      - url
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Where the attachment is served from.
+        type:
+          type:
+          - string
+          - 'null'
+          description: 'The attachment''s media type when Commune recorded one, for example
+
+            `image/png`. Null for an attachment old enough that none was
+
+            recorded.
+
+            '
+        thumbnail:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: A smaller rendition, when one was generated.
+    Thread:
+      type: object
+      title: Thread
+      description: 'A conversation in a newsletter''s community, together with the message
+
+        that opened it. Its replies are a separate collection.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - id
+      - newsletter
+      - content
+      - visibility
+      - is_article_thread
+      - created_at
+      - last_activity_at
+      properties:
+        object:
+          type: string
+          const: thread
+          description: Always `thread`.
+        id:
+          type: string
+          format: uuid
+          description: Stable identifier.
+        short_id:
+          type:
+          - string
+          - 'null'
+          description: 'Eight character base62 identifier used by the thread''s own URL at
+
+            `/n/{handle}/chat/{short_id}`. Null for a thread Commune opened
+
+            under an article, which is reached through the article instead.
+
+            '
+        newsletter:
+          description: 'The community this thread lives in. A `Ref` unless `newsletter` is
+
+            named in `?expand=`.
+
+            '
+          oneOf:
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/Newsletter'
+        author:
+          description: 'Who opened the thread. A `Ref` unless `author` is named in
+
+            `?expand=`.
+
+            '
+          anyOf:
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/User'
+        content:
+          type: string
+          description: 'The opening message. HTML, since people format what they write.
+
+            Treat it as untrusted markup and render it in a sandboxed context.
+
+            '
+        media:
+          type: array
+          description: Attachments on the opening message.
+          items:
+            $ref: '#/components/schemas/Media'
+        visibility:
+          $ref: '#/components/schemas/ThreadVisibility'
+        is_article_thread:
+          type: boolean
+          description: '`true` when Commune opened this thread under an article rather than
+
+            a person starting it. These are kept off the global feed, because
+
+            the article card already represents the conversation there.
+
+            '
+        article:
+          description: 'The article that opened this thread, when `is_article_thread` is
+
+            `true`. `null` otherwise. A `Ref` unless `article` is named in
+
+            `?expand=`.
+
+            '
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/Article'
+        reply_count:
+          type: integer
+          minimum: 0
+          description: Undeleted replies in the thread, at any depth.
+        view_count:
+          type: integer
+          minimum: 0
+          description: How many times the thread was opened.
+        created_at:
+          type: string
+          format: date-time
+          description: When the thread was opened.
+        updated_at:
+          type: string
+          format: date-time
+          description: When the thread row last changed for any reason.
+        edited_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: 'When the author last edited the opening message. Null when it was
+
+            never edited, which is what drives the edited marker in the product.
+
+            '
+        last_activity_at:
+          type: string
+          format: date-time
+          description: 'When the thread last received a reply, or when it was opened if it
+
+            never did. This is the sort key for the thread list.
+
+            '
+    Error:
+      type: object
+      title: Error
+      description: 'The error envelope. Every non `2xx` response from every operation has
+
+        this shape, so a client can branch on `error.code` without knowing which
+
+        operation produced it.
+
+        '
+      additionalProperties: false
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required:
+          - code
+          - message
+          properties:
+            code:
+              $ref: '#/components/schemas/ErrorCode'
+            message:
+              type: string
+              description: 'A human readable sentence describing what went wrong. Written
+
+                for a developer reading a log, not for an end user. Do not
+
+                branch on it, branch on `code`.
+
+                '
+              examples:
+              - Newsletter not found.
+            param:
+              type: string
+              description: 'The query, path or body parameter the error is attributed to,
+
+                when the error is attributable to exactly one. Absent otherwise.
+
+                '
+              examples:
+              - cursor
+            allowed_values:
+              type: array
+              description: 'Everything `param` would have accepted, when what it accepts is
+
+                a finite set. Absent when it is not: a cursor, an identifier or
+
+                a numeric range has nothing to enumerate, and an empty array
+
+                would read as "nothing is allowed".
+
+
+                It repeats what `message` says in prose, so a caller can correct
+
+                a request from this one response: the array is what a program
+
+                branches on, the sentence is what a person or a model reads.
+
+
+                On an unknown parameter name rather than an unknown value, this
+
+                carries the parameter names the operation does accept, since
+
+                that is the set the caller has to pick from.
+
+
+                On an `insufficient_scope` failure there is usually no
+
+                parameter at fault and `param` is absent, and this carries the
+
+                one permission that was needed, written the way the permission
+
+                table writes it, such as `content: read`. The exception is a
+
+                credential that may call the operation but not with one value
+
+                of a parameter, such as `?expand=subscriber` on
+
+                `listNewsletterInsights` without `audience: read`: then `param`
+
+                names the parameter and this carries the values this credential
+
+                may send instead.
+
+                '
+              items:
+                type: string
+              examples:
+              - - subscribed
+                - unsubscribed
+                - bounced
+                - complained
+                - pending
+            request_id:
+              type: string
+              description: 'Identifier for this request, echoed in the `Commune-Request-Id`
+
+                response header. Quote it in support requests.
+
+                '
+              examples:
+              - req_01j9c8h1q7m3n4p5r6s7t8u9v0
+            docs_url:
+              type: string
+              format: uri
+              description: 'Link to the documentation for this error code: always
+
+                `https://usecommune.dev/errors/` followed by the code, a page
+
+                on what the code means, what usually causes it and how to fix
+
+                it.
+
+                '
+              examples:
+              - https://usecommune.dev/errors/not_found
+    Esp:
+      type: string
+      title: Esp
+      description: 'Where a newsletter is published from. `commune` means Commune itself
+
+        sends the email. Every other value is an email service provider whose
+
+        posts Commune imports. `rss` covers any feed that is not one of the
+
+        named providers.
+
+        '
+      enum:
+      - commune
+      - beehiiv
+      - buttondown
+      - ghost
+      - kit
+      - mailchimp
+      - mailerlite
+      - rss
+      - substack
+    Highlight:
+      type: object
+      title: Highlight
+      description: 'A passage of an article a reader marked. Highlights are the anchor for
+
+        an inline comment, which is why one can carry a link to the message it
+
+        started.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - id
+      - article
+      - quote
+      - start_offset
+      - end_offset
+      - owner_key
+      - created_at
+      properties:
+        object:
+          type: string
+          const: highlight
+          description: Always `highlight`.
+        id:
+          type: string
+          format: uuid
+          description: Stable identifier.
+        article:
+          description: 'The article the passage is in. A `Ref` unless `article` is named in
+
+            `?expand=`.
+
+            '
+          oneOf:
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/Article'
+        quote:
+          type: string
+          maxLength: 5000
+          description: The marked text itself, as plain text.
+        prefix:
+          type: string
+          description: 'Up to two hundred characters of the text immediately before the
+
+            quote. Together with `suffix` this re anchors the highlight when the
+
+            body changed and the offsets no longer line up.
+
+            '
+        suffix:
+          type: string
+          description: Up to two hundred characters of the text immediately after the quote.
+        start_offset:
+          type: integer
+          minimum: 0
+          description: 'Where the passage starts, as a character offset into the article''s
+
+            plain text. Always less than `end_offset`.
+
+            '
+        end_offset:
+          type: integer
+          minimum: 1
+          description: Where the passage ends, as a character offset into the plain text.
+        owner_key:
+          type: string
+          description: 'An opaque, stable per highlighter value, scoped to this one article.
+
+            Group by it to tell one reader''s marks apart from another''s, and
+
+            count distinct values for a distinct highlighter count. It cannot be
+
+            resolved to a person and does not correlate across articles: Commune
+
+            does not attribute a highlight to a named reader.
+
+            '
+          examples:
+          - 4f2a9c1e7b3d6a05
+        message:
+          description: 'The chat message the reader wrote from this passage, when they wrote
+
+            one. `null` otherwise. A `Ref` unless `message` is named in
+
+            `?expand=`.
+
+            '
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/Message'
+        created_at:
+          type: string
+          format: date-time
+          description: When the passage was marked.
+    SearchResult:
+      type: object
+      title: SearchResult
+      description: 'One hit. It always carries enough to render a row without a second
+
+        request, and points at the full resource through `resource`.
+
+        '
+      additionalProperties: false
+      required:
+      - object
+      - type
+      - resource
+      properties:
+        object:
+          type: string
+          const: search_result
+          description: Always `search_result`.
+        type:
+          $ref: '#/components/schemas/SearchResultType'
+        title:
+          type:
+          - string
+          - 'null'
+          description: 'The heading for the row: a newsletter''s name, an article''s title, a
+
+            person''s display name. Null for a chat hit, which has no title.
+
+            '
+        snippet:
+          type:
+          - string
+          - 'null'
+          description: 'A fragment of the matching text with the query terms in it, as plain
+
+            text. Null when the match was on the title alone.
+
+            '
+        url:
+          type: string
+          format: uri
+          description: Where the hit lives on the web.
+        score:
+          type: number
+          minimum: 0
+          description: 'How well the hit matched, higher being better. Results come back
+
+            ordered by it, so use it to compare hits within one response and to
+
+            draw a relevance cutoff. It is not comparable across queries or
+
+            across contract versions, and the scale is undefined.
+
+            '
+        resource:
+          description: 'The object itself. A `Ref` unless `resource` is named in `?expand=`,
+
+            in which case it is the full object of the kind named by `type`.
+
+            '
+          anyOf:
+          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/Newsletter'
+          - $ref: '#/components/schemas/Article'
+          - $ref: '#/components/schemas/Thread'
+          - $ref: '#/components/schemas/Message'
     Article:
       type: object
       title: Article
@@ -620,109 +1152,6 @@ components:
           type: string
           format: date-time
           description: When the article was last edited.
-    User:
-      type: object
-      title: User
-      description: 'A person''s public profile, and the whole of what this API returns about
-
-        anybody other than the credential''s own owner. Email address, theme,
-
-        notification preferences, push subscriptions, read state and saved
-
-        articles are never carried.
-
-        '
-      additionalProperties: false
-      required:
-      - object
-      - id
-      properties:
-        object:
-          type: string
-          const: user
-          description: Always `user`.
-        id:
-          type: string
-          description: Stable identifier.
-        username:
-          type:
-          - string
-          - 'null'
-          description: 'The unique handle the profile resolves on at `/@{username}`. Null
-
-            for an account that has not finished signing up.
-
-            '
-        display_name:
-          type:
-          - string
-          - 'null'
-          description: The name shown next to their messages and bylines.
-        avatar:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: 'Profile picture. Commune falls back to a generated avatar when the
-
-            person never set one, so this is rarely null in practice.
-
-            '
-    Esp:
-      type: string
-      title: Esp
-      description: 'Where a newsletter is published from. `commune` means Commune itself
-
-        sends the email. Every other value is an email service provider whose
-
-        posts Commune imports. `rss` covers any feed that is not one of the
-
-        named providers.
-
-        '
-      enum:
-      - commune
-      - beehiiv
-      - buttondown
-      - ghost
-      - kit
-      - mailchimp
-      - mailerlite
-      - rss
-      - substack
-    Pagination:
-      type: object
-      title: Pagination
-      description: 'Cursor pagination state. Commune never exposes an offset or a page
-
-        number: a collection is a moving window, and an offset silently skips or
-
-        repeats items when the window shifts between two requests.
-
-        '
-      additionalProperties: false
-      required:
-      - has_more
-      - next_cursor
-      properties:
-        has_more:
-          type: boolean
-          description: 'Whether another page exists. When `false`, `next_cursor` is `null`.
-
-            '
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: 'Pass this back as `?cursor=` to read the next page. `null` on the
-
-            last page. Opaque, and valid only for the same operation with the
-
-            same filters.
-
-            '
-          examples:
-          - Y3Vyc29yOjE3NTY0MjM2MDAwMDA6MDE5MmM4
     Newsletter:
       type: object
       title: Newsletter
@@ -847,352 +1276,48 @@ components:
           type: string
           format: date-time
           description: When the profile last changed.
-    Thread:
-      type: object
-      title: Thread
-      description: 'A conversation in a newsletter''s community, together with the message
-
-        that opened it. Its replies are a separate collection.
-
-        '
-      additionalProperties: false
-      required:
-      - object
-      - id
-      - newsletter
-      - content
-      - visibility
-      - is_article_thread
-      - created_at
-      - last_activity_at
-      properties:
-        object:
-          type: string
-          const: thread
-          description: Always `thread`.
-        id:
-          type: string
-          format: uuid
-          description: Stable identifier.
-        short_id:
-          type:
-          - string
-          - 'null'
-          description: 'Eight character base62 identifier used by the thread''s own URL at
-
-            `/n/{handle}/chat/{short_id}`. Null for a thread Commune opened
-
-            under an article, which is reached through the article instead.
-
-            '
-        newsletter:
-          description: 'The community this thread lives in. A `Ref` unless `newsletter` is
-
-            named in `?expand=`.
-
-            '
-          oneOf:
-          - $ref: '#/components/schemas/Ref'
-          - $ref: '#/components/schemas/Newsletter'
-        author:
-          description: 'Who opened the thread. A `Ref` unless `author` is named in
-
-            `?expand=`.
-
-            '
-          anyOf:
-          - $ref: '#/components/schemas/Ref'
-          - $ref: '#/components/schemas/User'
-        content:
-          type: string
-          description: 'The opening message. HTML, since people format what they write.
-
-            Treat it as untrusted markup and render it in a sandboxed context.
-
-            '
-        media:
-          type: array
-          description: Attachments on the opening message.
-          items:
-            $ref: '#/components/schemas/Media'
-        visibility:
-          $ref: '#/components/schemas/ThreadVisibility'
-        is_article_thread:
-          type: boolean
-          description: '`true` when Commune opened this thread under an article rather than
-
-            a person starting it. These are kept off the global feed, because
-
-            the article card already represents the conversation there.
-
-            '
-        article:
-          description: 'The article that opened this thread, when `is_article_thread` is
-
-            `true`. `null` otherwise. A `Ref` unless `article` is named in
-
-            `?expand=`.
-
-            '
-          oneOf:
-          - type: 'null'
-          - $ref: '#/components/schemas/Ref'
-          - $ref: '#/components/schemas/Article'
-        reply_count:
-          type: integer
-          minimum: 0
-          description: Undeleted replies in the thread, at any depth.
-        view_count:
-          type: integer
-          minimum: 0
-          description: How many times the thread was opened.
-        created_at:
-          type: string
-          format: date-time
-          description: When the thread was opened.
-        updated_at:
-          type: string
-          format: date-time
-          description: When the thread row last changed for any reason.
-        edited_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: 'When the author last edited the opening message. Null when it was
-
-            never edited, which is what drives the edited marker in the product.
-
-            '
-        last_activity_at:
-          type: string
-          format: date-time
-          description: 'When the thread last received a reply, or when it was opened if it
-
-            never did. This is the sort key for the thread list.
-
-            '
-    SearchResultType:
+    ThreadVisibility:
       type: string
-      title: SearchResultType
-      description: 'What a search result points at. There is no post or comment kind: a
+      title: ThreadVisibility
+      description: 'Where a thread is placed. `public` puts it on the global Commune feed
 
-        discussion result is a `thread` or a `message`.
+        and makes it readable by anyone. `subscribers` keeps it inside the
+
+        newsletter. `paid` narrows it further to the paying part of the
+
+        audience. Set and changed by the newsletter''s team.
 
         '
       enum:
-      - newsletter
-      - article
-      - thread
-      - message
-    Ref:
+      - public
+      - subscribers
+      - paid
+    ListEnvelope:
       type: object
-      title: Ref
-      description: 'An unexpanded relationship. Ask for the relationship in `?expand=` to
+      title: ListEnvelope
+      description: 'The envelope every collection is returned in. `data` holds the page,
 
-        get the full object in its place.
+        `pagination` holds the cursor state.
+
+
+        `data` is required here and typed by each list operation, as an array
+
+        of the one thing that operation returns, so the item type is stated on
+
+        the page you are reading.
 
         '
-      additionalProperties: false
       required:
       - object
-      - id
+      - data
+      - pagination
       properties:
         object:
           type: string
-          description: The type of the referenced resource.
-          examples:
-          - newsletter
-        id:
-          type: string
-          description: 'The referenced resource''s `id`, in whatever form that resource''s own
-
-            schema declares. Most are UUIDs; a `Ref` whose `object` is `user`
-
-            carries an account identifier, which is an opaque string and not a
-
-            UUID. Compare it for equality and pass it back; do not parse it.
-
-            '
-          examples:
-          - 9a4c1c6e-0f2b-4f47-9d3f-6d1b1a2c3d4e
-    SocialLinks:
-      type: object
-      title: SocialLinks
-      description: 'The creator''s other homes on the internet, stored as canonical profile
-
-        URLs. Every key is optional and a newsletter that set none returns an
-
-        empty object.
-
-        '
-      additionalProperties: false
-      properties:
-        twitter:
-          type: string
-          format: uri
-          description: X or Twitter profile URL.
-        bluesky:
-          type: string
-          format: uri
-          description: Bluesky profile URL.
-        linkedin:
-          type: string
-          format: uri
-          description: LinkedIn profile URL.
-        mastodon:
-          type: string
-          format: uri
-          description: Mastodon profile URL, including the instance host.
-        youtube:
-          type: string
-          format: uri
-          description: YouTube channel URL.
-        instagram:
-          type: string
-          format: uri
-          description: Instagram profile URL.
-        threads:
-          type: string
-          format: uri
-          description: Threads profile URL.
-        github:
-          type: string
-          format: uri
-          description: GitHub profile URL.
-    Highlight:
-      type: object
-      title: Highlight
-      description: 'A passage of an article a reader marked. Highlights are the anchor for
-
-        an inline comment, which is why one can carry a link to the message it
-
-        started.
-
-        '
-      additionalProperties: false
-      required:
-      - object
-      - id
-      - article
-      - quote
-      - start_offset
-      - end_offset
-      - owner_key
-      - created_at
-      properties:
-        object:
-          type: string
-          const: highlight
-          description: Always `highlight`.
-        id:
-          type: string
-          format: uuid
-          description: Stable identifier.
-        article:
-          description: 'The article the passage is in. A `Ref` unless `article` is named in
-
-            `?expand=`.
-
-            '
-          oneOf:
-          - $ref: '#/components/schemas/Ref'
-          - $ref: '#/components/schemas/Article'
-        quote:
-          type: string
-          maxLength: 5000
-          description: The marked text itself, as plain text.
-        prefix:
-          type: string
-          description: 'Up to two hundred characters of the text immediately before the
-
-            quote. Together with `suffix` this re anchors the highlight when the
-
-            body changed and the offsets no longer line up.
-
-            '
-        suffix:
-          type: string
-          description: Up to two hundred characters of the text immediately after the quote.
-        start_offset:
-          type: integer
-          minimum: 0
-          description: 'Where the passage starts, as a character offset into the article''s
-
-            plain text. Always less than `end_offset`.
-
-            '
-        end_offset:
-          type: integer
-          minimum: 1
-          description: Where the passage ends, as a character offset into the plain text.
-        owner_key:
-          type: string
-          description: 'An opaque, stable per highlighter value, scoped to this one article.
-
-            Group by it to tell one reader''s marks apart from another''s, and
-
-            count distinct values for a distinct highlighter count. It cannot be
-
-            resolved to a person and does not correlate across articles: Commune
-
-            does not attribute a highlight to a named reader.
-
-            '
-          examples:
-          - 4f2a9c1e7b3d6a05
-        message:
-          description: 'The chat message the reader wrote from this passage, when they wrote
-
-            one. `null` otherwise. A `Ref` unless `message` is named in
-
-            `?expand=`.
-
-            '
-          oneOf:
-          - type: 'null'
-          - $ref: '#/components/schemas/Ref'
-          - $ref: '#/components/schemas/Message'
-        created_at:
-          type: string
-          format: date-time
-          description: When the passage was marked.
-    ArticleStats:
-      type: object
-      title: ArticleStats
-      description: 'Engagement counts for an article, computed at read time. These are
-
-        Commune side counts, not provider side email metrics: opens, clicks and
-
-        deliveries are not here.
-
-        '
-      additionalProperties: false
-      required:
-      - likes
-      - comments
-      - highlights
-      properties:
-        likes:
-          type: integer
-          minimum: 0
-          description: How many people liked the article.
-        comments:
-          type: integer
-          minimum: 0
-          description: 'Replies in the article''s chat thread. Commune has no separate
-
-            comments store: an article''s discussion is a thread like any other,
-
-            so this counts the undeleted replies hanging off it. `0` when the
-
-            article has no thread.
-
-            '
-        highlights:
-          type: integer
-          minimum: 0
-          description: How many passages readers highlighted.
+          const: list
+          description: Always `list`, so a response is self describing.
+        pagination:
+          $ref: '#/components/schemas/Pagination'
     ErrorCode:
       type: string
       title: ErrorCode
@@ -1236,22 +1361,6 @@ components:
       - rate_limited
       - internal_error
       - service_unavailable
-    ThreadVisibility:
-      type: string
-      title: ThreadVisibility
-      description: 'Where a thread is placed. `public` puts it on the global Commune feed
-
-        and makes it readable by anyone. `subscribers` keeps it inside the
-
-        newsletter. `paid` narrows it further to the paying part of the
-
-        audience. Set and changed by the newsletter''s team.
-
-        '
-      enum:
-      - public
-      - subscribers
-      - paid
     Reaction:
       type: object
       title: Reaction
@@ -1281,132 +1390,28 @@ components:
             '
           items:
             $ref: '#/components/schemas/Ref'
-    SearchResult:
-      type: object
-      title: SearchResult
-      description: 'One hit. It always carries enough to render a row without a second
-
-        request, and points at the full resource through `resource`.
-
-        '
-      additionalProperties: false
-      required:
-      - object
-      - type
-      - resource
-      properties:
-        object:
-          type: string
-          const: search_result
-          description: Always `search_result`.
-        type:
-          $ref: '#/components/schemas/SearchResultType'
-        title:
-          type:
-          - string
-          - 'null'
-          description: 'The heading for the row: a newsletter''s name, an article''s title, a
-
-            person''s display name. Null for a chat hit, which has no title.
-
-            '
-        snippet:
-          type:
-          - string
-          - 'null'
-          description: 'A fragment of the matching text with the query terms in it, as plain
-
-            text. Null when the match was on the title alone.
-
-            '
-        url:
-          type: string
-          format: uri
-          description: Where the hit lives on the web.
-        score:
-          type: number
-          minimum: 0
-          description: 'How well the hit matched, higher being better. Results come back
-
-            ordered by it, so use it to compare hits within one response and to
-
-            draw a relevance cutoff. It is not comparable across queries or
-
-            across contract versions, and the scale is undefined.
-
-            '
-        resource:
-          description: 'The object itself. A `Ref` unless `resource` is named in `?expand=`,
-
-            in which case it is the full object of the kind named by `type`.
-
-            '
-          anyOf:
-          - $ref: '#/components/schemas/Ref'
-          - $ref: '#/components/schemas/Newsletter'
-          - $ref: '#/components/schemas/Article'
-          - $ref: '#/components/schemas/Thread'
-          - $ref: '#/components/schemas/Message'
-    ListEnvelope:
-      type: object
-      title: ListEnvelope
-      description: 'The envelope every collection is returned in. `data` holds the page,
-
-        `pagination` holds the cursor state.
-
-
-        `data` is required here and typed by each list operation, as an array
-
-        of the one thing that operation returns, so the item type is stated on
-
-        the page you are reading.
-
-        '
-      required:
-      - object
-      - data
-      - pagination
-      properties:
-        object:
-          type: string
-          const: list
-          description: Always `list`, so a response is self describing.
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-    ArticleStatus:
-      type: string
-      title: ArticleStatus
-      description: 'Where an article is in its life. A credential holding only `read`
-
-        permissions ever sees `sent` and nothing else. An imported article is
-
-        always `sent`, since Commune sees it after the provider delivered it.
-
-        '
-      enum:
-      - draft
-      - scheduled
-      - sending
-      - sent
-      - failed
-      - archived
   parameters:
-    Limit:
-      name: limit
+    Fields:
+      name: fields
       in: query
       required: false
-      description: 'How many items to return in this page. This is a page size, not an
+      description: 'Comma-separated allow-list of top level properties to return on each
 
-        offset. Fewer items than requested may come back and that does not mean
+        object, so a client can trim a response it does not need in full. `id`
 
-        the collection is exhausted, only an absent `next_cursor` does.
+        and `object` are always returned. An unknown property name answers
+
+        `400`. Properties omitted by an operation, such as `content` on any
+
+        article list, cannot be brought back with `fields`.
 
         '
       schema:
-        type: integer
-        minimum: 1
-        maximum: 100
-        default: 20
+        type: string
+      examples:
+        trimmed:
+          summary: Only the fields a link list needs
+          value: title,slug,posted_at
     Expand:
       name: expand
       in: query
@@ -1434,41 +1439,6 @@ components:
         secondRendition:
           summary: Add the Markdown rendition of an article body
           value: content
-    Fields:
-      name: fields
-      in: query
-      required: false
-      description: 'Comma-separated allow-list of top level properties to return on each
-
-        object, so a client can trim a response it does not need in full. `id`
-
-        and `object` are always returned. An unknown property name answers
-
-        `400`. Properties omitted by an operation, such as `content` on any
-
-        article list, cannot be brought back with `fields`.
-
-        '
-      schema:
-        type: string
-      examples:
-        trimmed:
-          summary: Only the fields a link list needs
-          value: title,slug,posted_at
-    Cursor:
-      name: cursor
-      in: query
-      required: false
-      description: 'The `pagination.next_cursor` value from the previous page. Omit it to
-
-        read the first page. A cursor is opaque, is only valid for the same
-
-        operation with the same filters, and is not a durable identifier.
-
-        '
-      schema:
-        type: string
-        maxLength: 512
     CommuneVersion:
       name: Commune-Version
       in: header
@@ -1498,7 +1468,43 @@ components:
         minLength: 1
         examples:
         - '2026-08-26'
+    Limit:
+      name: limit
+      in: query
+      required: false
+      description: 'How many items to return in this page. This is a page size, not an
+
+        offset. Fewer items than requested may come back and that does not mean
+
+        the collection is exhausted, only an absent `next_cursor` does.
+
+        '
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: 'The `pagination.next_cursor` value from the previous page. Omit it to
+
+        read the first page. A cursor is opaque, is only valid for the same
+
+        operation with the same filters, and is not a durable identifier.
+
+        '
+      schema:
+        type: string
+        maxLength: 512
   responses:
+    BadRequest:
+      description: "The request was malformed, and the same request will fail the same way\nuntil it is changed. `param` names the parameter or header at fault\nwhen there is exactly one, and `allowed_values` lists what it accepts\nwhen that is a finite set. The code is `bad_request` for every case\nbelow except the last.\n\n* **A query parameter**: one the operation does not have, a value\n  outside its set, range or format (an unparseable cursor, an unknown\n  `expand` path or `fields` name, an identifier that is not a UUID),\n  or a required one left out, such as `q` on a search or `newsletter`\n  when the credential reaches more than one.\n* **The request body**: not JSON, not the shape the operation reads,\n  a property it does not write, or a value of the wrong type, length\n  or format. `param` is absent here, since the body is not a\n  parameter, and the message names the property.\n* **The `Idempotency-Key` header**, on an operation that changes\n  something: missing, or a value this API will not store.\n* **An unrecognised `Commune-Version`**, which answers with its own\n  code, `invalid_version`, because it is never fixed by changing the\n  body.\n"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
     Unauthorized:
       description: 'No credential was presented, or it is malformed, unknown, revoked or
 
@@ -1570,12 +1576,6 @@ components:
             $ref: '#/components/schemas/Error'
     InternalError:
       description: Something failed inside Commune. The request may be retried.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    BadRequest:
-      description: "The request was malformed, and the same request will fail the same way\nuntil it is changed. `param` names the parameter or header at fault\nwhen there is exactly one, and `allowed_values` lists what it accepts\nwhen that is a finite set. The code is `bad_request` for every case\nbelow except the last.\n\n* **A query parameter**: one the operation does not have, a value\n  outside its set, range or format (an unparseable cursor, an unknown\n  `expand` path or `fields` name, an identifier that is not a UUID),\n  or a required one left out, such as `q` on a search or `newsletter`\n  when the credential reaches more than one.\n* **The request body**: not JSON, not the shape the operation reads,\n  a property it does not write, or a value of the wrong type, length\n  or format. `param` is absent here, since the body is not a\n  parameter, and the message names the property.\n* **The `Idempotency-Key` header**, on an operation that changes\n  something: missing, or a value this API will not store.\n* **An unrecognised `Commune-Version`**, which answers with its own\n  code, `invalid_version`, because it is never fixed by changing the\n  body.\n"
       content:
         application/json:
           schema:
@@ -1654,9 +1654,6 @@ components:
         may do is what it was granted.
 
         '
-x-refined-from:
-- usecommune-openapi.json
-- usecommune-openapi.yml
 x-deferred:
 - resource: user_newsletters
   scope: partner
